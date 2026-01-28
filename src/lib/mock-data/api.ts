@@ -1,7 +1,7 @@
-import { mockDataStore } from './index';
+import { mockDataStore, saveData } from './index';
 import type { Customer, Transaction, TransactionType } from '@/lib/types';
 
-const MOCK_API_LATENCY = 500; // ms
+const MOCK_API_LATENCY = 100; // ms
 
 // --- READ OPERATIONS ---
 
@@ -53,12 +53,13 @@ export const addCustomer = async (data: AddCustomerData): Promise<Customer> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const newCustomer: Customer = {
-        id: (mockDataStore.customers.length + 1).toString(),
+        id: Date.now().toString(),
         createdAt: new Date().toISOString(),
         balance: 0,
         ...data,
       };
       mockDataStore.customers.push(newCustomer);
+      saveData();
       resolve(JSON.parse(JSON.stringify(newCustomer)));
     }, MOCK_API_LATENCY);
   });
@@ -86,7 +87,7 @@ export const addTransaction = async (
       }
 
       const newTransaction: Transaction = {
-        id: `t${mockDataStore.transactions.length + 1}`,
+        id: `t-${Date.now()}`,
         date: new Date().toISOString(),
         ...data,
       };
@@ -98,6 +99,7 @@ export const addTransaction = async (
 
       // Add new transaction
       mockDataStore.transactions.push(newTransaction);
+      saveData();
 
       resolve(JSON.parse(JSON.stringify(newTransaction)));
     }, MOCK_API_LATENCY);

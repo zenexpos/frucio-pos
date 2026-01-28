@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { CustomersTable } from './customers-table';
 import { Search, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { mockDataStore } from '@/lib/mock-data';
+import { mockDataStore, saveData } from '@/lib/mock-data';
 
 export function CustomerOverview({
   customers,
@@ -22,7 +22,8 @@ export function CustomerOverview({
   );
 
   const handleBackup = () => {
-    // Use the current state from the mockDataStore for the backup
+    // Use the current state from the mockDataStore for the backup.
+    // This store is initialized from localStorage, so it's the latest data.
     const dataToBackup = JSON.stringify(mockDataStore, null, 2);
     const blob = new Blob([dataToBackup], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -64,9 +65,12 @@ export function CustomerOverview({
           throw new Error('Format de fichier de sauvegarde invalide.');
         }
 
-        // Restore data
+        // Restore data into the in-memory store
         mockDataStore.customers = data.customers;
         mockDataStore.transactions = data.transactions;
+
+        // Persist the restored data to localStorage
+        saveData();
 
         // Trigger UI update
         window.dispatchEvent(new Event('datachanged'));
