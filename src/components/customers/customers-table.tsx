@@ -68,14 +68,10 @@ export function CustomersTable({ customers }: { customers: Customer[] }) {
                         defaultDescription="Règlement du solde"
                       />
                     )}
-                    <EditCustomerDialog
-                      customer={customer}
-                      buttonProps={{ size: 'sm' }}
-                    />
+                    <EditCustomerDialog customer={customer} />
                     <DeleteCustomerDialog
                       customerId={customer.id}
                       customerName={customer.name}
-                      buttonProps={{ size: 'sm' }}
                     />
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/customers/${customer.id}`}>
