@@ -32,18 +32,18 @@ function getInitialData() {
   }
 
   // Fallback: If no valid data in localStorage, use database.json and save it.
-  const initialData = {
+  const fallbackData = {
     customers: JSON.parse(JSON.stringify(database.customers)),
     transactions: JSON.parse(JSON.stringify(database.transactions)),
   };
 
   try {
-    window.localStorage.setItem(DATA_KEY, JSON.stringify(initialData));
+    window.localStorage.setItem(DATA_KEY, JSON.stringify(fallbackData));
   } catch (error) {
     console.error('Failed to save initial data to localStorage', error);
   }
 
-  return initialData;
+  return fallbackData;
 }
 
 // In-memory data store, initialized from localStorage or the JSON file.
