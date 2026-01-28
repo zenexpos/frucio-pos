@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "customer": {
+      "title": "Customer",
+      "description": "Represents a customer with their contact information.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "name",
+        "phone",
+        "createdAt"
+      ]
+    },
+    "transaction": {
+      "title": "Transaction",
+      "description": "Represents a financial transaction for a customer.",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "debt",
+            "payment"
+          ]
+        },
+        "amount": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "customerId",
+        "type",
+        "amount",
+        "date"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}/customers/{customerId}": {
+      "schema": {
+        "$ref": "#/entities/customer"
+      },
+      "description": "Stores customers for a specific user."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": {
+        "$ref": "#/entities/transaction"
+      },
+      "description": "Stores transactions for a specific user."
+    }
+  }
+}

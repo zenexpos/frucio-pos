@@ -1,16 +1,56 @@
-import { db } from '@/lib/data';
+'use client';
+
+import { useMemo } from 'react';
+import { collection } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser } from '@/firebase';
+import type { Customer, Transaction, CustomerWithBalance } from '@/lib/types';
+
 import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { formatCurrency } from '@/lib/utils';
 import { Users, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 import { CustomerOverview } from '@/components/customers/customer-overview';
 import { StatCard } from '@/components/dashboard/stat-card';
+import Loading from './loading';
 
-export default async function DashboardPage() {
-  const customers = await db.getCustomers();
+export default function DashboardPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  const totalCustomers = customers.length;
-  const { totalBalance, customersInDebt, customersWithCredit } =
-    customers.reduce(
+  const customersQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, `users/${user.uid}/customers`);
+  }, [firestore, user]);
+
+  const transactionsQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, `users/${user.uid}/transactions`);
+  }, [firestore, user]);
+
+  const { data: customers, loading: customersLoading } =
+    useCollection<Customer>(customersQuery);
+  const { data: transactions, loading: transactionsLoading } =
+    useCollection<Transaction>(transactionsQuery);
+
+  const customersWithBalance: CustomerWithBalance[] = useMemo(() => {
+    if (!customers || !transactions) return [];
+
+    const balances = transactions.reduce((acc, transaction) => {
+      const { customerId, type, amount } = transaction;
+      const currentBalance = acc.get(customerId) || 0;
+      const newBalance =
+        type === 'debt' ? currentBalance + amount : currentBalance - amount;
+      acc.set(customerId, newBalance);
+      return acc;
+    }, new Map<string, number>());
+
+    return customers.map((customer) => ({
+      ...customer,
+      balance: balances.get(customer.id) || 0,
+    }));
+  }, [customers, transactions]);
+
+  const { totalBalance, customersInDebt, customersWithCredit } = useMemo(() => {
+    return customersWithBalance.reduce(
       (acc, customer) => {
         acc.totalBalance += customer.balance;
         if (customer.balance > 0) {
@@ -22,6 +62,13 @@ export default async function DashboardPage() {
       },
       { totalBalance: 0, customersInDebt: 0, customersWithCredit: 0 }
     );
+  }, [customersWithBalance]);
+
+  const totalCustomers = customersWithBalance.length;
+
+  if (customersLoading || transactionsLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -59,7 +106,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <CustomerOverview customers={customers} />
+      <CustomerOverview customers={customersWithBalance} />
     </div>
   );
 }
