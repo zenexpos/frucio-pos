@@ -1,4 +1,6 @@
-export const firebaseConfig = {
+import type { FirebaseOptions } from 'firebase/app';
+
+export const firebaseConfig: FirebaseOptions = {
   "projectId": "studio-8246628696-e6c27",
   "appId": "1:779868328783:web:d8a776167a38ff03caab3a",
   "apiKey": "AIzaSyDwiQvkZh7_2Vz_v4MoIaU2pGkCKBwPNn8",
