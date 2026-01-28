@@ -74,6 +74,6 @@ export async function addTransactionAction(
   revalidatePath(`/customers/${validatedFields.data.customerId}`);
   return {
     type: 'success',
-    message: 'Transaction enregistrée avec succès.',
+    message: 'Transaction ajoutée avec succès.',
   };
 }
