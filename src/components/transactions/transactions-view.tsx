@@ -1,5 +1,3 @@
-'use client';
-
 import type { Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TransactionsTable } from './transactions-table';

@@ -1,5 +1,3 @@
-'use client';
-
 import { AddTransactionForm } from './add-transaction-form';
 import type { TransactionType } from '@/lib/types';
 import { FormDialog } from '@/components/forms/form-dialog';
