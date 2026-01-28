@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Phone } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export function CustomerHeader({
   customer,
@@ -23,9 +25,8 @@ export function CustomerHeader({
             <CardTitle className="text-2xl">{customer.name}</CardTitle>
             <CardDescription>
               Client depuis{' '}
-              {new Date().toLocaleDateString('fr-FR', {
-                year: 'numeric',
-                month: 'long',
+              {format(new Date(customer.createdAt), 'MMMM yyyy', {
+                locale: fr,
               })}
             </CardDescription>
           </div>

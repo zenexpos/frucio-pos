@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export function CustomersTable({
   customers,
@@ -32,6 +34,7 @@ export function CustomersTable({
           <TableRow>
             <TableHead>Nom</TableHead>
             <TableHead className="hidden sm:table-cell">Téléphone</TableHead>
+            <TableHead className="hidden md:table-cell">Date d'ajout</TableHead>
             <TableHead className="text-right">Solde</TableHead>
             <TableHead>
               <span className="sr-only">Voir</span>
@@ -49,6 +52,11 @@ export function CustomersTable({
                 <TableCell className="font-medium">{customer.name}</TableCell>
                 <TableCell className="hidden sm:table-cell text-muted-foreground">
                   {customer.phone}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground">
+                  {format(new Date(customer.createdAt), 'dd MMM yyyy', {
+                    locale: fr,
+                  })}
                 </TableCell>
                 <TableCell className="text-right">
                   <Badge
@@ -71,7 +79,7 @@ export function CustomersTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center h-24">
+              <TableCell colSpan={5} className="text-center h-24">
                 Aucun client trouvé.
               </TableCell>
             </TableRow>
