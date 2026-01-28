@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { collection, doc, query, where, orderBy } from 'firebase/firestore';
-import { useCollection, useDoc, useFirestore, useUser } from '@/firebase';
+import { useCollectionOnce, useDocOnce, useFirestore, useUser } from '@/firebase';
 import type { Customer, Transaction } from '@/lib/types';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -39,9 +39,9 @@ export default function CustomerDetailPage({
     );
   }, [firestore, user, params.id]);
 
-  const { data: customer, loading: customerLoading } = useDoc<Customer>(customerRef);
+  const { data: customer, loading: customerLoading } = useDocOnce<Customer>(customerRef);
   const { data: transactions, loading: transactionsLoading } =
-    useCollection<Transaction>(transactionsQuery);
+    useCollectionOnce<Transaction>(transactionsQuery);
 
   const loading = customerLoading || transactionsLoading;
 
