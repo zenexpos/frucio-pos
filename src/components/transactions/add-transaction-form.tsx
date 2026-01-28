@@ -1,15 +1,14 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormState } from 'react-dom';
 import { useRef } from 'react';
 import { addTransactionAction, type ActionState } from '@/app/actions';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useFormFeedback } from '@/hooks/use-form-feedback';
-import { Loader2 } from 'lucide-react';
+import { SubmitButton } from '@/components/forms/submit-button';
 import type { TransactionType } from '@/lib/types';
 
 const initialState: ActionState = {
@@ -17,16 +16,6 @@ const initialState: ActionState = {
   message: '',
   errors: {},
 };
-
-function SubmitButton({ type }: { type: TransactionType }) {
-  const { pending } = useFormStatus();
-  const text = type === 'debt' ? 'Ajouter une dette' : 'Ajouter un paiement';
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? <Loader2 className="animate-spin" /> : text}
-    </Button>
-  );
-}
 
 export function AddTransactionForm({
   type,
@@ -39,6 +28,7 @@ export function AddTransactionForm({
 }) {
   const [state, formAction] = useFormState(addTransactionAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const text = type === 'debt' ? 'Ajouter une dette' : 'Ajouter un paiement';
 
   useFormFeedback(state, () => {
     formRef.current?.reset();
@@ -66,7 +56,7 @@ export function AddTransactionForm({
         )}
       </div>
       
-      <SubmitButton type={type} />
+      <SubmitButton>{text}</SubmitButton>
     </form>
   );
 }

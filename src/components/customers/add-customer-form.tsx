@@ -1,29 +1,19 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormState } from 'react-dom';
 import { useRef } from 'react';
 import { addCustomerAction, type ActionState } from '@/app/actions';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFormFeedback } from '@/hooks/use-form-feedback';
-import { Loader2 } from 'lucide-react';
+import { SubmitButton } from '@/components/forms/submit-button';
 
 const initialState: ActionState = {
   type: '',
   message: '',
   errors: {},
 };
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? <Loader2 className="animate-spin" /> : 'Ajouter le client'}
-    </Button>
-  );
-}
 
 export function AddCustomerForm({ onSuccess }: { onSuccess: () => void }) {
   const [state, formAction] = useFormState(addCustomerAction, initialState);
@@ -50,7 +40,7 @@ export function AddCustomerForm({ onSuccess }: { onSuccess: () => void }) {
           <p className="text-sm font-medium text-destructive">{state.errors.phone[0]}</p>
         )}
       </div>
-      <SubmitButton />
+      <SubmitButton>Ajouter le client</SubmitButton>
     </form>
   );
 }
