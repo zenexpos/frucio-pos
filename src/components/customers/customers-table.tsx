@@ -15,6 +15,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { AddTransactionDialog } from '@/components/transactions/add-transaction-dialog';
+import { EditCustomerDialog } from './edit-customer-dialog';
+import { DeleteCustomerDialog } from './delete-customer-dialog';
 
 export function CustomersTable({ customers }: { customers: Customer[] }) {
   return (
@@ -51,21 +53,30 @@ export function CustomersTable({ customers }: { customers: Customer[] }) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-0.5">
                     <AddTransactionDialog
                       type="debt"
                       customerId={customer.id}
-                      buttonProps={{ size: 'sm' }}
+                      buttonProps={{ size: 'sm', variant: 'ghost' }}
                     />
                     {customer.balance > 0 && (
                       <AddTransactionDialog
                         type="payment"
                         customerId={customer.id}
-                        buttonProps={{ size: 'sm' }}
+                        buttonProps={{ size: 'sm', variant: 'ghost' }}
                         defaultAmount={customer.balance}
                         defaultDescription="Règlement du solde"
                       />
                     )}
+                    <EditCustomerDialog
+                      customer={customer}
+                      buttonProps={{ size: 'sm' }}
+                    />
+                    <DeleteCustomerDialog
+                      customerId={customer.id}
+                      customerName={customer.name}
+                      buttonProps={{ size: 'sm' }}
+                    />
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/customers/${customer.id}`}>
                         <span className="sr-only">Voir les détails</span>

@@ -105,3 +105,54 @@ export const addTransaction = async (
     }, MOCK_API_LATENCY);
   });
 };
+
+export const updateCustomer = async (
+  id: string,
+  data: { name: string; phone: string }
+): Promise<Customer> => {
+  console.log(`Updating customer ${id} with:`, data);
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const customerIndex = mockDataStore.customers.findIndex(
+        (c) => c.id === id
+      );
+      if (customerIndex === -1) {
+        return reject(new Error('Customer not found'));
+      }
+      mockDataStore.customers[customerIndex] = {
+        ...mockDataStore.customers[customerIndex],
+        ...data,
+      };
+      saveData();
+      resolve(
+        JSON.parse(JSON.stringify(mockDataStore.customers[customerIndex]))
+      );
+    }, MOCK_API_LATENCY);
+  });
+};
+
+export const deleteCustomer = async (id: string): Promise<{ id: string }> => {
+  console.log(`Deleting customer with id: ${id}`);
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const initialCustomerCount = mockDataStore.customers.length;
+      // Filter out the customer
+      mockDataStore.customers = mockDataStore.customers.filter(
+        (c) => c.id !== id
+      );
+
+      // If no customer was deleted, reject
+      if (mockDataStore.customers.length === initialCustomerCount) {
+        return reject(new Error('Customer not found'));
+      }
+
+      // Filter out their transactions
+      mockDataStore.transactions = mockDataStore.transactions.filter(
+        (t) => t.customerId !== id
+      );
+
+      saveData();
+      resolve({ id });
+    }, MOCK_API_LATENCY);
+  });
+};
