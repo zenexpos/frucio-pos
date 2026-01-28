@@ -24,67 +24,53 @@ const transactionSchema = z.object({
 });
 
 export async function addCustomerAction(prevState: any, formData: FormData) {
-  try {
-    const validatedFields = customerSchema.safeParse({
-      name: formData.get('name'),
-      phone: formData.get('phone'),
-    });
+  const validatedFields = customerSchema.safeParse({
+    name: formData.get('name'),
+    phone: formData.get('phone'),
+  });
 
-    if (!validatedFields.success) {
-      return {
-        type: 'error',
-        errors: validatedFields.error.flatten().fieldErrors,
-        message: 'Veuillez corriger les erreurs ci-dessous.',
-      };
-    }
-
-    await db.addCustomer(validatedFields.data);
-
-    revalidatePath('/');
-    return { type: 'success', message: 'Client ajouté avec succès.' };
-  } catch (e) {
+  if (!validatedFields.success) {
     return {
       type: 'error',
-      message: 'Une erreur inattendue est survenue.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Veuillez corriger les erreurs ci-dessous.',
     };
   }
+
+  await db.addCustomer(validatedFields.data);
+
+  revalidatePath('/');
+  return { type: 'success', message: 'Client ajouté avec succès.' };
 }
 
 export async function addTransactionAction(
   prevState: any,
   formData: FormData
 ) {
-  try {
-    const validatedFields = transactionSchema.safeParse({
-      amount: formData.get('amount'),
-      description: formData.get('description'),
-      customerId: formData.get('customerId'),
-      type: formData.get('type'),
-    });
+  const validatedFields = transactionSchema.safeParse({
+    amount: formData.get('amount'),
+    description: formData.get('description'),
+    customerId: formData.get('customerId'),
+    type: formData.get('type'),
+  });
 
-    if (!validatedFields.success) {
-      return {
-        type: 'error',
-        errors: validatedFields.error.flatten().fieldErrors,
-        message: 'Veuillez corriger les erreurs ci-dessous.',
-      };
-    }
-    
-    await db.addTransaction({
-      ...validatedFields.data,
-      type: validatedFields.data.type as TransactionType,
-    });
-
-    revalidatePath('/');
-    revalidatePath(`/customers/${validatedFields.data.customerId}`);
-    return {
-      type: 'success',
-      message: 'Transaction enregistrée avec succès.',
-    };
-  } catch (e) {
+  if (!validatedFields.success) {
     return {
       type: 'error',
-      message: 'Une erreur inattendue est survenue.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Veuillez corriger les erreurs ci-dessous.',
     };
   }
+  
+  await db.addTransaction({
+    ...validatedFields.data,
+    type: validatedFields.data.type as TransactionType,
+  });
+
+  revalidatePath('/');
+  revalidatePath(`/customers/${validatedFields.data.customerId}`);
+  return {
+    type: 'success',
+    message: 'Transaction enregistrée avec succès.',
+  };
 }
