@@ -22,13 +22,13 @@ export function TransactionsView({
           <div className="flex gap-2">
             <AddTransactionDialog type="debt" customerId={customerId}>
               <Button variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" />
+                <PlusCircle />
                 Enregistrer une dette
               </Button>
             </AddTransactionDialog>
             <AddTransactionDialog type="payment" customerId={customerId}>
               <Button>
-                <MinusCircle className="mr-2 h-4 w-4" />
+                <MinusCircle />
                 Enregistrer un paiement
               </Button>
             </AddTransactionDialog>

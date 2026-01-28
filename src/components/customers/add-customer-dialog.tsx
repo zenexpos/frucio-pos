@@ -20,7 +20,7 @@ export function AddCustomerDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle />
           Ajouter un client
         </Button>
       </DialogTrigger>

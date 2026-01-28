@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,7 +21,7 @@ export function CustomerHeader({
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <CardTitle className="text-2xl">{customer.name}</CardTitle>
+            <CardTitle>{customer.name}</CardTitle>
             <CardDescription>
               Client depuis{' '}
               {format(new Date(customer.createdAt), 'MMMM yyyy', {

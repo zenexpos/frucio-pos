@@ -72,7 +72,7 @@ export function CustomersTable({
                   <div className="flex items-center justify-end gap-2">
                     <AddTransactionDialog type="debt" customerId={customer.id}>
                       <Button variant="outline" size="sm">
-                        <PlusCircle className="mr-2 h-4 w-4" />
+                        <PlusCircle />
                         Ajouter une dette
                       </Button>
                     </AddTransactionDialog>
@@ -82,7 +82,7 @@ export function CustomersTable({
                       onClick={() => handleRowClick(customer.id)}
                     >
                       <span className="sr-only">Voir les détails</span>
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight />
                     </Button>
                   </div>
                 </TableCell>
