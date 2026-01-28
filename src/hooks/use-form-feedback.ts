@@ -2,14 +2,10 @@
 
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-
-type FormState = {
-  type: string;
-  message: string;
-};
+import type { ActionState } from '@/app/actions';
 
 export function useFormFeedback(
-  state: FormState,
+  state: ActionState,
   onSuccess: () => void
 ) {
   const { toast } = useToast();

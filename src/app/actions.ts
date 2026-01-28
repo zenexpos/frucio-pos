@@ -5,6 +5,12 @@ import { db } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
 import type { TransactionType } from './lib/types';
 
+export type ActionState = {
+  type: 'success' | 'error' | '';
+  message: string;
+  errors?: Record<string, string[] | undefined>;
+};
+
 const customerSchema = z.object({
   name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
   phone: z
@@ -23,7 +29,7 @@ const transactionSchema = z.object({
   type: z.enum(['debt', 'payment']),
 });
 
-export async function addCustomerAction(prevState: any, formData: FormData) {
+export async function addCustomerAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const validatedFields = customerSchema.safeParse({
     name: formData.get('name'),
     phone: formData.get('phone'),
@@ -44,9 +50,9 @@ export async function addCustomerAction(prevState: any, formData: FormData) {
 }
 
 export async function addTransactionAction(
-  prevState: any,
+  prevState: ActionState,
   formData: FormData
-) {
+): Promise<ActionState> {
   const validatedFields = transactionSchema.safeParse({
     amount: formData.get('amount'),
     description: formData.get('description'),
@@ -62,10 +68,7 @@ export async function addTransactionAction(
     };
   }
   
-  await db.addTransaction({
-    ...validatedFields.data,
-    type: validatedFields.data.type as TransactionType,
-  });
+  await db.addTransaction(validatedFields.data);
 
   revalidatePath('/');
   revalidatePath(`/customers/${validatedFields.data.customerId}`);

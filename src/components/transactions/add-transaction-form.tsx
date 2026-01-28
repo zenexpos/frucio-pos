@@ -1,38 +1,18 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { addTransactionAction } from '@/app/actions';
+import { useRef } from 'react';
+import { addTransactionAction, type ActionState } from '@/app/actions';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { useFormFeedback } from '@/hooks/use-form-feedback';
 import { Loader2 } from 'lucide-react';
 import type { TransactionType } from '@/lib/types';
 
-const transactionSchema = z.object({
-  amount: z.coerce
-    .number()
-    .positive({ message: 'Le montant doit être un nombre positif.' }),
-  description: z
-    .string()
-    .min(3, { message: 'La description doit comporter au moins 3 caractères.' }),
-});
-
-type TransactionFormValues = z.infer<typeof transactionSchema>;
-
-const initialState = {
+const initialState: ActionState = {
   type: '',
   message: '',
   errors: {},
@@ -58,54 +38,35 @@ export function AddTransactionForm({
   onSuccess: () => void;
 }) {
   const [state, formAction] = useFormState(addTransactionAction, initialState);
-
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      amount: 0,
-      description: '',
-    },
-  });
+  const formRef = useRef<HTMLFormElement>(null);
 
   useFormFeedback(state, () => {
-    form.reset();
+    formRef.current?.reset();
     onSuccess();
   });
 
   return (
-    <Form {...form}>
-      <form action={formAction} className="space-y-4">
-        <input type="hidden" name="customerId" value={customerId} />
-        <input type="hidden" name="type" value={type} />
+    <form ref={formRef} action={formAction} className="space-y-4">
+      <input type="hidden" name="customerId" value={customerId} />
+      <input type="hidden" name="type" value={type} />
 
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Montant</FormLabel>
-              <FormControl>
-                <Input type="number" step="0.01" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="ex: Services de conception de sites Web" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <SubmitButton type={type} />
-      </form>
-    </Form>
+      <div className="space-y-2">
+        <Label htmlFor="amount">Montant</Label>
+        <Input id="amount" name="amount" type="number" step="0.01" defaultValue="0" />
+        {state.errors?.amount && (
+            <p className="text-sm font-medium text-destructive">{state.errors.amount[0]}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea id="description" name="description" placeholder="ex: Services de conception de sites Web" />
+        {state.errors?.description && (
+            <p className="text-sm font-medium text-destructive">{state.errors.description[0]}</p>
+        )}
+      </div>
+      
+      <SubmitButton type={type} />
+    </form>
   );
 }

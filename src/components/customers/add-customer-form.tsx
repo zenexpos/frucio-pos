@@ -1,34 +1,16 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { addCustomerAction } from '@/app/actions';
+import { useRef } from 'react';
+import { addCustomerAction, type ActionState } from '@/app/actions';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { useFormFeedback } from '@/hooks/use-form-feedback';
 import { Loader2 } from 'lucide-react';
 
-const customerSchema = z.object({
-  name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
-  phone: z
-    .string()
-    .min(10, { message: 'Le numéro de téléphone doit comporter au moins 10 caractères.' }),
-});
-
-type CustomerFormValues = z.infer<typeof customerSchema>;
-
-const initialState = {
+const initialState: ActionState = {
   type: '',
   message: '',
   errors: {},
@@ -45,51 +27,30 @@ function SubmitButton() {
 
 export function AddCustomerForm({ onSuccess }: { onSuccess: () => void }) {
   const [state, formAction] = useFormState(addCustomerAction, initialState);
-
-  const form = useForm<CustomerFormValues>({
-    resolver: zodResolver(customerSchema),
-    defaultValues: {
-      name: '',
-      phone: '',
-    },
-  });
+  const formRef = useRef<HTMLFormElement>(null);
 
   useFormFeedback(state, () => {
-    form.reset();
+    formRef.current?.reset();
     onSuccess();
   });
 
   return (
-    <Form {...form}>
-      <form action={formAction} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nom complet</FormLabel>
-              <FormControl>
-                <Input placeholder="Jean Dupont" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Numéro de téléphone</FormLabel>
-              <FormControl>
-                <Input placeholder="01-23-45-67-89" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <SubmitButton />
-      </form>
-    </Form>
+    <form ref={formRef} action={formAction} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Nom complet</Label>
+        <Input id="name" name="name" placeholder="Jean Dupont" />
+        {state.errors?.name && (
+          <p className="text-sm font-medium text-destructive">{state.errors.name[0]}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone">Numéro de téléphone</Label>
+        <Input id="phone" name="phone" placeholder="01-23-45-67-89" />
+        {state.errors?.phone && (
+          <p className="text-sm font-medium text-destructive">{state.errors.phone[0]}</p>
+        )}
+      </div>
+      <SubmitButton />
+    </form>
   );
 }
