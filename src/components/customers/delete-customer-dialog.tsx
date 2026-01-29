@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button, type ButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteCustomer } from '@/lib/mock-data/api';
@@ -20,11 +20,9 @@ import { deleteCustomer } from '@/lib/mock-data/api';
 export function DeleteCustomerDialog({
   customerId,
   customerName,
-  buttonProps,
 }: {
   customerId: string;
   customerName: string;
-  buttonProps?: Omit<ButtonProps, 'children' | 'onClick'>;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -55,7 +53,7 @@ export function DeleteCustomerDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" {...buttonProps}>
+        <Button variant="ghost" size="icon">
           <Trash2 className="text-destructive" />
           <span className="sr-only">Supprimer le client</span>
         </Button>
