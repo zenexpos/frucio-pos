@@ -33,13 +33,15 @@ import { mockDataStore, saveData } from '@/lib/mock-data';
 import type { Customer } from '@/lib/types';
 import { Upload, Check, ChevronsRight } from 'lucide-react';
 
-const REQUIRED_FIELDS: (keyof Customer)[] = [
+const CUSTOMER_MODEL_FIELDS: (keyof Customer)[] = [
   'id',
   'name',
   'phone',
   'createdAt',
   'balance',
 ];
+
+const MINIMUM_MAPPED_FIELDS: (keyof Customer)[] = ['name'];
 
 export function CsvImportDialog() {
   const [open, setOpen] = useState(false);
@@ -68,7 +70,7 @@ export function CsvImportDialog() {
       // Auto-map columns if headers match
       const initialMapping: Record<string, string> = {};
       headerRow.forEach((header: string) => {
-        if (REQUIRED_FIELDS.includes(header as keyof Customer)) {
+        if (CUSTOMER_MODEL_FIELDS.includes(header as keyof Customer)) {
           initialMapping[header] = header;
         }
       });
@@ -87,35 +89,51 @@ export function CsvImportDialog() {
   };
 
   const processAndPreview = () => {
-    const mappedData: Customer[] = csvData.map((row) => {
-      const customer: Partial<Customer> = {};
-      headers.forEach((header, index) => {
-        const customerField = columnMapping[header] as keyof Customer;
-        if (customerField) {
-          let value: any = row[index];
-          if (customerField === 'balance') {
-            value = parseFloat(value) || 0;
-          }
-          (customer as any)[customerField] = value;
-        }
-      });
-      return customer as Customer;
-    });
-
-    const missingFields = REQUIRED_FIELDS.filter(
-      (field) => !Object.values(columnMapping).includes(field)
+    const mappedFields = Object.values(columnMapping);
+    const missingFields = MINIMUM_MAPPED_FIELDS.filter(
+      (field) => !mappedFields.includes(field)
     );
 
     if (missingFields.length > 0) {
       toast({
-        title: 'Colonnes manquantes',
-        description: `Veuillez mapper les colonnes requises: ${missingFields.join(
+        title: 'Mappage de Colonne Requis',
+        description: `Veuillez mapper au moins le champ suivant: ${missingFields.join(
           ', '
         )}`,
         variant: 'destructive',
       });
       return;
     }
+
+    const mappedData: Customer[] = csvData.map((row, rowIndex) => {
+      const customer: Partial<Customer> = {};
+      headers.forEach((header, index) => {
+        const customerField = columnMapping[header] as keyof Customer;
+        if (customerField && customerField !== 'ignore') {
+          let value: any = row[index] ?? '';
+          if (customerField === 'balance') {
+            value = parseFloat(String(value).replace(/[^0-9.-]+/g, '')) || 0;
+          }
+          (customer as any)[customerField] = value;
+        }
+      });
+
+      // Auto-generate missing required fields
+      if (!customer.id) {
+        customer.id = `import-${Date.now()}-${rowIndex}`;
+      }
+      if (!customer.createdAt) {
+        customer.createdAt = new Date().toISOString();
+      }
+      if (customer.balance === undefined) {
+        customer.balance = 0;
+      }
+      if (!customer.phone) {
+        customer.phone = '';
+      }
+
+      return customer as Customer;
+    });
 
     setEditedData(mappedData);
     setStep(3);
@@ -142,10 +160,10 @@ export function CsvImportDialog() {
   const handleImport = () => {
     try {
       // Validate data before import
-      const hasValidData = editedData.every((c) => c.id && c.name);
+      const hasValidData = editedData.every((c) => c.name && c.name.trim() !== '');
       if (!hasValidData) {
         throw new Error(
-          "Certaines lignes manquent de 'id' ou 'name' qui sont obligatoires."
+          "Certaines lignes manquent de 'name', qui est un champ obligatoire."
         );
       }
 
@@ -160,7 +178,7 @@ export function CsvImportDialog() {
       });
       resetState();
     } catch (error) {
-      console.error('Failed to import data:', error);
+      console.error("Erreur lors de l'importation:", error);
       toast({
         title: 'Erreur',
         description: `Erreur lors de l'importation: ${
@@ -213,7 +231,7 @@ export function CsvImportDialog() {
                 <Upload className="h-12 w-12 text-muted-foreground" />
                 <p className="mt-4 text-muted-foreground">
                   Faites glisser et déposez un fichier CSV ici, ou cliquez pour
-                  sélectionzionner un fichier
+                  sélectionner un fichier
                 </p>
                 <ProgressBar
                   style={{ backgroundColor: 'hsl(var(--primary))' }}
@@ -251,7 +269,7 @@ export function CsvImportDialog() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="ignore">Ignorer</SelectItem>
-                            {REQUIRED_FIELDS.map((field) => (
+                            {CUSTOMER_MODEL_FIELDS.map((field) => (
                               <SelectItem key={field} value={field}>
                                 {field}
                               </SelectItem>
@@ -299,7 +317,7 @@ export function CsvImportDialog() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {REQUIRED_FIELDS.map((field) => (
+                    {CUSTOMER_MODEL_FIELDS.map((field) => (
                       <TableHead key={field}>{field}</TableHead>
                     ))}
                   </TableRow>
@@ -307,7 +325,7 @@ export function CsvImportDialog() {
                 <TableBody>
                   {editedData.map((customer, rowIndex) => (
                     <TableRow key={customer.id || rowIndex}>
-                      {REQUIRED_FIELDS.map((field) => (
+                      {CUSTOMER_MODEL_FIELDS.map((field) => (
                         <TableCell key={field}>
                           <Input
                             value={(customer as any)[field] || ''}
