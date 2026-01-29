@@ -53,8 +53,7 @@ export const getTransactionsByCustomerId = async (
 // --- WRITE OPERATIONS ---
 
 interface AddCustomerData {
-  firstName: string;
-  lastName: string;
+  name: string;
   phone: string;
   settlementDay?: string;
 }
@@ -124,8 +123,7 @@ export const addTransaction = async (
 };
 
 interface UpdateCustomerData {
-  firstName: string;
-  lastName: string;
+  name: string;
   phone: string;
   settlementDay?: string;
 }

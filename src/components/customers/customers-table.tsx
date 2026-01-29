@@ -52,19 +52,10 @@ export function CustomersTable({
             <TableHead>
               <Button
                 variant="ghost"
-                onClick={() => onSort('firstName')}
+                onClick={() => onSort('name')}
                 className="px-2 py-1"
               >
-                Prénom {getSortIcon('firstName')}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                onClick={() => onSort('lastName')}
-                className="px-2 py-1"
-              >
-                Nom {getSortIcon('lastName')}
+                Nom {getSortIcon('name')}
               </Button>
             </TableHead>
             <TableHead className="hidden sm:table-cell">
@@ -104,10 +95,7 @@ export function CustomersTable({
             customers.map((customer) => (
               <TableRow key={customer.id}>
                 <TableCell className="font-medium">
-                  {customer.firstName}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {customer.lastName}
+                  {customer.name}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell text-muted-foreground">
                   {customer.settlementDay}
@@ -154,7 +142,7 @@ export function CustomersTable({
                     <EditCustomerDialog customer={customer} />
                     <DeleteCustomerDialog
                       customerId={customer.id}
-                      customerName={`${customer.firstName} ${customer.lastName}`}
+                      customerName={customer.name}
                     />
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/customers/${customer.id}`}>
@@ -168,7 +156,7 @@ export function CustomersTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="text-center h-24">
+              <TableCell colSpan={5} className="text-center h-24">
                 Aucun client trouvé.
               </TableCell>
             </TableRow>

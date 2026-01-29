@@ -37,9 +37,7 @@ export function CustomerOverview({ customers }: { customers: Customer[] }) {
 
   const sortedAndFilteredCustomers = useMemo(() => {
     let sortableCustomers = [...customers].filter((customer) =>
-      `${customer.firstName} ${customer.lastName}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     sortableCustomers.sort((a, b) => {
@@ -87,8 +85,7 @@ export function CustomerOverview({ customers }: { customers: Customer[] }) {
 
     const headers = [
       'id',
-      'firstName',
-      'lastName',
+      'name',
       'phone',
       'createdAt',
       'balance',

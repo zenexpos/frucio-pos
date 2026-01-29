@@ -10,10 +10,7 @@ import { useFormSubmission } from '@/hooks/use-form-submission';
 import { addCustomer } from '@/lib/mock-data/api';
 
 const customerSchema = z.object({
-  firstName: z
-    .string()
-    .min(2, { message: 'Le prénom doit comporter au moins 2 caractères.' }),
-  lastName: z
+  name: z
     .string()
     .min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
   phone: z.string().min(10, {
@@ -40,25 +37,14 @@ export function AddCustomerForm({ onSuccess }: { onSuccess?: () => void }) {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="firstName">Prénom</Label>
-          <Input id="firstName" name="firstName" placeholder="Jean" />
-          {errors?.firstName && (
-            <p className="text-sm font-medium text-destructive">
-              {errors.firstName._errors[0]}
-            </p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Nom</Label>
-          <Input id="lastName" name="lastName" placeholder="Dupont" />
-          {errors?.lastName && (
-            <p className="text-sm font-medium text-destructive">
-              {errors.lastName._errors[0]}
-            </p>
-          )}
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="name">Nom complet</Label>
+        <Input id="name" name="name" placeholder="Jean Dupont" />
+        {errors?.name && (
+          <p className="text-sm font-medium text-destructive">
+            {errors.name._errors[0]}
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone">Numéro de téléphone</Label>

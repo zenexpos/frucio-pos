@@ -35,15 +35,14 @@ import { Upload, Check, ChevronsRight } from 'lucide-react';
 
 const CUSTOMER_MODEL_FIELDS: (keyof Omit<Customer, 'totalExpenses'>)[] = [
   'id',
-  'firstName',
-  'lastName',
+  'name',
   'phone',
   'createdAt',
   'balance',
   'settlementDay',
 ];
 
-const MINIMUM_MAPPED_FIELDS: (keyof Customer)[] = ['firstName', 'lastName'];
+const MINIMUM_MAPPED_FIELDS: (keyof Customer)[] = ['name'];
 
 export function CsvImportDialog() {
   const [open, setOpen] = useState(false);
@@ -99,7 +98,7 @@ export function CsvImportDialog() {
     if (missingFields.length > 0) {
       toast({
         title: 'Mappage de Colonne Requis',
-        description: `Veuillez mapper au moins les champs suivants: ${missingFields.join(
+        description: `Veuillez mapper au moins le champ suivant: ${missingFields.join(
           ', '
         )}`,
         variant: 'destructive',
@@ -154,11 +153,8 @@ export function CsvImportDialog() {
         if (!customer.phone) {
           customer.phone = '';
         }
-        if (!customer.firstName) {
-          customer.firstName = '';
-        }
-        if (!customer.lastName) {
-          customer.lastName = '';
+        if (!customer.name) {
+          customer.name = '';
         }
         if (!customer.settlementDay) {
           customer.settlementDay = '';
@@ -194,11 +190,11 @@ export function CsvImportDialog() {
     try {
       // Validate data before import: ensure name is present
       const hasValidData = editedData.every(
-        (c) => c.firstName && c.firstName.trim() !== '' && c.lastName && c.lastName.trim() !== ''
+        (c) => c.name && c.name.trim() !== ''
       );
       if (!hasValidData) {
         throw new Error(
-          "Certaines lignes manquent de 'firstName' ou 'lastName', qui sont des champs obligatoires."
+          "Certaines lignes manquent de 'name', qui est un champ obligatoire."
         );
       }
 
@@ -294,8 +290,8 @@ export function CsvImportDialog() {
               Étape 2 : Mapper les colonnes
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Associez chaque colonne de votre fichier CSV à un champ client. Les
-              champs `firstName` et `lastName` sont obligatoires. Les champs comme `id` seront créés
+              Associez chaque colonne de votre fichier CSV à un champ client. Le
+              champ `name` est obligatoire. Les champs comme `id` seront créés
               automatiquement s'ils ne sont pas mappés.
             </p>
             <div className="overflow-auto flex-grow">
