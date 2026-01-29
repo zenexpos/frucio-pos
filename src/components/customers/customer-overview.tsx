@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import type { Customer } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { CustomersTable } from './customers-table';
-import { Search, Download, Upload } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { mockDataStore, saveData } from '@/lib/mock-data';
+import { mockDataStore } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
+import { CsvImportDialog } from './csv-import-dialog';
 
 export function CustomerOverview({
   customers,
@@ -16,7 +17,6 @@ export function CustomerOverview({
   customers: Customer[];
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const filteredCustomers = customers.filter((customer) =>
@@ -70,100 +70,6 @@ export function CustomerOverview({
     });
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result;
-        if (typeof text !== 'string') {
-          throw new Error("Le fichier n'a pas pu être lu");
-        }
-
-        const lines = text.trim().split(/\r\n|\n/);
-        if (lines.length < 2) {
-          throw new Error(
-            "Le fichier CSV est vide ou ne contient que l'en-tête."
-          );
-        }
-        // Remove BOM if present
-        const headerLine =
-          lines[0].charCodeAt(0) === 0xfeff ? lines[0].substring(1) : lines[0];
-        const headers = headerLine.split(',').map((h) => h.trim());
-
-        const requiredHeaders = ['id', 'name', 'phone', 'createdAt', 'balance'];
-        const missingHeaders = requiredHeaders.filter(
-          (h) => !headers.includes(h)
-        );
-        if (missingHeaders.length > 0) {
-          throw new Error(
-            `En-têtes CSV manquants: ${missingHeaders.join(', ')}`
-          );
-        }
-
-        const newCustomers: Customer[] = lines
-          .slice(1)
-          .map((line) => {
-            if (!line.trim()) return null; // Ignore empty lines
-            // This is a very basic CSV parser, it won't handle commas inside quoted fields.
-            const values = line.split(',');
-            const customer: Partial<Customer> = {};
-            headers.forEach((header, index) => {
-              if (requiredHeaders.includes(header)) {
-                const value = values[index]?.trim() ?? '';
-                if (header === 'balance') {
-                  (customer as any)[header] = parseFloat(value) || 0;
-                } else {
-                  (customer as any)[header] = value;
-                }
-              }
-            });
-            return customer as Customer;
-          })
-          .filter((c): c is Customer => c !== null);
-
-        // Restore data into the in-memory store
-        mockDataStore.customers = newCustomers;
-        // IMPORTANT: Clear transactions as they are not part of the CSV and would be orphaned.
-        mockDataStore.transactions = [];
-
-        // Persist the restored data to localStorage
-        saveData();
-
-        // Trigger UI update
-        window.dispatchEvent(new Event('datachanged'));
-
-        toast({
-          title: 'Succès !',
-          description: `Données importées depuis CSV. ${newCustomers.length} clients chargés. Les anciennes transactions ont été effacées.`,
-        });
-      } catch (error) {
-        console.error('Failed to import data:', error);
-        toast({
-          title: 'Erreur',
-          description: `Erreur lors de l'importation: ${
-            error instanceof Error ? error.message : 'Erreur inconnue'
-          }`,
-          variant: 'destructive',
-        });
-      } finally {
-        // Reset file input so the same file can be uploaded again
-        if (event.target) {
-          event.target.value = '';
-        }
-      }
-    };
-    reader.readAsText(file);
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -179,21 +85,11 @@ export function CustomerOverview({
                 className="pl-10 w-full"
               />
             </div>
-            <Button variant="outline" onClick={handleImportClick}>
-              <Upload />
-              Importer
-            </Button>
+            <CsvImportDialog />
             <Button variant="outline" onClick={handleExport}>
               <Download />
               Exporter
             </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept=".csv"
-            />
           </div>
         </div>
       </CardHeader>
