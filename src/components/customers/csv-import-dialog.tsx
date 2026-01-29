@@ -105,7 +105,8 @@ export function CsvImportDialog() {
       return;
     }
 
-    const mappedData: Customer[] = csvData.map((row, rowIndex) => {
+    // First pass: map data from CSV to customer objects
+    const partiallyMappedData: Partial<Customer>[] = csvData.map((row) => {
       const customer: Partial<Customer> = {};
       headers.forEach((header, index) => {
         const customerField = columnMapping[header] as keyof Customer;
@@ -114,28 +115,49 @@ export function CsvImportDialog() {
           if (customerField === 'balance') {
             value = parseFloat(String(value).replace(/[^0-9.-]+/g, '')) || 0;
           }
+          if (customerField === 'id') {
+            value = String(value);
+          }
           (customer as any)[customerField] = value;
         }
       });
-
-      // Auto-generate missing required fields
-      if (!customer.id) {
-        customer.id = `import-${Date.now()}-${rowIndex}`;
-      }
-      if (!customer.createdAt) {
-        customer.createdAt = new Date().toISOString();
-      }
-      if (customer.balance === undefined) {
-        customer.balance = 0;
-      }
-      if (!customer.phone) {
-        customer.phone = '';
-      }
-
-      return customer as Customer;
+      return customer;
     });
 
-    setEditedData(mappedData);
+    // Now, find the max ID from both existing customers and the newly imported customers that have an ID
+    const importedIds = partiallyMappedData
+      .map((c) => (c.id ? parseInt(c.id, 10) : 0))
+      .filter((id) => !isNaN(id) && id > 0);
+
+    const existingIds = mockDataStore.customers
+      .map((c) => parseInt(c.id, 10))
+      .filter((id) => !isNaN(id) && id > 0);
+
+    let maxId = Math.max(0, ...existingIds, ...importedIds);
+
+    // Second pass: fill in missing data and generate sequential IDs
+    const finalMappedData: Customer[] = partiallyMappedData.map(
+      (customer) => {
+        if (!customer.id) {
+          maxId++;
+          customer.id = maxId.toString();
+        }
+
+        if (!customer.createdAt) {
+          customer.createdAt = new Date().toISOString();
+        }
+        if (customer.balance === undefined) {
+          customer.balance = 0;
+        }
+        if (!customer.phone) {
+          customer.phone = '';
+        }
+
+        return customer as Customer;
+      }
+    );
+
+    setEditedData(finalMappedData);
     setStep(3);
   };
 
@@ -159,12 +181,25 @@ export function CsvImportDialog() {
 
   const handleImport = () => {
     try {
-      // Validate data before import
-      const hasValidData = editedData.every((c) => c.name && c.name.trim() !== '');
+      // Validate data before import: ensure name is present
+      const hasValidData = editedData.every(
+        (c) => c.name && c.name.trim() !== ''
+      );
       if (!hasValidData) {
         throw new Error(
           "Certaines lignes manquent de 'name', qui est un champ obligatoire."
         );
+      }
+
+      // Check for duplicate IDs which could be created during manual edits in the preview step
+      const idSet = new Set<string>();
+      for (const customer of editedData) {
+        if (idSet.has(customer.id)) {
+          throw new Error(
+            `ID dupliqué trouvé dans les données d'importation : ${customer.id}. Chaque client doit avoir un ID unique.`
+          );
+        }
+        idSet.add(customer.id);
       }
 
       mockDataStore.customers = editedData;

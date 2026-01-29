@@ -52,8 +52,14 @@ export const addCustomer = async (data: AddCustomerData): Promise<Customer> => {
   console.log('Adding new customer:', data);
   return new Promise((resolve) => {
     setTimeout(() => {
+      // Find the highest existing numeric ID to ensure the new ID is unique and sequential.
+      const maxId = mockDataStore.customers.reduce((max, customer) => {
+        const customerId = parseInt(customer.id, 10);
+        return !isNaN(customerId) && customerId > max ? customerId : max;
+      }, 0);
+
       const newCustomer: Customer = {
-        id: Date.now().toString(),
+        id: (maxId + 1).toString(),
         createdAt: new Date().toISOString(),
         balance: 0,
         ...data,
