@@ -80,6 +80,7 @@ export default function CustomerDetailPage() {
       <TransactionsView
         transactions={sortedTransactions}
         customerId={customer.id}
+        customerBalance={customer.balance}
       />
     </div>
   );
