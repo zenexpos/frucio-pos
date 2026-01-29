@@ -33,15 +33,17 @@ import { mockDataStore, saveData } from '@/lib/mock-data';
 import type { Customer } from '@/lib/types';
 import { Upload, Check, ChevronsRight } from 'lucide-react';
 
-const CUSTOMER_MODEL_FIELDS: (keyof Customer)[] = [
+const CUSTOMER_MODEL_FIELDS: (keyof Omit<Customer, 'totalExpenses'>)[] = [
   'id',
-  'name',
+  'firstName',
+  'lastName',
   'phone',
   'createdAt',
   'balance',
+  'settlementDay',
 ];
 
-const MINIMUM_MAPPED_FIELDS: (keyof Customer)[] = ['name'];
+const MINIMUM_MAPPED_FIELDS: (keyof Customer)[] = ['firstName', 'lastName'];
 
 export function CsvImportDialog() {
   const [open, setOpen] = useState(false);
@@ -97,7 +99,7 @@ export function CsvImportDialog() {
     if (missingFields.length > 0) {
       toast({
         title: 'Mappage de Colonne Requis',
-        description: `Veuillez mapper au moins le champ suivant: ${missingFields.join(
+        description: `Veuillez mapper au moins les champs suivants: ${missingFields.join(
           ', '
         )}`,
         variant: 'destructive',
@@ -152,6 +154,15 @@ export function CsvImportDialog() {
         if (!customer.phone) {
           customer.phone = '';
         }
+        if (!customer.firstName) {
+          customer.firstName = '';
+        }
+        if (!customer.lastName) {
+          customer.lastName = '';
+        }
+        if (!customer.settlementDay) {
+          customer.settlementDay = '';
+        }
 
         return customer as Customer;
       }
@@ -183,11 +194,11 @@ export function CsvImportDialog() {
     try {
       // Validate data before import: ensure name is present
       const hasValidData = editedData.every(
-        (c) => c.name && c.name.trim() !== ''
+        (c) => c.firstName && c.firstName.trim() !== '' && c.lastName && c.lastName.trim() !== ''
       );
       if (!hasValidData) {
         throw new Error(
-          "Certaines lignes manquent de 'name', qui est un champ obligatoire."
+          "Certaines lignes manquent de 'firstName' ou 'lastName', qui sont des champs obligatoires."
         );
       }
 
@@ -266,7 +277,7 @@ export function CsvImportDialog() {
                 <Upload className="h-12 w-12 text-muted-foreground" />
                 <p className="mt-4 text-muted-foreground">
                   Faites glisser et déposez un fichier CSV ici, ou cliquez pour
-                  sélectionner un fichier
+                  sélectioncher un fichier
                 </p>
                 <ProgressBar
                   style={{ backgroundColor: 'hsl(var(--primary))' }}
@@ -283,8 +294,8 @@ export function CsvImportDialog() {
               Étape 2 : Mapper les colonnes
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Associez chaque colonne de votre fichier CSV à un champ client. Le
-              champ `name` est obligatoire. Les champs comme `id` seront créés
+              Associez chaque colonne de votre fichier CSV à un champ client. Les
+              champs `firstName` et `lastName` sont obligatoires. Les champs comme `id` seront créés
               automatiquement s'ils ne sont pas mappés.
             </p>
             <div className="overflow-auto flex-grow">

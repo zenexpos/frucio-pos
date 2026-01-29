@@ -1,9 +1,12 @@
 export interface Customer {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   createdAt: string;
   balance: number;
+  settlementDay?: string;
+  totalExpenses?: number;
 }
 
 export type TransactionType = 'debt' | 'payment';

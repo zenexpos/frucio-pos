@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useCallback, useState, useEffect } from 'react';
-import type { Customer } from '@/lib/types';
+import type { Customer, Transaction } from '@/lib/types';
 
 import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { formatCurrency } from '@/lib/utils';
@@ -10,7 +10,7 @@ import { CustomerOverview } from '@/components/customers/customer-overview';
 import { StatCard } from '@/components/dashboard/stat-card';
 import Loading from './loading';
 import { useCollectionOnce } from '@/hooks/use-collection-once';
-import { getCustomers } from '@/lib/mock-data/api';
+import { getCustomers, getAllTransactions } from '@/lib/mock-data/api';
 
 export default function DashboardPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -34,8 +34,34 @@ export default function DashboardPage() {
     );
   }, [refreshTrigger]);
 
-  const { data: customers, loading: customersLoading } =
+  const fetchTransactions = useCallback(async () => {
+    const data = await getAllTransactions();
+    return data || [];
+  }, [refreshTrigger]);
+
+  const { data: rawCustomers, loading: customersLoading } =
     useCollectionOnce<Customer>(fetchCustomers);
+  const { data: transactions, loading: transactionsLoading } =
+    useCollectionOnce<Transaction>(fetchTransactions);
+
+  const customers = useMemo(() => {
+    if (!rawCustomers || !transactions) return [];
+
+    const expensesByCustomer = transactions.reduce((acc, t) => {
+      if (t.type === 'debt') {
+        if (!acc[t.customerId]) {
+          acc[t.customerId] = 0;
+        }
+        acc[t.customerId] += t.amount;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return rawCustomers.map((customer) => ({
+      ...customer,
+      totalExpenses: expensesByCustomer[customer.id] || 0,
+    }));
+  }, [rawCustomers, transactions]);
 
   const { totalBalance, customersInDebt, customersWithCredit } = useMemo(() => {
     if (!customers) {
@@ -57,8 +83,9 @@ export default function DashboardPage() {
   }, [customers]);
 
   const totalCustomers = customers?.length || 0;
+  const loading = customersLoading || transactionsLoading;
 
-  if (customersLoading) {
+  if (loading) {
     return <Loading />;
   }
 

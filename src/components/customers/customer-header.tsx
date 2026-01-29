@@ -41,7 +41,7 @@ export function CustomerHeader({
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <CardTitle>{customer.name}</CardTitle>
+            <CardTitle>{`${customer.firstName} ${customer.lastName}`}</CardTitle>
             <CardDescription>
               Client depuis{' '}
               {format(new Date(customer.createdAt), 'MMMM yyyy', {

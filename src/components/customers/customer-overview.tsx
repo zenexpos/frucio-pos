@@ -37,12 +37,25 @@ export function CustomerOverview({ customers }: { customers: Customer[] }) {
 
   const sortedAndFilteredCustomers = useMemo(() => {
     let sortableCustomers = [...customers].filter((customer) =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+      `${customer.firstName} ${customer.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     );
 
     sortableCustomers.sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
+
+      if (
+        aValue === undefined ||
+        aValue === null ||
+        bValue === undefined ||
+        bValue === null
+      ) {
+        if (aValue) return -1;
+        if (bValue) return 1;
+        return 0;
+      }
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortConfig.direction === 'ascending'
@@ -72,7 +85,15 @@ export function CustomerOverview({ customers }: { customers: Customer[] }) {
       return;
     }
 
-    const headers = ['id', 'name', 'phone', 'createdAt', 'balance'];
+    const headers = [
+      'id',
+      'firstName',
+      'lastName',
+      'phone',
+      'createdAt',
+      'balance',
+      'settlementDay',
+    ];
     // Add BOM for Excel compatibility with UTF-8
     const bom = '\uFEFF';
     const csvRows = [

@@ -52,20 +52,37 @@ export function CustomersTable({
             <TableHead>
               <Button
                 variant="ghost"
-                onClick={() => onSort('name')}
+                onClick={() => onSort('firstName')}
                 className="px-2 py-1"
               >
-                Nom {getSortIcon('name')}
+                Prénom {getSortIcon('firstName')}
               </Button>
             </TableHead>
-            <TableHead className="hidden sm:table-cell">Téléphone</TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                onClick={() => onSort('lastName')}
+                className="px-2 py-1"
+              >
+                Nom {getSortIcon('lastName')}
+              </Button>
+            </TableHead>
+            <TableHead className="hidden sm:table-cell">
+              <Button
+                variant="ghost"
+                onClick={() => onSort('settlementDay')}
+                className="px-2 py-1"
+              >
+                Jour de règlement {getSortIcon('settlementDay')}
+              </Button>
+            </TableHead>
             <TableHead className="hidden md:table-cell">
               <Button
                 variant="ghost"
-                onClick={() => onSort('createdAt')}
+                onClick={() => onSort('totalExpenses')}
                 className="px-2 py-1"
               >
-                Date d'ajout {getSortIcon('createdAt')}
+                Total Dépenses {getSortIcon('totalExpenses')}
               </Button>
             </TableHead>
             <TableHead className="text-right">
@@ -86,14 +103,17 @@ export function CustomersTable({
           {customers.length > 0 ? (
             customers.map((customer) => (
               <TableRow key={customer.id}>
-                <TableCell className="font-medium">{customer.name}</TableCell>
-                <TableCell className="hidden sm:table-cell text-muted-foreground">
-                  {customer.phone}
+                <TableCell className="font-medium">
+                  {customer.firstName}
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">
-                  {format(new Date(customer.createdAt), 'dd MMM yyyy', {
-                    locale: fr,
-                  })}
+                <TableCell className="font-medium">
+                  {customer.lastName}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-muted-foreground">
+                  {customer.settlementDay}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground font-mono">
+                  {formatCurrency(customer.totalExpenses || 0)}
                 </TableCell>
                 <TableCell className="text-right">
                   <Badge
@@ -134,7 +154,7 @@ export function CustomersTable({
                     <EditCustomerDialog customer={customer} />
                     <DeleteCustomerDialog
                       customerId={customer.id}
-                      customerName={customer.name}
+                      customerName={`${customer.firstName} ${customer.lastName}`}
                     />
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/customers/${customer.id}`}>
@@ -148,7 +168,7 @@ export function CustomersTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="text-center h-24">
+              <TableCell colSpan={6} className="text-center h-24">
                 Aucun client trouvé.
               </TableCell>
             </TableRow>

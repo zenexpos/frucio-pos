@@ -15,6 +15,15 @@ export const getCustomers = async (): Promise<Customer[]> => {
   });
 };
 
+export const getAllTransactions = async (): Promise<Transaction[]> => {
+  console.log('Fetching all transactions...');
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(JSON.parse(JSON.stringify(mockDataStore.transactions)));
+    }, MOCK_API_LATENCY);
+  });
+};
+
 export const getCustomerById = async (
   id: string
 ): Promise<Customer | null> => {
@@ -44,8 +53,10 @@ export const getTransactionsByCustomerId = async (
 // --- WRITE OPERATIONS ---
 
 interface AddCustomerData {
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
+  settlementDay?: string;
 }
 
 export const addCustomer = async (data: AddCustomerData): Promise<Customer> => {
@@ -112,9 +123,16 @@ export const addTransaction = async (
   });
 };
 
+interface UpdateCustomerData {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  settlementDay?: string;
+}
+
 export const updateCustomer = async (
   id: string,
-  data: { name: string; phone: string }
+  data: UpdateCustomerData
 ): Promise<Customer> => {
   console.log(`Updating customer ${id} with:`, data);
   return new Promise((resolve, reject) => {
