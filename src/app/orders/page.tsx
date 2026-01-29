@@ -27,10 +27,12 @@ export default function OrdersPage() {
   const fetchOrders = useCallback(async () => {
     const data = await getBreadOrders();
     if (!data) return [];
-    // Sort by creation date, newest first
-    return data.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    // Sort by pinned status first, then by creation date
+    return data.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }, [refreshTrigger]);
 
   const { data: orders, loading } = useCollectionOnce<BreadOrder>(fetchOrders);

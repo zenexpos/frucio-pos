@@ -26,4 +26,5 @@ export interface BreadOrder {
   isPaid: boolean;
   isDelivered: boolean;
   createdAt: string; // ISO Date string
+  isPinned: boolean;
 }

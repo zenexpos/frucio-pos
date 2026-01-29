@@ -29,6 +29,12 @@ function getInitialData() {
         if (!parsedData.breadOrders) {
           parsedData.breadOrders = [];
         }
+        // Add isPinned property to existing orders if it's missing (migration)
+        parsedData.breadOrders.forEach((order: BreadOrder) => {
+          if (order.isPinned === undefined) {
+            order.isPinned = false;
+          }
+        });
         return parsedData;
       }
     }

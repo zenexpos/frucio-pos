@@ -290,6 +290,7 @@ export const addBreadOrder = async (data: AddBreadOrderData): Promise<BreadOrder
         createdAt: new Date().toISOString(),
         isPaid: false,
         isDelivered: false,
+        isPinned: false,
         ...data,
       };
       if (!mockDataStore.breadOrders) {

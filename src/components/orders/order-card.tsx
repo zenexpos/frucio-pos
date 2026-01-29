@@ -3,7 +3,7 @@
 import type { BreadOrder } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, CreditCard, Loader2, Undo2 } from 'lucide-react';
+import { Package, CreditCard, Loader2, Undo2, Pin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { useState } from 'react';
@@ -34,9 +34,28 @@ export function OrderCard({ order }: { order: BreadOrder }) {
   };
 
   return (
-    <Card>
+    <Card className="relative">
       <CardHeader>
-        <CardTitle className="truncate text-lg">{order.name}</CardTitle>
+        <CardTitle className="truncate text-lg pr-10">{order.name}</CardTitle>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-3 right-2 h-8 w-8"
+          disabled={isUpdating}
+          onClick={() => handleUpdate({ isPinned: !order.isPinned })}
+        >
+          <Pin
+            className={cn(
+              'h-5 w-5 transition-colors',
+              order.isPinned
+                ? 'fill-primary text-primary'
+                : 'text-muted-foreground'
+            )}
+          />
+          <span className="sr-only">
+            {order.isPinned ? 'Détacher la commande' : 'Épingler la commande'}
+          </span>
+        </Button>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-muted-foreground">
