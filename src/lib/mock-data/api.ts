@@ -330,10 +330,12 @@ export const updateBreadOrder = async (
 };
 
 export const resetBreadOrders = async (): Promise<{ success: boolean }> => {
-  console.log('Resetting all bread orders...');
+  console.log('Resetting non-pinned bread orders...');
   return new Promise((resolve) => {
     setTimeout(() => {
-      mockDataStore.breadOrders = [];
+      mockDataStore.breadOrders = (mockDataStore.breadOrders || []).filter(
+        (order) => order.isPinned
+      );
       saveData();
       resolve({ success: true });
     }, MOCK_API_LATENCY);

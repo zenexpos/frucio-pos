@@ -28,7 +28,7 @@ export function ResetOrdersDialog() {
       await resetBreadOrders();
       toast({
         title: 'Succès !',
-        description: `Toutes les commandes ont été réinitialisées.`,
+        description: `Les commandes non épinglées ont été supprimées.`,
       });
       window.dispatchEvent(new Event('datachanged'));
       setOpen(false);
@@ -56,8 +56,9 @@ export function ResetOrdersDialog() {
         <AlertDialogHeader>
           <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irréversible. Toutes les commandes de pain seront
-            définitivement supprimées.
+            Cette action est irréversible. Toutes les commandes de pain non
+            épinglées seront définitivement supprimées. Les commandes épinglées
+            resteront.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
