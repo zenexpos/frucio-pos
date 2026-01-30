@@ -9,11 +9,13 @@ import { OrderCard } from '@/components/orders/order-card';
 import OrdersLoading from './loading';
 import { useCollectionOnce } from '@/hooks/use-collection-once';
 import { getBreadOrders } from '@/lib/mock-data/api';
-import { Hourglass, Check, ShoppingCart } from 'lucide-react';
+import { Hourglass, Check, ShoppingCart, Search } from 'lucide-react';
 import { ResetOrdersDialog } from '@/components/orders/reset-orders-dialog';
+import { Input } from '@/components/ui/input';
 
 export default function OrdersPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const handleDataChanged = () => {
@@ -37,6 +39,15 @@ export default function OrdersPage() {
   }, [refreshTrigger]);
 
   const { data: orders, loading } = useCollectionOnce<BreadOrder>(fetchOrders);
+
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+    if (!searchTerm) return orders;
+
+    return orders.filter((order) =>
+      order.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [orders, searchTerm]);
 
   const { totalQuantity, deliveredQuantity, undeliveredQuantity } =
     useMemo(() => {
@@ -104,17 +115,31 @@ export default function OrdersPage() {
       </div>
 
       <div>
-        <h2 className="text-2xl font-semibold mb-4">Liste des commandes</h2>
-        {orders && orders.length > 0 ? (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+          <h2 className="text-2xl font-semibold">Liste des commandes</h2>
+          <div className="relative w-full sm:w-auto sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher par nom..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+        </div>
+
+        {filteredOrders && filteredOrders.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>
         ) : (
           <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground">
-              Aucune commande pour le moment.
+              {searchTerm
+                ? 'Aucune commande ne correspond à votre recherche.'
+                : 'Aucune commande pour le moment.'}
             </p>
           </div>
         )}
