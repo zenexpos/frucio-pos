@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { AppLogo } from './app-logo';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from './theme-toggle';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -38,6 +39,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
+        <div className="ml-auto flex items-center">
+          <ThemeToggle />
+        </div>
       </header>
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="mx-auto w-full max-w-7xl">{children}</div>
