@@ -341,3 +341,25 @@ export const resetBreadOrders = async (): Promise<{ success: boolean }> => {
     }, MOCK_API_LATENCY);
   });
 };
+
+export const deleteBreadOrder = async (id: string): Promise<{ id: string }> => {
+  console.log(`Deleting bread order with id: ${id}`);
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (!mockDataStore.breadOrders) {
+        mockDataStore.breadOrders = [];
+      }
+      const initialOrderCount = mockDataStore.breadOrders.length;
+      mockDataStore.breadOrders = mockDataStore.breadOrders.filter(
+        (o) => o.id !== id
+      );
+
+      if (mockDataStore.breadOrders.length === initialOrderCount) {
+        return reject(new Error('Bread order not found'));
+      }
+
+      saveData();
+      resolve({ id });
+    }, MOCK_API_LATENCY);
+  });
+};
