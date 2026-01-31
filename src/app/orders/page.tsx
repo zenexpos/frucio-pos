@@ -11,12 +11,12 @@ import {
   Search,
   Printer,
   Filter,
-  XCircle,
   Wallet,
   Package,
   PackageCheck,
   PackageOpen,
   ListOrdered,
+  List,
 } from 'lucide-react';
 import { ResetOrdersDialog } from '@/components/orders/reset-orders-dialog';
 import { Input } from '@/components/ui/input';
@@ -301,6 +301,7 @@ export default function OrdersPage() {
               variant={statusFilter === 'all' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('all')}
             >
+              <List />
               Tout
             </Button>
             <Button
@@ -308,7 +309,7 @@ export default function OrdersPage() {
               variant={statusFilter === 'undelivered' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('undelivered')}
             >
-              <XCircle />
+              <PackageOpen />
               Non Livré
             </Button>
             <Button
@@ -428,12 +429,21 @@ export default function OrdersPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <p className="text-muted-foreground">
-            {searchTerm || statusFilter !== 'all'
-              ? 'Aucune commande ne correspond à vos filtres.'
-              : 'Aucune commande pour le moment.'}
-          </p>
+        <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-4">
+          <Package className="h-12 w-12 text-muted-foreground" />
+          <div className="text-center">
+            <h3 className="text-xl font-semibold">
+              {searchTerm || statusFilter !== 'all'
+                ? 'Aucune commande trouvée'
+                : 'Aucune commande pour le moment'}
+            </h3>
+            <p className="text-muted-foreground mt-2">
+              {searchTerm || statusFilter !== 'all'
+                ? 'Essayez de modifier vos filtres ou votre recherche.'
+                : 'Cliquez sur le bouton ci-dessous pour ajouter votre première commande.'}
+            </p>
+          </div>
+          {!(searchTerm || statusFilter !== 'all') && <AddOrderDialog />}
         </div>
       )}
     </div>
