@@ -6,7 +6,7 @@ import { AddOrderDialog } from '@/components/orders/add-order-dialog';
 import { OrderCard } from '@/components/orders/order-card';
 import OrdersLoading from './loading';
 import { useCollectionOnce } from '@/hooks/use-collection-once';
-import { getBreadOrders } from '@/lib/mock-data/api';
+import { getBreadOrders, updateBreadOrder } from '@/lib/mock-data/api';
 import {
   Search,
   Printer,
@@ -31,6 +31,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { BulkDeleteOrdersDialog } from '@/components/orders/bulk-delete-orders-dialog';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid' | 'delivered' | 'undelivered';
 
@@ -39,6 +41,7 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const { toast } = useToast();
 
   const handleDataChanged = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
@@ -132,6 +135,48 @@ export default function OrdersPage() {
     }
   };
 
+  const handleBulkAction = async (
+    updateField: Partial<BreadOrder>,
+    successMessage: string,
+    errorMessage: string
+  ) => {
+    if (selectedOrders.length === 0) return;
+    try {
+      await Promise.all(
+        selectedOrders.map((id) => updateBreadOrder(id, updateField))
+      );
+      toast({
+        title: 'Succès !',
+        description: `${selectedOrders.length} ${successMessage}`,
+      });
+      setSelectedOrders([]);
+      handleDataChanged();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkMarkAsDelivered = () => {
+    handleBulkAction(
+      { isDelivered: true },
+      'commande(s) marquée(s) comme livrée(s).',
+      'Une erreur est survenue lors de la mise à jour des commandes.'
+    );
+  };
+
+  const handleBulkMarkAsPaid = () => {
+    handleBulkAction(
+      { isPaid: true },
+      'commande(s) marquée(s) comme payée(s).',
+      'Une erreur est survenue lors de la mise à jour des commandes.'
+    );
+  };
+
   const isAllSelected =
     filteredOrders.length > 0 &&
     selectedOrders.length === filteredOrders.length;
@@ -186,44 +231,80 @@ export default function OrdersPage() {
         <AddOrderDialog />
       </div>
 
-      <div className="flex items-center gap-4 no-print">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="select-all"
-            checked={
-              isAllSelected ? true : isPartiallySelected ? 'indeterminate' : false
-            }
-            onCheckedChange={handleSelectAll}
-          />
-          <Label htmlFor="select-all">
-            {selectedOrders.length} / {filteredOrders.length} sélectionné(s)
-          </Label>
+      <div className="space-y-4 no-print">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="select-all"
+              checked={
+                isAllSelected
+                  ? true
+                  : isPartiallySelected
+                  ? 'indeterminate'
+                  : false
+              }
+              onCheckedChange={handleSelectAll}
+            />
+            <Label htmlFor="select-all">
+              {selectedOrders.length} / {filteredOrders.length} sélectionné(s)
+            </Label>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={statusFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('all')}
+            >
+              Tout
+            </Button>
+            <Button
+              size="sm"
+              variant={statusFilter === 'undelivered' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('undelivered')}
+            >
+              <XCircle />
+              Non Livré
+            </Button>
+            <Button
+              size="sm"
+              variant={statusFilter === 'unpaid' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('unpaid')}
+            >
+              <Wallet />
+              Non Payé
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={statusFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('all')}
-          >
-            Tout
-          </Button>
-          <Button
-            size="sm"
-            variant={statusFilter === 'undelivered' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('undelivered')}
-          >
-            <XCircle />
-            Non Livré
-          </Button>
-          <Button
-            size="sm"
-            variant={statusFilter === 'unpaid' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('unpaid')}
-          >
-            <Wallet />
-            Non Payé
-          </Button>
-        </div>
+        {selectedOrders.length > 0 && (
+          <div className="p-3 border rounded-lg bg-muted/50 flex items-center justify-between animate-in fade-in-50">
+            <span className="text-sm font-semibold">
+              Actions groupées sur {selectedOrders.length} élément(s):
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkMarkAsDelivered}
+              >
+                <PackageCheck /> Marquer comme livré
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkMarkAsPaid}
+              >
+                <Wallet /> Marquer comme payé
+              </Button>
+              <BulkDeleteOrdersDialog
+                orderIds={selectedOrders}
+                onSuccess={() => {
+                  handleDataChanged();
+                  setSelectedOrders([]);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 no-print">
