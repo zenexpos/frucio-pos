@@ -15,6 +15,7 @@ import { CsvImportDialog } from '@/components/customers/csv-import-dialog';
 import { ResetAppDataDialog } from '@/components/settings/reset-app-data-dialog';
 import { BreadPriceSetting } from '@/components/settings/bread-price-setting';
 import { ResetOrdersDialog } from '@/components/orders/reset-orders-dialog';
+import { JsonImportDialog } from '@/components/settings/json-import-dialog';
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -76,57 +77,67 @@ export default function SettingsPage() {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg">
             <div>
-              <h3 className="font-semibold">Exporter toutes les données</h3>
+              <h3 className="font-semibold">Sauvegarde et Restauration JSON</h3>
               <p className="text-sm text-muted-foreground">
-                Sauvegardez tous vos clients, transactions et commandes dans un
-                seul fichier JSON.
+                Exportez toutes les données dans un fichier JSON, ou restaurez à
+                partir d'un fichier de sauvegarde.
               </p>
             </div>
-            <Button
-              onClick={handleExportAllData}
-              variant="secondary"
-              className="mt-2 sm:mt-0"
-            >
-              <Download />
-              Exporter (.json)
-            </Button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-semibold">Importer des clients</h3>
-              <p className="text-sm text-muted-foreground">
-                Importez des clients à partir d'un fichier CSV. Cela écrasera
-                les clients existants.
-              </p>
-            </div>
-            <div className="mt-2 sm:mt-0">
-              <CsvImportDialog />
+            <div className="flex items-center gap-2 mt-2 sm:mt-0">
+              <JsonImportDialog />
+              <Button onClick={handleExportAllData} variant="secondary">
+                <Download />
+                Exporter
+              </Button>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-semibold">Réinitialiser les commandes du jour</h3>
-              <p className="text-sm text-muted-foreground">
-                Supprime toutes les commandes de pain non épinglées. Les commandes épinglées seront conservées.
-              </p>
-            </div>
-            <div className="mt-2 sm:mt-0">
-              <ResetOrdersDialog />
-            </div>
-          </div>
+          <div className="p-4 border rounded-lg bg-destructive/5 border-destructive/20">
+            <h3 className="font-semibold text-destructive mb-2">
+              Zone de Danger
+            </h3>
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Importer des clients (CSV)</h4>
+                  <p className="text-sm text-destructive/80">
+                    Importez une liste de clients. Attention: cela écrasera tous
+                    les clients et transactions existants.
+                  </p>
+                </div>
+                <div className="mt-2 sm:mt-0">
+                  <CsvImportDialog />
+                </div>
+              </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg bg-destructive/5 border-destructive/20">
-            <div>
-              <h3 className="font-semibold text-destructive">Zone de Danger</h3>
-              <p className="text-sm text-destructive/80">
-                La réinitialisation effacera toutes les données de
-                l'application de manière permanente.
-              </p>
-            </div>
-            <div className="mt-2 sm:mt-0">
-              <ResetAppDataDialog />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <div>
+                  <h4 className="font-medium">
+                    Réinitialiser les commandes du jour
+                  </h4>
+                  <p className="text-sm text-destructive/80">
+                    Supprime toutes les commandes de pain non épinglées.
+                  </p>
+                </div>
+                <div className="mt-2 sm:mt-0">
+                  <ResetOrdersDialog />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <div>
+                  <h4 className="font-medium">
+                    Réinitialiser toutes les données de l'application
+                  </h4>
+                  <p className="text-sm text-destructive/80">
+                    Efface toutes les données de manière permanente et restaure
+                    l'état initial.
+                  </p>
+                </div>
+                <div className="mt-2 sm:mt-0">
+                  <ResetAppDataDialog />
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
