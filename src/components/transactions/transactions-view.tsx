@@ -31,7 +31,7 @@ export function TransactionsView({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="no-print">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle>Historique des transactions</CardTitle>
           <div className="flex w-full sm:w-auto items-center gap-2">

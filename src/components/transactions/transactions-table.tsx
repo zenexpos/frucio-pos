@@ -29,7 +29,7 @@ export function TransactionsTable({
             <TableHead>Type</TableHead>
             <TableHead>Date</TableHead>
             <TableHead className="text-right">Montant</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-right no-print">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -69,7 +69,7 @@ export function TransactionsTable({
                   {transaction.type === 'debt' ? '+' : '-'}
                   {formatCurrency(transaction.amount)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right no-print">
                   <div className="flex items-center justify-end gap-0.5">
                     <EditTransactionDialog transaction={transaction} />
                     <DeleteTransactionDialog

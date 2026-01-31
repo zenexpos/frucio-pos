@@ -119,7 +119,7 @@ export default function CustomerDetailPage() {
   return (
     <div className="space-y-8">
       <div>
-        <Button asChild variant="ghost" className="mb-4">
+        <Button asChild variant="ghost" className="mb-4 no-print">
           <Link href="/">
             <ArrowLeft />
             Retour aux clients
@@ -135,6 +135,7 @@ export default function CustomerDetailPage() {
       <BalanceHistoryChart
         customer={customer}
         transactions={sortedTransactions}
+        className="no-print"
       />
 
       <TransactionsView

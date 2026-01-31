@@ -10,7 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Phone, WalletCards, HandCoins } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Phone, WalletCards, HandCoins, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EditCustomerDialog } from './edit-customer-dialog';
@@ -64,7 +65,11 @@ export function CustomerHeader({
                 {formatCurrency(customer.balance)}
               </p>
             </div>
-            <div className="flex items-center gap-1 border-l pl-4">
+            <div className="flex items-center gap-1 border-l pl-4 no-print">
+              <Button variant="outline" onClick={() => window.print()}>
+                <Printer />
+                Imprimer le relevé
+              </Button>
               <EditCustomerDialog customer={customer} />
               <DeleteCustomerDialog
                 customerId={customer.id}

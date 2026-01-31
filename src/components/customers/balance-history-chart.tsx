@@ -4,7 +4,7 @@ import type { Customer, Transaction } from '@/lib/types';
 import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -23,6 +23,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 interface BalanceHistoryChartProps {
   customer: Customer;
   transactions: Transaction[];
+  className?: string;
 }
 
 const chartConfig = {
@@ -35,6 +36,7 @@ const chartConfig = {
 export function BalanceHistoryChart({
   customer,
   transactions,
+  className,
 }: BalanceHistoryChartProps) {
   const chartData = useMemo(() => {
     if (!transactions || !customer) {
@@ -89,7 +91,7 @@ export function BalanceHistoryChart({
 
   if (chartData.length < 2) {
     return (
-      <Card>
+      <Card className={cn(className)}>
         <CardHeader>
           <CardTitle>Historique du Solde</CardTitle>
           <CardDescription>
@@ -106,7 +108,7 @@ export function BalanceHistoryChart({
   }
 
   return (
-    <Card>
+    <Card className={cn(className)}>
       <CardHeader>
         <CardTitle>Historique du Solde</CardTitle>
         <CardDescription>
