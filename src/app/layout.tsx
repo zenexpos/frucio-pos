@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/layout/theme-provider';
@@ -17,13 +17,16 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+  icons: {
+    apple: '/icon.svg',
+  },
+};
+
+export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f9fafb' },
     { media: '(prefers-color-scheme: dark)', color: '#020817' },
   ],
-  icons: {
-    apple: '/icon.svg',
-  },
 };
 
 export default function RootLayout({
