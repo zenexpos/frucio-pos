@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import type { BreadOrder } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, RefreshCw, Star } from 'lucide-react';
+import { MoreVertical, RefreshCw, Star, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { useState } from 'react';
@@ -96,7 +97,7 @@ export function OrderCard({
         />
         <div className="flex-grow">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="space-y-1">
               <Label
                 htmlFor={`select-${order.id}`}
                 className="font-bold text-base cursor-pointer flex items-center gap-2"
@@ -106,6 +107,16 @@ export function OrderCard({
                 )}
                 {order.name}
               </Label>
+              {order.customerName && order.customerId && (
+                <Link
+                  href={`/customers/${order.customerId}`}
+                  className="text-sm text-muted-foreground hover:underline flex items-center gap-1.5"
+                  onClick={(e) => e.stopPropagation()} // Stop propagation to avoid selecting the card
+                >
+                  <User className="h-3 w-3" />
+                  <span>{order.customerName}</span>
+                </Link>
+              )}
               <div className="flex items-center gap-2 text-primary font-bold">
                 <span className="text-xl">{order.quantity}</span>
                 <RefreshCw className="h-4 w-4" />
