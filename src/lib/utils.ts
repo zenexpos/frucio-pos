@@ -9,6 +9,8 @@ export function formatCurrency(amount: number) {
   return new Intl.NumberFormat('fr-DZ', {
     style: 'currency',
     currency: 'DZD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
