@@ -75,20 +75,45 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <BreadPriceSetting />
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-semibold">Sauvegarde et Restauration JSON</h3>
-              <p className="text-sm text-muted-foreground">
-                Exportez toutes les données dans un fichier JSON, ou restaurez à
-                partir d'un fichier de sauvegarde.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 mt-2 sm:mt-0">
-              <JsonImportDialog />
-              <Button onClick={handleExportAllData} variant="secondary">
-                <Download />
-                Exporter
-              </Button>
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold text-lg mb-4">
+              Importation et Exportation
+            </h3>
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <div>
+                  <h4 className="font-medium">
+                    Sauvegarde et Restauration (JSON)
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Exportez toutes les données (clients, transactions,
+                    commandes) dans un unique fichier de sauvegarde.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                  <JsonImportDialog />
+                  <Button onClick={handleExportAllData} variant="secondary">
+                    <Download />
+                    Exporter
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                <div>
+                  <h4 className="font-medium">
+                    Ajouter des clients par lot (CSV)
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Importez et ajoutez une liste de nouveaux clients à partir
+                    d'un fichier CSV. Les clients existants ne seront pas
+                    affectés.
+                  </p>
+                </div>
+                <div className="mt-2 sm:mt-0">
+                  <CsvImportDialog />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -97,19 +122,6 @@ export default function SettingsPage() {
               Zone de Danger
             </h3>
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Importer des clients (CSV)</h4>
-                  <p className="text-sm text-destructive/80">
-                    Importez une liste de clients. Attention: cela écrasera tous
-                    les clients et transactions existants.
-                  </p>
-                </div>
-                <div className="mt-2 sm:mt-0">
-                  <CsvImportDialog />
-                </div>
-              </div>
-
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 <div>
                   <h4 className="font-medium">

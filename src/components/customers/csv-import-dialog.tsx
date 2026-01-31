@@ -198,25 +198,30 @@ export function CsvImportDialog() {
         );
       }
 
-      // Check for duplicate IDs which could be created during manual edits in the preview step
-      const idSet = new Set<string>();
+      // Check for duplicate IDs against existing data and within the import file
+      const existingIdSet = new Set(mockDataStore.customers.map((c) => c.id));
+      const importIdSet = new Set<string>();
       for (const customer of editedData) {
-        if (idSet.has(customer.id)) {
+        if (existingIdSet.has(customer.id)) {
           throw new Error(
-            `ID dupliqué trouvé dans les données d'importation : ${customer.id}. Chaque client doit avoir un ID unique.`
+            `L'ID "${customer.id}" pour le client "${customer.name}" existe déjà. Chaque client doit avoir un ID unique.`
           );
         }
-        idSet.add(customer.id);
+        if (importIdSet.has(customer.id)) {
+          throw new Error(
+            `ID dupliqué trouvé dans le fichier d'importation : ${customer.id}.`
+          );
+        }
+        importIdSet.add(customer.id);
       }
 
-      mockDataStore.customers = editedData;
-      mockDataStore.transactions = []; // Clear transactions as they are no longer valid
+      mockDataStore.customers.push(...editedData);
       saveData();
       window.dispatchEvent(new Event('datachanged'));
 
       toast({
         title: 'Succès !',
-        description: `Données importées depuis CSV. ${editedData.length} clients chargés.`,
+        description: `${editedData.length} client(s) ont été ajouté(s) avec succès.`,
       });
       resetState();
     } catch (error) {
