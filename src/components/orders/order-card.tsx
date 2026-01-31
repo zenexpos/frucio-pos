@@ -92,7 +92,7 @@ export function OrderCard({
           id={`select-${order.id}`}
           checked={isSelected}
           onCheckedChange={onSelectionChange}
-          className="mt-1"
+          className="mt-1 no-print"
         />
         <div className="flex-grow">
           <div className="flex justify-between items-start">
@@ -113,7 +113,11 @@ export function OrderCard({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 no-print"
+                >
                   <MoreVertical className="h-4 w-4" />
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>
@@ -151,7 +155,7 @@ export function OrderCard({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-3 no-print">
             <div className="flex items-center justify-between">
               <Label htmlFor={`paid-${order.id}`}>Payé</Label>
               <Switch

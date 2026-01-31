@@ -32,7 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
-type StatusFilter = 'all' | 'not-delivered' | 'not-paid';
+type StatusFilter = 'all' | 'paid' | 'unpaid' | 'delivered' | 'undelivered';
 
 export default function OrdersPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -64,25 +64,26 @@ export default function OrdersPage() {
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
-    let filtered = orders;
+    let filtered = orders.filter(
+      (order) =>
+        order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.customerName || '')
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+    );
 
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (order) =>
-          order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (order.customerName || '')
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-      );
+    switch (statusFilter) {
+      case 'paid':
+        return filtered.filter((order) => order.isPaid);
+      case 'unpaid':
+        return filtered.filter((order) => !order.isPaid);
+      case 'delivered':
+        return filtered.filter((order) => order.isDelivered);
+      case 'undelivered':
+        return filtered.filter((order) => !order.isDelivered);
+      default:
+        return filtered;
     }
-
-    if (statusFilter === 'not-delivered') {
-      filtered = filtered.filter((order) => !order.isDelivered);
-    } else if (statusFilter === 'not-paid') {
-      filtered = filtered.filter((order) => !order.isPaid);
-    }
-
-    return filtered;
   }, [orders, searchTerm, statusFilter]);
 
   const stats = useMemo(() => {
@@ -152,7 +153,7 @@ export default function OrdersPage() {
         </p>
       </header>
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col sm:flex-row gap-2 no-print">
         <div className="relative w-full sm:w-auto sm:flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -162,7 +163,10 @@ export default function OrdersPage() {
             className="pl-10 w-full"
           />
         </div>
-        <Select>
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+        >
           <SelectTrigger className="w-full sm:w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Par Statut" />
@@ -175,18 +179,20 @@ export default function OrdersPage() {
             <SelectItem value="undelivered">Non Livré</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => window.print()}>
           <Printer /> Imprimer
         </Button>
         <ResetOrdersDialog />
         <AddOrderDialog />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 no-print">
         <div className="flex items-center gap-2">
           <Checkbox
             id="select-all"
-            checked={isAllSelected ? true : isPartiallySelected ? 'indeterminate' : false}
+            checked={
+              isAllSelected ? true : isPartiallySelected ? 'indeterminate' : false
+            }
             onCheckedChange={handleSelectAll}
           />
           <Label htmlFor="select-all">
@@ -203,16 +209,16 @@ export default function OrdersPage() {
           </Button>
           <Button
             size="sm"
-            variant={statusFilter === 'not-delivered' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('not-delivered')}
+            variant={statusFilter === 'undelivered' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('undelivered')}
           >
             <XCircle />
             Non Livré
           </Button>
           <Button
             size="sm"
-            variant={statusFilter === 'not-paid' ? 'default' : 'outline'}
-            onClick={() => setStatusFilter('not-paid')}
+            variant={statusFilter === 'unpaid' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('unpaid')}
           >
             <Wallet />
             Non Payé
@@ -220,7 +226,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 no-print">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -256,7 +262,7 @@ export default function OrdersPage() {
         </Card>
       </div>
 
-      <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+      <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 no-print">
         <CardHeader>
           <CardTitle className="text-green-900 dark:text-green-200">
             Analyse Financière
