@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { CustomersTable } from './customers-table';
 import { Search, Download, Upload, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { CsvImportDialog } from './csv-import-dialog';
+import { exportCustomersToCsv } from '@/lib/mock-data/api';
 
 type SortKey = keyof Customer;
 type SortDirection = 'ascending' | 'descending';
@@ -30,7 +31,6 @@ export function CustomerOverview({
     key: 'createdAt',
     direction: 'descending',
   });
-  const { toast } = useToast();
 
   const handleSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
@@ -99,14 +99,19 @@ export function CustomerOverview({
                 disabled={!hasCustomers}
               />
             </div>
-            <Button variant="outline" id="import-customers-btn" disabled>
-              <Upload />
-              Importer
-            </Button>
+            <CsvImportDialog
+              trigger={
+                <Button variant="outline" id="import-customers-btn">
+                  <Upload />
+                  Importer
+                </Button>
+              }
+            />
             <Button
               variant="outline"
               id="export-customers-btn"
-              disabled
+              onClick={exportCustomersToCsv}
+              disabled={!hasCustomers}
             >
               <Download />
               Exporter

@@ -222,14 +222,52 @@ export const setInitialBreadUnitPrice = () => {
 // --- Data Management ---
 export const exportData = () => {
     const dataStr = JSON.stringify(mockDataStore, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     
     const exportFileDefaultName = 'gestion-credit-backup.json';
     
     const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('href', url);
     linkElement.setAttribute('download', exportFileDefaultName);
+    document.body.appendChild(linkElement);
     linkElement.click();
+    document.body.removeChild(linkElement);
+};
+
+export const exportCustomersToCsv = () => {
+    if (mockDataStore.customers.length === 0) {
+        return;
+    }
+    const headers = ['id', 'name', 'phone', 'createdAt', 'balance', 'settlementDay'];
+    const csvRows = [
+        headers.join(',')
+    ];
+
+    for (const customer of mockDataStore.customers) {
+        const values = headers.map(header => {
+            let val = (customer as any)[header];
+            if (val === null || val === undefined) {
+                val = '';
+            }
+            const stringVal = String(val);
+            if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
+                return `"${stringVal.replace(/"/g, '""')}"`;
+            }
+            return stringVal;
+        });
+        csvRows.push(values.join(','));
+    }
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'customers-export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 export const resetAllData = () => {
@@ -252,7 +290,6 @@ export const syncDailyOrders = async () => {
     
     const existingTx = mockDataStore.transactions.find(tx => tx.orderId === order.id);
     
-    // Case 1: Unpaid order should have a debt transaction
     if (!order.isPaid) {
       if (!existingTx) {
         addTransaction({
@@ -265,7 +302,6 @@ export const syncDailyOrders = async () => {
         });
         changesMade = true;
       } else if (existingTx.type === 'payment') {
-        // Correct wrong transaction type
         deleteTransaction(existingTx.id);
         addTransaction({
           customerId: order.customerId,
@@ -277,7 +313,6 @@ export const syncDailyOrders = async () => {
         });
         changesMade = true;
       } else if (existingTx.amount !== order.totalAmount) {
-         // Correct wrong amount
         updateTransaction(existingTx.id, {
             amount: order.totalAmount,
             description: existingTx.description,
@@ -287,7 +322,6 @@ export const syncDailyOrders = async () => {
       }
     }
     
-    // Case 2: Paid order should not have a debt transaction
     if (order.isPaid && existingTx && existingTx.type === 'debt') {
       deleteTransaction(existingTx.id);
       changesMade = true;
