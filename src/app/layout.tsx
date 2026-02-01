@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   title: 'Gestion de Crédit',
   description: 'Une application pour gérer les crédits clients et les commandes.',
   applicationName: 'Gestion de Crédit',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Gestion de Crédit',
+  },
   formatDetection: {
     telephone: false,
   },

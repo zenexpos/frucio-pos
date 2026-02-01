@@ -1,11 +1,12 @@
 {
-  "name": "Gestion de Crédit",
-  "short_name": "Gestion Crédit",
-  "description": "Une application pour gérer les crédits clients et les commandes.",
-  "start_url": "/",
-  "display": "standalone",
+  "theme_color": "#f9fafb",
   "background_color": "#f9fafb",
-  "theme_color": "#3b82f6",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "name": "Gestion de Crédit",
+  "short_name": "Crédit",
+  "description": "Une application pour gérer les crédits clients et les commandes.",
   "icons": [
     {
       "src": "/icon.svg",
