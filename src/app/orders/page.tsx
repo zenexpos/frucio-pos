@@ -33,7 +33,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { BulkDeleteOrdersDialog } from '@/components/orders/bulk-delete-orders-dialog';
-import { updateBreadOrder, syncDailyOrders } from '@/lib/mock-data/api';
+import { updateBreadOrder, reconcileDailyOrders } from '@/lib/mock-data/api';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid' | 'delivered' | 'undelivered';
 
@@ -46,10 +46,10 @@ export default function OrdersPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    syncDailyOrders().then(result => {
+    reconcileDailyOrders().then(result => {
         if(result.didSync) {
             toast({
-                title: 'Synchronisation Automatique',
+                title: 'Vérification Quotidienne Automatique',
                 description: result.message,
             });
         }
