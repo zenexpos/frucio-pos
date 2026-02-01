@@ -8,7 +8,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { BreadPriceSetting } from '@/components/settings/bread-price-setting';
-import { GoogleDriveSettings } from '@/components/settings/google-drive-settings';
 import { JsonImportDialog } from '@/components/settings/json-import-dialog';
 import { ResetAppDataDialog } from '@/components/settings/reset-app-data-dialog';
 import { Button } from '@/components/ui/button';
@@ -59,8 +58,6 @@ export default function SettingsPage() {
                 </Button>
             </div>
           </div>
-          
-          <GoogleDriveSettings />
           
           <div className="flex flex-col sm:flex-row items-center justify-between p-4 border rounded-lg bg-destructive/10 border-destructive/20">
              <div className="mb-4 sm:mb-0">
