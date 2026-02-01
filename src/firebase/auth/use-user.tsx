@@ -11,10 +11,14 @@ interface UseUserReturn {
 
 export function useUser(): UseUserReturn {
   const auth = useAuth();
-  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [user, setUser] = useState<User | null>(() => auth?.currentUser || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);

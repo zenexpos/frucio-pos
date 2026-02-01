@@ -36,9 +36,6 @@ export const useFirebaseApp = () => {
   if (!context) {
     throw new Error('useFirebaseApp must be used within a FirebaseProvider');
   }
-  if (!context.app) {
-    throw new Error('Firebase App not initialized');
-  }
   return context.app;
 };
 
@@ -47,9 +44,6 @@ export const useAuth = () => {
   if (!context) {
     throw new Error('useAuth must be used within a FirebaseProvider');
   }
-  if (!context.auth) {
-    throw new Error('Firebase Auth not initialized');
-  }
   return context.auth;
 };
 
@@ -57,9 +51,6 @@ export const useFirestore = () => {
   const context = useContext(FirebaseContext);
   if (!context) {
     throw new Error('useFirestore must be used within a FirebaseProvider');
-  }
-  if (!context.firestore) {
-    throw new Error('Firestore not initialized');
   }
   return context.firestore;
 };
