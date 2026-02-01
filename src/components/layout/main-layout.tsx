@@ -61,7 +61,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main className="flex-1 p-4 sm:p-6 md:p-8">
-        <div className="mx-auto w-full">{children}</div>
+        <div className="w-full">{children}</div>
       </main>
     </div>
   );
