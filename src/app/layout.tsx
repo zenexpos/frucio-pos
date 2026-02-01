@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/layout/theme-provider';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Gestion de Crédit',
@@ -45,7 +46,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <MainLayout>{children}</MainLayout>
+          <FirebaseClientProvider>
+            <MainLayout>{children}</MainLayout>
+          </FirebaseClientProvider>
           <Toaster />
         </ThemeProvider>
       </body>

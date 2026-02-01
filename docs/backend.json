@@ -1,1 +1,8 @@
-{}
+{
+  "entities": {},
+  "auth": {
+    "providers": [
+      "google.com"
+    ]
+  }
+}
