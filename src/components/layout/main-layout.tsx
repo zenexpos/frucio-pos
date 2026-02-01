@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   Settings,
+  History,
 } from 'lucide-react';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +18,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: '/', label: 'Tableau de bord', icon: LayoutDashboard },
     { href: '/orders', label: 'Commandes', icon: ClipboardList },
+    { href: '/history', label: 'Historique', icon: History },
     { href: '/settings', label: 'Paramètres', icon: Settings },
   ];
 
@@ -50,7 +52,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div className="ml-auto flex items-center">
-           <nav className="flex md:hidden items-center gap-2 text-sm font-medium">
+          <nav className="flex md:hidden items-center gap-2 text-sm font-medium">
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (

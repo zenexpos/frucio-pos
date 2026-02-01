@@ -14,6 +14,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -54,10 +55,17 @@ export function RecentTransactions({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Transactions Récentes</CardTitle>
-        <CardDescription>
-          Les 5 dernières transactions enregistrées.
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Transactions Récentes</CardTitle>
+            <CardDescription>
+              Les 5 dernières transactions enregistrées.
+            </CardDescription>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/history">Voir tout</Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {recentTransactions.length > 0 ? (
