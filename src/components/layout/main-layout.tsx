@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
+import { Clock } from './clock';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -51,7 +52,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-4">
+          <Clock />
           <nav className="flex md:hidden items-center gap-2 text-sm font-medium">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -73,7 +75,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          <div className="ml-4">
+          <div className="border-l pl-4">
             <ThemeToggle />
           </div>
         </div>
