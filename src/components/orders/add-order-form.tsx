@@ -1,7 +1,10 @@
 'use client';
 
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { z } from 'zod';
+import { useFirebase, useUser, useCollection, useDoc } from '@/firebase';
+import { useMemoFirebase } from '@/firebase/firestore/use-memo-firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,13 +17,8 @@ import {
 } from '@/components/ui/select';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import {
-  addBreadOrder,
-  getCustomers,
-  getBreadUnitPrice,
-} from '@/lib/mock-data/api';
-import { useCollectionOnce } from '@/hooks/use-collection-once';
-import type { Customer } from '@/lib/types';
+import { addBreadOrder } from '@/lib/firebase/api';
+import type { Customer, AppSettings } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const orderSchema = z.object({
@@ -35,17 +33,23 @@ const orderSchema = z.object({
 
 export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
-    null
-  );
-  const [unitPrice, setUnitPrice] = useState<number | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  
+  const { user } = useUser();
+  const { firestore } = useFirebase();
 
-  const fetchCustomers = useCallback(getCustomers, []);
-  const { data: customers } = useCollectionOnce<Customer>(fetchCustomers);
+  const customersQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'users', user.uid, 'customers'), orderBy('name'));
+  }, [firestore, user]);
+  const { data: customers } = useCollection<Customer>(customersQuery);
 
-  useEffect(() => {
-    getBreadUnitPrice().then(setUnitPrice);
-  }, []);
+  const settingsRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid, 'settings', 'config');
+  }, [firestore, user]);
+  const { data: settings, loading: settingsLoading } = useDoc<AppSettings>(settingsRef);
+  const unitPrice = settings?.breadUnitPrice;
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -56,15 +60,18 @@ export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
       errorMessage: "Une erreur est survenue lors de l'ajout de la commande.",
     },
     onSubmit: async (data) => {
-      if (unitPrice === null) {
+      if (unitPrice === undefined || unitPrice === null) {
         throw new Error('Le prix unitaire du pain non chargé.');
+      }
+      if (!user) {
+        throw new Error('Utilisateur non authentifié.');
       }
       const totalAmount = data.quantity * unitPrice;
       const selectedCustomer = customers?.find(
         (c) => c.id === selectedCustomerId
       );
 
-      await addBreadOrder({
+      await addBreadOrder(user.uid, {
         ...data,
         unitPrice: unitPrice,
         totalAmount,
@@ -74,7 +81,7 @@ export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
 
-  if (unitPrice === null) {
+  if (settingsLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />

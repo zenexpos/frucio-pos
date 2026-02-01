@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import { updateTransaction } from '@/lib/mock-data/api';
+import { updateTransaction } from '@/lib/firebase/api';
 import type { Transaction } from '@/lib/types';
+import { useUser } from '@/firebase';
 import { format } from 'date-fns';
 
 const transactionSchema = z.object({
@@ -31,6 +32,7 @@ export function EditTransactionForm({
   onSuccess?: () => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const { user } = useUser();
   const defaultDate = format(new Date(transaction.date), 'yyyy-MM-dd');
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
@@ -43,7 +45,8 @@ export function EditTransactionForm({
         "Une erreur est survenue lors de la mise à jour de la transaction.",
     },
     onSubmit: async (data) => {
-      await updateTransaction(transaction.id, {
+      if (!user) throw new Error('Utilisateur non authentifié.');
+      await updateTransaction(user.uid, transaction.id, {
         ...data,
         date: new Date(data.date).toISOString(),
       });

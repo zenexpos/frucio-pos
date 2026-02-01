@@ -15,7 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteBreadOrder } from '@/lib/mock-data/api';
+import { deleteBreadOrder } from '@/lib/firebase/api';
+import { useUser } from '@/firebase';
 
 export function BulkDeleteOrdersDialog({
   orderIds,
@@ -27,12 +28,13 @@ export function BulkDeleteOrdersDialog({
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
 
   const handleDelete = async () => {
-    if (orderIds.length === 0) return;
+    if (orderIds.length === 0 || !user) return;
     setIsPending(true);
     try {
-      await Promise.all(orderIds.map((id) => deleteBreadOrder(id)));
+      await Promise.all(orderIds.map((id) => deleteBreadOrder(user.uid, id)));
       toast({
         title: 'Succès !',
         description: `${orderIds.length} commande(s) ont été supprimée(s).`,

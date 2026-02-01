@@ -15,7 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCustomer } from '@/lib/mock-data/api';
+import { deleteCustomer } from '@/lib/firebase/api';
+import { useUser } from '@/firebase';
 
 export function DeleteCustomerDialog({
   customerId,
@@ -29,16 +30,20 @@ export function DeleteCustomerDialog({
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
 
   const handleDelete = async () => {
+    if (!user) {
+      toast({ title: 'Erreur', description: 'Vous devez être connecté.', variant: 'destructive' });
+      return;
+    }
     setIsPending(true);
     try {
-      await deleteCustomer(customerId);
+      await deleteCustomer(user.uid, customerId);
       toast({
         title: 'Succès !',
         description: `Le client "${customerName}" a été supprimé.`,
       });
-      window.dispatchEvent(new Event('datachanged'));
       setOpen(false);
       onSuccess?.();
     } catch (error) {

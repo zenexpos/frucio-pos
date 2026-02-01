@@ -1,14 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { z } from 'zod';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import { getBreadUnitPrice, updateBreadUnitPrice } from '@/lib/mock-data/api';
+import { updateBreadUnitPrice, setInitialBreadUnitPrice } from '@/lib/firebase/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFirebase, useUser, useDoc } from '@/firebase';
+import { useMemoFirebase } from '@/firebase/firestore/use-memo-firebase';
+import { doc } from 'firebase/firestore';
+import type { AppSettings } from '@/lib/types';
+
 
 const priceSchema = z.object({
   price: z.coerce
@@ -18,15 +23,23 @@ const priceSchema = z.object({
 
 export function BreadPriceSetting() {
   const formRef = useRef<HTMLFormElement>(null);
-  const [defaultPrice, setDefaultPrice] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
+  const { firestore } = useFirebase();
 
-  useEffect(() => {
-    getBreadUnitPrice().then((price) => {
-      setDefaultPrice(price);
-      setIsLoading(false);
-    });
-  }, []);
+  const settingsRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid, 'settings', 'config');
+  }, [firestore, user]);
+
+  const { data: settings, loading: isLoading } = useDoc<AppSettings>(settingsRef);
+  const defaultPrice = settings?.breadUnitPrice;
+  
+  // Set initial price if it doesn't exist
+  useState(() => {
+      if (!isLoading && !settings && user) {
+          setInitialBreadUnitPrice(user.uid);
+      }
+  });
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -36,8 +49,8 @@ export function BreadPriceSetting() {
       errorMessage: 'Erreur lors de la mise à jour du prix.',
     },
     onSubmit: async (data) => {
-      const newPrice = await updateBreadUnitPrice(data.price);
-      setDefaultPrice(newPrice);
+      if (!user) throw new Error('Utilisateur non authentifié.');
+      await updateBreadUnitPrice(user.uid, data.price);
     },
   });
 
@@ -78,7 +91,7 @@ export function BreadPriceSetting() {
             name="price"
             type="number"
             step="0.01"
-            defaultValue={defaultPrice ?? 0}
+            defaultValue={defaultPrice ?? 10}
             className="w-32"
           />
           {errors?.price && (

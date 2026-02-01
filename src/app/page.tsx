@@ -1,95 +1,51 @@
 'use client';
 
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { collection, query, orderBy, where } from 'firebase/firestore';
+import { useFirebase, useUser, useCollection } from '@/firebase';
+import { useMemoFirebase } from '@/firebase/firestore/use-memo-firebase';
 import type { Customer, Transaction } from '@/lib/types';
-
 import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { formatCurrency } from '@/lib/utils';
 import { Users, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 import { CustomerOverview } from '@/components/customers/customer-overview';
 import { StatCard } from '@/components/dashboard/stat-card';
 import Loading from './loading';
-import { useCollectionOnce } from '@/hooks/use-collection-once';
-import { getCustomers, getAllTransactions } from '@/lib/mock-data/api';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
+import { Button } from '@/components/ui/button';
+import { signInWithGoogle } from '@/firebase/auth/api';
 
 export default function DashboardPage() {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { user, loading: userLoading } = useUser();
+  const { firestore } = useFirebase();
 
-  useEffect(() => {
-    const handleDataChanged = () => {
-      setRefreshTrigger((prev) => prev + 1);
-    };
-    window.addEventListener('datachanged', handleDataChanged);
-    return () => {
-      window.removeEventListener('datachanged', handleDataChanged);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-
-      // Ignore shortcuts if user is typing in an input, textarea, or select
-      if (
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) &&
-        !target.isContentEditable
-      ) {
-        return;
-      }
-
-      switch (event.key) {
-        case 'F5':
-          event.preventDefault();
-          document.getElementById('add-customer-btn')?.click();
-          break;
-        case 'F6':
-          event.preventDefault();
-          document.getElementById('customer-search-input')?.focus();
-          break;
-        case 'F7':
-          event.preventDefault();
-          document.getElementById('import-customers-btn')?.click();
-          break;
-        case 'F8':
-          event.preventDefault();
-          document.getElementById('export-customers-btn')?.click();
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  const fetchCustomers = useCallback(async () => {
-    const data = await getCustomers();
-    // Sort data here since the mock API doesn't support sorting
-    if (!data) return [];
-    return data.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  // Memoize the Firestore query for customers
+  const customersQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'customers'),
+      orderBy('createdAt', 'desc')
     );
-  }, [refreshTrigger]);
+  }, [firestore, user]);
 
-  const fetchTransactions = useCallback(async () => {
-    const data = await getAllTransactions();
-    return data || [];
-  }, [refreshTrigger]);
+  // Memoize the Firestore query for transactions
+  const transactionsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'transactions'),
+      orderBy('date', 'desc')
+    );
+  }, [firestore, user]);
 
-  const { data: rawCustomers, loading: customersLoading } =
-    useCollectionOnce<Customer>(fetchCustomers);
-  const { data: transactions, loading: transactionsLoading } =
-    useCollectionOnce<Transaction>(fetchTransactions);
+  const { data: customers, loading: customersLoading } =
+    useCollection<Customer>(customersQuery);
+  const { data: rawTransactions, loading: transactionsLoading } =
+    useCollection<Transaction>(transactionsQuery);
 
-  const customers = useMemo(() => {
-    if (!rawCustomers || !transactions) return [];
+  const customersWithTotals = useMemo(() => {
+    if (!customers || !rawTransactions) return [];
 
-    const financialsByCustomer = transactions.reduce((acc, t) => {
+    const financialsByCustomer = rawTransactions.reduce((acc, t) => {
       if (!acc[t.customerId]) {
         acc[t.customerId] = { debts: 0, payments: 0 };
       }
@@ -101,12 +57,12 @@ export default function DashboardPage() {
       return acc;
     }, {} as Record<string, { debts: number; payments: number }>);
 
-    return rawCustomers.map((customer) => ({
+    return customers.map((customer) => ({
       ...customer,
       totalDebts: financialsByCustomer[customer.id]?.debts || 0,
       totalPayments: financialsByCustomer[customer.id]?.payments || 0,
     }));
-  }, [rawCustomers, transactions]);
+  }, [customers, rawTransactions]);
 
   const { totalBalance, customersInDebt, customersWithCredit } = useMemo(() => {
     if (!customers) {
@@ -128,10 +84,22 @@ export default function DashboardPage() {
   }, [customers]);
 
   const totalCustomers = customers?.length || 0;
-  const loading = customersLoading || transactionsLoading;
+  const loading = userLoading || customersLoading || transactionsLoading;
 
   if (loading) {
     return <Loading />;
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">Bienvenue !</h2>
+        <p className="text-muted-foreground mb-8">
+          Veuillez vous connecter pour gérer vos clients et vos crédits.
+        </p>
+        <Button onClick={signInWithGoogle}>Se connecter avec Google</Button>
+      </div>
+    );
   }
 
   return (
@@ -171,11 +139,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex flex-col gap-8">
-        <CustomerOverview
-          customers={customers || []}
-        />
+        <CustomerOverview customers={customersWithTotals || []} />
         <RecentTransactions
-          transactions={transactions || []}
+          transactions={rawTransactions || []}
           customers={customers || []}
         />
       </div>

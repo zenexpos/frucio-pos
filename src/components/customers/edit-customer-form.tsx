@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import { updateCustomer } from '@/lib/mock-data/api';
+import { updateCustomer } from '@/lib/firebase/api';
 import type { Customer } from '@/lib/types';
+import { useUser } from '@/firebase';
 
 const customerSchema = z.object({
   name: z
@@ -28,6 +29,7 @@ export function EditCustomerForm({
   onSuccess?: () => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const { user } = useUser();
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -38,7 +40,8 @@ export function EditCustomerForm({
       errorMessage: "Une erreur est survenue lors de la mise à jour du client.",
     },
     onSubmit: async (data) => {
-      await updateCustomer(customer.id, data);
+      if (!user) throw new Error('Utilisateur non authentifié.');
+      await updateCustomer(user.uid, customer.id, data);
     },
   });
 

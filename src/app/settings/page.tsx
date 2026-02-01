@@ -7,54 +7,31 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { mockDataStore, saveData } from '@/lib/mock-data';
-import { CsvImportDialog } from '@/components/customers/csv-import-dialog';
-import { ResetAppDataDialog } from '@/components/settings/reset-app-data-dialog';
 import { BreadPriceSetting } from '@/components/settings/bread-price-setting';
-import { ResetOrdersDialog } from '@/components/orders/reset-orders-dialog';
-import { JsonImportDialog } from '@/components/settings/json-import-dialog';
 import { GoogleDriveSettings } from '@/components/settings/google-drive-settings';
+import { Button } from '@/components/ui/button';
+import { signInWithGoogle } from '@/firebase/auth/api';
+import { useUser } from '@/firebase';
+import SettingsLoading from './loading';
 
 export default function SettingsPage() {
-  const { toast } = useToast();
+  const { user, loading } = useUser();
 
-  const handleExportAllData = () => {
-    try {
-      const dataToExport = {
-        customers: mockDataStore.customers,
-        transactions: mockDataStore.transactions,
-        breadOrders: mockDataStore.breadOrders,
-        breadUnitPrice: mockDataStore.breadUnitPrice,
-      };
+  if (loading) {
+    return <SettingsLoading />;
+  }
 
-      const jsonString = JSON.stringify(dataToExport, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      const date = new Date().toISOString().split('T')[0];
-      link.download = `sauvegarde-gestion-credit-${date}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: 'Exportation réussie',
-        description: 'Toutes les données ont été exportées dans un fichier JSON.',
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast({
-        title: "Erreur d'exportation",
-        description: "Une erreur est survenue lors de l'exportation des données.",
-        variant: 'destructive',
-      });
-    }
-  };
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">Page des Paramètres</h2>
+        <p className="text-muted-foreground mb-8">
+          Veuillez vous connecter pour gérer les paramètres de votre application.
+        </p>
+        <Button onClick={signInWithGoogle}>Se connecter avec Google</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -77,84 +54,16 @@ export default function SettingsPage() {
           <BreadPriceSetting />
 
           <GoogleDriveSettings />
-
-          <div className="p-4 border rounded-lg">
-            <h3 className="font-semibold text-lg mb-4">
+          
+          <div className="p-4 border rounded-lg bg-muted/50">
+             <h3 className="font-semibold text-lg mb-4">
               Importation et Exportation
             </h3>
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <div>
-                  <h4 className="font-medium">
-                    Sauvegarde et Restauration (JSON)
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Exportez toutes les données (clients, transactions,
-                    commandes) dans un unique fichier de sauvegarde.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 mt-2 sm:mt-0">
-                  <JsonImportDialog />
-                  <Button onClick={handleExportAllData} variant="secondary">
-                    <Download />
-                    Exporter
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <div>
-                  <h4 className="font-medium">
-                    Ajouter des clients par lot (CSV)
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Importez et ajoutez une liste de nouveaux clients à partir
-                    d'un fichier CSV. Les clients existants ne seront pas
-                    affectés.
-                  </p>
-                </div>
-                <div className="mt-2 sm:mt-0">
-                  <CsvImportDialog />
-                </div>
-              </div>
-            </div>
+             <p className="text-sm text-muted-foreground">
+               Les fonctionnalités d'importation, d'exportation et de réinitialisation des données seront bientôt réactivées.
+             </p>
           </div>
 
-          <div className="p-4 border rounded-lg bg-destructive/5 border-destructive/20">
-            <h3 className="font-semibold text-destructive mb-2">
-              Zone de Danger
-            </h3>
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <div>
-                  <h4 className="font-medium">
-                    Réinitialiser les commandes du jour
-                  </h4>
-                  <p className="text-sm text-destructive/80">
-                    Supprime toutes les commandes de pain non épinglées.
-                  </p>
-                </div>
-                <div className="mt-2 sm:mt-0">
-                  <ResetOrdersDialog />
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <div>
-                  <h4 className="font-medium">
-                    Réinitialiser toutes les données de l'application
-                  </h4>
-                  <p className="text-sm text-destructive/80">
-                    Efface toutes les données de manière permanente et restaure
-                    l'état initial.
-                  </p>
-                </div>
-                <div className="mt-2 sm:mt-0">
-                  <ResetAppDataDialog />
-                </div>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

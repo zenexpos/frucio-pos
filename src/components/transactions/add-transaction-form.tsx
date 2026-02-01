@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
 import type { TransactionType } from '@/lib/types';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import { addTransaction } from '@/lib/mock-data/api';
+import { addTransaction } from '@/lib/firebase/api';
+import { useUser } from '@/firebase';
 import { format } from 'date-fns';
 
 const transactionSchema = z.object({
@@ -37,6 +38,7 @@ export function AddTransactionForm({
   defaultDescription?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const { user } = useUser();
   const text = type === 'debt' ? 'Ajouter la dette' : 'Ajouter le paiement';
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -49,7 +51,8 @@ export function AddTransactionForm({
       errorMessage: "Une erreur est survenue lors de l'ajout de la transaction.",
     },
     onSubmit: async (data) => {
-      await addTransaction({
+      if (!user) throw new Error('Utilisateur non authentifié.');
+      await addTransaction(user.uid, {
         ...data,
         customerId,
         type,

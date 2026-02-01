@@ -1,16 +1,13 @@
 'use client';
 
-import { useMemo, useCallback, useState, useEffect } from 'react';
-import type { BreadOrder } from '@/lib/types';
+import { useMemo, useState } from 'react';
+import { useFirebase, useUser, useCollection } from '@/firebase';
+import { useMemoFirebase } from '@/firebase/firestore/use-memo-firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import type { BreadOrder, AppSettings } from '@/lib/types';
 import { AddOrderDialog } from '@/components/orders/add-order-dialog';
 import { OrderCard } from '@/components/orders/order-card';
 import OrdersLoading from './loading';
-import { useCollectionOnce } from '@/hooks/use-collection-once';
-import {
-  getBreadOrders,
-  updateBreadOrder,
-  runDailyOrderReconciliation,
-} from '@/lib/mock-data/api';
 import {
   Search,
   Printer,
@@ -38,90 +35,30 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { BulkDeleteOrdersDialog } from '@/components/orders/bulk-delete-orders-dialog';
+import { updateBreadOrder } from '@/lib/firebase/api';
+import { signInWithGoogle } from '@/firebase/auth/api';
 
 type StatusFilter = 'all' | 'paid' | 'unpaid' | 'delivered' | 'undelivered';
 
 export default function OrdersPage() {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { user, loading: userLoading } = useUser();
+  const { firestore } = useFirebase();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [sortOption, setSortOption] = useState('date-desc');
+  const [sortOption, setSortOption] = useState('status'); // Default sort by status
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const handleDataChanged = useCallback(() => {
-    setRefreshTrigger((prev) => prev + 1);
-  }, []);
+  const ordersQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'breadOrders'),
+      orderBy('createdAt', 'desc')
+    );
+  }, [user, firestore]);
 
-  useEffect(() => {
-    runDailyOrderReconciliation().then((changesMade) => {
-      if (changesMade) {
-        console.log('Reconciliation created new data, refreshing view.');
-        toast({
-          title: 'Synchronisation Automatique',
-          description:
-            'Les soldes des clients ont été mis à jour pour refléter les commandes non synchronisées.',
-        });
-        handleDataChanged();
-      }
-    });
-  }, [handleDataChanged, toast]);
-
-  useEffect(() => {
-    window.addEventListener('datachanged', handleDataChanged);
-    return () => {
-      window.removeEventListener('datachanged', handleDataChanged);
-    };
-  }, [handleDataChanged]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-
-      // Ignore shortcuts if user is typing in an input, textarea, or select
-      if (
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) &&
-        !target.isContentEditable
-      ) {
-        return;
-      }
-
-      switch (event.key) {
-        case 'F1':
-          event.preventDefault();
-          document.getElementById('add-order-btn')?.click();
-          break;
-        case 'F2':
-          event.preventDefault();
-          document.getElementById('order-search-input')?.focus();
-          break;
-        case 'F3':
-          event.preventDefault();
-          document.getElementById('reset-orders-btn')?.click();
-          break;
-        case 'F4':
-          event.preventDefault();
-          document.getElementById('print-orders-btn')?.click();
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  const fetchOrders = useCallback(async () => {
-    const data = await getBreadOrders();
-    if (!data) return [];
-    return data;
-  }, [refreshTrigger]);
-
-  const { data: orders, loading } = useCollectionOnce<BreadOrder>(fetchOrders);
+  const { data: orders, loading: ordersLoading } =
+    useCollection<BreadOrder>(ordersQuery);
 
   const processedOrders = useMemo(() => {
     if (!orders) return [];
@@ -151,46 +88,49 @@ export default function OrdersPage() {
         // No status filter
         break;
     }
-
+    
+    // Status scoring: 1: unpaid/undelivered, 2: paid/undelivered, 3: unpaid/delivered, 4: paid/delivered
     const getOrderStatusScore = (order: BreadOrder) => {
-      if (!order.isDelivered && !order.isPaid) return 1; // Unpaid and Undelivered
-      if (!order.isDelivered && order.isPaid) return 2; // Paid and Undelivered
-      if (order.isDelivered && !order.isPaid) return 3; // Unpaid and Delivered
-      if (order.isDelivered && order.isPaid) return 4; // Paid and Delivered
-      return 5; // Should not happen
+      if (!order.isDelivered && !order.isPaid) return 1; 
+      if (!order.isDelivered && order.isPaid) return 2;  
+      if (order.isDelivered && !order.isPaid) return 3;  
+      if (order.isDelivered && order.isPaid) return 4;
+      return 5;
     };
 
-    const [key, direction] = sortOption.split('-');
-
     filtered.sort((a, b) => {
-      // Primary sort based on status
+      // Primary sort is always by status score
       const scoreA = getOrderStatusScore(a);
       const scoreB = getOrderStatusScore(b);
       if (scoreA !== scoreB) {
         return scoreA - scoreB;
       }
 
-      // Secondary sort: based on user's selection
-      let valA, valB;
-      if (key === 'name') {
-        valA = a.name.toLowerCase();
-        valB = b.name.toLowerCase();
-      } else if (key === 'quantity') {
-        valA = a.quantity;
-        valB = b.quantity;
-      } else {
-        // date
-        valA = new Date(a.createdAt).getTime();
-        valB = new Date(b.createdAt).getTime();
-      }
+      // Secondary sort based on user selection
+      if (sortOption !== 'status') {
+         const [key, direction] = sortOption.split('-');
+         let valA, valB;
+         if (key === 'name') {
+           valA = a.name.toLowerCase();
+           valB = b.name.toLowerCase();
+         } else if (key === 'quantity') {
+           valA = a.quantity;
+           valB = b.quantity;
+         } else { // date
+           valA = new Date(a.createdAt).getTime();
+           valB = new Date(b.createdAt).getTime();
+         }
 
-      if (valA < valB) {
-        return direction === 'asc' ? -1 : 1;
+         if (valA < valB) {
+           return direction === 'asc' ? -1 : 1;
+         }
+         if (valA > valB) {
+           return direction === 'asc' ? 1 : -1;
+         }
       }
-      if (valA > valB) {
-        return direction === 'asc' ? 1 : -1;
-      }
-      return 0;
+      
+      // Default secondary sort if statuses are equal
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
     return filtered;
@@ -247,17 +187,16 @@ export default function OrdersPage() {
     successMessage: string,
     errorMessage: string
   ) => {
-    if (selectedOrders.length === 0) return;
+    if (selectedOrders.length === 0 || !user) return;
     try {
       await Promise.all(
-        selectedOrders.map((id) => updateBreadOrder(id, updateField))
+        selectedOrders.map((id) => updateBreadOrder(user.uid, id, updateField))
       );
       toast({
         title: 'Succès !',
         description: `${selectedOrders.length} ${successMessage}`,
       });
       setSelectedOrders([]);
-      handleDataChanged();
     } catch (error) {
       console.error(error);
       toast({
@@ -290,8 +229,22 @@ export default function OrdersPage() {
   const isPartiallySelected =
     selectedOrders.length > 0 && selectedOrders.length < processedOrders.length;
 
+  const loading = userLoading || ordersLoading;
+
   if (loading) {
     return <OrdersLoading />;
+  }
+
+  if (!user) {
+     return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">Page des Commandes</h2>
+        <p className="text-muted-foreground mb-8">
+          Veuillez vous connecter pour gérer vos commandes de pain.
+        </p>
+        <Button onClick={signInWithGoogle}>Se connecter avec Google</Button>
+      </div>
+    );
   }
 
   return (
@@ -322,6 +275,7 @@ export default function OrdersPage() {
             <SelectValue placeholder="Trier par" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="status">Statut (défaut)</SelectItem>
             <SelectItem value="date-desc">Date (plus récent)</SelectItem>
             <SelectItem value="date-asc">Date (plus ancien)</SelectItem>
             <SelectItem value="name-asc">Nom (A-Z)</SelectItem>
@@ -425,7 +379,6 @@ export default function OrdersPage() {
               <BulkDeleteOrdersDialog
                 orderIds={selectedOrders}
                 onSuccess={() => {
-                  handleDataChanged();
                   setSelectedOrders([]);
                 }}
               />
@@ -504,7 +457,6 @@ export default function OrdersPage() {
               onSelectionChange={(checked) =>
                 handleSelectionChange(order.id, !!checked)
               }
-              onOrderUpdate={handleDataChanged}
             />
           ))}
         </div>

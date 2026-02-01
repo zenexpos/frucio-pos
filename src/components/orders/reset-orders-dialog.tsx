@@ -15,22 +15,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { resetBreadOrders } from '@/lib/mock-data/api';
+import { resetBreadOrders } from '@/lib/firebase/api';
+import { useUser } from '@/firebase';
 
 export function ResetOrdersDialog() {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
 
   const handleReset = async () => {
+    if (!user) return;
     setIsPending(true);
     try {
-      await resetBreadOrders();
+      await resetBreadOrders(user.uid);
       toast({
         title: 'Succès !',
         description: `Les commandes non épinglées ont été supprimées.`,
       });
-      window.dispatchEvent(new Event('datachanged'));
       setOpen(false);
     } catch (error) {
       console.error('Failed to reset orders', error);

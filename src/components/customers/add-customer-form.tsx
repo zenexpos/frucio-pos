@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import { addCustomer } from '@/lib/mock-data/api';
+import { addCustomer } from '@/lib/firebase/api';
+import { useUser } from '@/firebase';
 
 const customerSchema = z.object({
   name: z
@@ -21,6 +22,7 @@ const customerSchema = z.object({
 
 export function AddCustomerForm({ onSuccess }: { onSuccess?: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const { user } = useUser();
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -31,7 +33,8 @@ export function AddCustomerForm({ onSuccess }: { onSuccess?: () => void }) {
       errorMessage: "Une erreur est survenue lors de l'ajout du client.",
     },
     onSubmit: async (data) => {
-      await addCustomer(data);
+      if (!user) throw new Error('Utilisateur non authentifié.');
+      await addCustomer(user.uid, data);
     },
   });
 

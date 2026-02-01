@@ -1,7 +1,10 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { z } from 'zod';
+import { useFirebase, useUser, useCollection } from '@/firebase';
+import { useMemoFirebase } from '@/firebase/firestore/use-memo-firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,9 +17,8 @@ import {
 } from '@/components/ui/select';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
-import { updateBreadOrder, getCustomers } from '@/lib/mock-data/api';
+import { updateBreadOrder } from '@/lib/firebase/api';
 import type { BreadOrder, Customer } from '@/lib/types';
-import { useCollectionOnce } from '@/hooks/use-collection-once';
 
 const orderSchema = z.object({
   name: z
@@ -40,8 +42,14 @@ export function EditOrderForm({
     order.customerId
   );
 
-  const fetchCustomers = useCallback(getCustomers, []);
-  const { data: customers } = useCollectionOnce<Customer>(fetchCustomers);
+  const { user } = useUser();
+  const { firestore } = useFirebase();
+
+  const customersQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'users', user.uid, 'customers'), orderBy('name'));
+  }, [firestore, user]);
+  const { data: customers } = useCollection<Customer>(customersQuery);
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -53,13 +61,13 @@ export function EditOrderForm({
         'Une erreur est survenue lors de la mise à jour de la commande.',
     },
     onSubmit: async (data) => {
+      if (!user) throw new Error('Utilisateur non authentifié.');
       const totalAmount = data.quantity * order.unitPrice; // Use historical unit price
       const selectedCustomer = customers?.find(
         (c) => c.id === selectedCustomerId
       );
-      await updateBreadOrder(order.id, {
+      await updateBreadOrder(user.uid, order.id, {
         ...data,
-        unitPrice: order.unitPrice,
         totalAmount,
         customerId: selectedCustomerId,
         customerName: selectedCustomer?.name || null,

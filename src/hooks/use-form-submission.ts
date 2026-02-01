@@ -60,20 +60,14 @@ export function useFormSubmission<T extends z.ZodType<any, any>>({
         description: config?.successMessage || 'Opération réussie.',
       });
 
-      // Instead of router.refresh(), dispatch a custom event that client components
-      // can listen to in order to re-fetch their data. This is necessary because
-      // the data source is now a client-side mock store, not a server endpoint.
-      window.dispatchEvent(new Event('datachanged'));
-
       formRef.current?.reset();
       onSuccess?.();
     } catch (error) {
       console.error('Form submission error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de l'opération.";
       toast({
         title: 'Erreur',
-        description:
-          config?.errorMessage ||
-          "Une erreur est survenue lors de l'opération.",
+        description: config?.errorMessage || errorMessage,
         variant: 'destructive',
       });
     } finally {
