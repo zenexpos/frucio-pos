@@ -6,7 +6,11 @@ import { AddOrderDialog } from '@/components/orders/add-order-dialog';
 import { OrderCard } from '@/components/orders/order-card';
 import OrdersLoading from './loading';
 import { useCollectionOnce } from '@/hooks/use-collection-once';
-import { getBreadOrders, updateBreadOrder } from '@/lib/mock-data/api';
+import {
+  getBreadOrders,
+  updateBreadOrder,
+  runDailyOrderReconciliation,
+} from '@/lib/mock-data/api';
 import {
   Search,
   Printer,
@@ -48,6 +52,15 @@ export default function OrdersPage() {
   const handleDataChanged = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
+
+  useEffect(() => {
+    runDailyOrderReconciliation().then((changesMade) => {
+      if (changesMade) {
+        console.log('Reconciliation created new data, refreshing view.');
+        handleDataChanged();
+      }
+    });
+  }, [handleDataChanged]);
 
   useEffect(() => {
     window.addEventListener('datachanged', handleDataChanged);

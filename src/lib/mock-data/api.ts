@@ -509,3 +509,62 @@ export const resetAllData = async (): Promise<{ success: boolean }> => {
     }, MOCK_API_LATENCY);
   });
 };
+
+export const runDailyOrderReconciliation = async (): Promise<boolean> => {
+  // This function runs once a day to ensure that any unpaid order
+  // with a customer has a corresponding debt transaction.
+  // This acts as a safety net for data integrity.
+
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const LAST_RECON_KEY = 'lastOrderReconciliationDate';
+  const today = new Date().toISOString().split('T')[0];
+  const lastRun = window.localStorage.getItem(LAST_RECON_KEY);
+
+  if (lastRun === today) {
+    return false; // Already ran today
+  }
+
+  console.log('Performing daily order reconciliation...');
+
+  let changesMade = false;
+  const unpaidCustomerOrders = mockDataStore.breadOrders.filter(
+    (o) => o.customerId && !o.isPaid
+  );
+  const allTransactions = mockDataStore.transactions;
+
+  for (const order of unpaidCustomerOrders) {
+    const debtTransactionExists = allTransactions.some(
+      (t) => t.orderId === order.id && t.type === 'debt'
+    );
+
+    if (!debtTransactionExists) {
+      console.log(`Reconciliation: Missing debt transaction for order ${order.id}. Creating it now.`);
+      try {
+        // We call addTransaction directly, which will modify mockDataStore and customer balance
+        await addTransaction({
+          customerId: order.customerId!,
+          type: 'debt',
+          amount: order.totalAmount,
+          description: `Commande: ${order.name}`,
+          date: order.createdAt,
+          orderId: order.id,
+        });
+        changesMade = true;
+      } catch (err) {
+        console.error(`Reconciliation Error: Failed to create missing debt transaction for order ${order.id}`, err);
+      }
+    }
+  }
+
+  if (changesMade) {
+    console.log('Reconciliation made changes to the data. Saving...');
+    saveData();
+  }
+
+  window.localStorage.setItem(LAST_RECON_KEY, today);
+  console.log('Daily order reconciliation completed.');
+  return changesMade;
+};
