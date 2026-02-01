@@ -27,20 +27,25 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 no-print">
-        <Link href="/" className="flex items-center gap-3 mr-6">
-          <Image
-            src="/icon.svg"
-            alt="App Logo"
-            width={32}
-            height={32}
-            className="rounded-lg"
-          />
-          <span className="text-xl font-semibold text-foreground">
-            Gestion de Crédit
-          </span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-2 text-sm font-medium">
+      <header className="sticky top-0 z-10 grid h-16 grid-cols-3 items-center border-b bg-background px-4 md:px-6 no-print">
+        {/* Left Side */}
+        <div className="flex items-center justify-start">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/icon.svg"
+              alt="App Logo"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
+            <span className="hidden sm:inline-block text-xl font-semibold text-foreground">
+              Gestion de Crédit
+            </span>
+          </Link>
+        </div>
+
+        {/* Centered Navigation */}
+        <nav className="flex items-center justify-center gap-2 text-sm font-medium">
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
@@ -61,29 +66,10 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-4">
+
+        {/* Right Side */}
+        <div className="flex items-center justify-end gap-4">
           <Clock />
-          <nav className="flex md:hidden items-center gap-2 text-sm font-medium">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  title={link.label}
-                  className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground',
-                    pathname === link.href
-                      ? 'bg-accent text-accent-foreground'
-                      : ''
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="sr-only">{link.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
           <div className="border-l pl-4">
             <ThemeToggle />
           </div>
