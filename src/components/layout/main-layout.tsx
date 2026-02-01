@@ -8,6 +8,7 @@ import { ThemeToggle } from './theme-toggle';
 import { Clock } from './clock';
 import {
   LayoutDashboard,
+  Users,
   ClipboardList,
   Settings,
   History,
@@ -18,6 +19,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const navLinks = [
     { href: '/', label: 'Tableau de bord', icon: LayoutDashboard },
+    { href: '/customers', label: 'Clients', icon: Users },
     { href: '/orders', label: 'Commandes', icon: ClipboardList },
     { href: '/history', label: 'Historique', icon: History },
     { href: '/settings', label: 'Paramètres', icon: Settings },
