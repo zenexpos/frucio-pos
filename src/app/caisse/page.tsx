@@ -165,6 +165,15 @@ export default function CaissePage() {
       }));
   };
 
+  const clearCart = () => {
+      if (activeCart.length === 0) return;
+      updateActiveCartState({ items: [], discount: 0 });
+      toast({
+          title: 'Panier vidé',
+          description: 'Tous les articles ont été retirés du panier.',
+      });
+  };
+
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
         toast({
@@ -532,6 +541,18 @@ export default function CaissePage() {
                 </div>
             ): (
                 <div className="space-y-4">
+                    <div className="flex justify-between items-center -mt-2 mb-2">
+                        <h3 className="font-semibold text-md text-muted-foreground">Articles ({activeCart.reduce((sum, item) => sum + item.quantity, 0)})</h3>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2"
+                            onClick={clearCart}
+                        >
+                            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                            Vider
+                        </Button>
+                    </div>
                     {activeCart.map(item => (
                         <div key={item.product.id} className="flex items-center gap-4">
                             <Image src={getProductImage(item.product).url} alt={item.product.name} width={48} height={48} className="rounded-md" data-ai-hint={getProductImage(item.product).hint} />
