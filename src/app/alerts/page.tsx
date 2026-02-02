@@ -1,26 +1,60 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { AlertTriangle, PackageWarning, UserRoundX } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { PackageWarning, UserRoundX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
-import { cn } from '@/lib/utils';
-
-// Mock Data for alerts
-const lowStockProducts = [
-    { id: '5', name: 'Pain au Chocolat', stock: 15, minStock: 15 },
-    { id: '10', name: 'Muffin Myrtille', stock: 8, minStock: 10 },
-];
-
-const overdueCustomers = [
-    { id: '3', name: 'Café du Coin', balance: 4500, settlementDay: 'Lundi' },
-    { id: '1', name: 'Boulangerie Al-Amal', balance: 1250, settlementDay: 'Dimanche' },
-];
+import { useMockData } from '@/hooks/use-mock-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function AlertsPage() {
+  const { products, customers, loading } = useMockData();
+
+  const lowStockProducts = useMemo(() => {
+      if (!products) return [];
+      return products.filter(p => p.stock <= p.minStock);
+  }, [products]);
+
+  const overdueCustomers = useMemo(() => {
+      if (!customers) return [];
+      // Simple logic: any customer with a positive balance is considered "overdue" for alert purposes.
+      return customers.filter(c => c.balance > 0);
+  }, [customers]);
+
+  if (loading) {
+    return (
+        <div className="space-y-8">
+            <header>
+                <Skeleton className="h-9 w-64 mb-2" />
+                <Skeleton className="h-5 w-96" />
+            </header>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-56" />
+                    <Skeleton className="h-4 w-80" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-56" />
+                    <Skeleton className="h-4 w-80" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                </CardContent>
+            </Card>
+        </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <header>
@@ -78,7 +112,7 @@ export default function AlertsPage() {
                 <div>
                     <CardTitle className="text-destructive">Paiements en Retard</CardTitle>
                     <CardDescription className="text-destructive/80">
-                        Clients avec des soldes positifs dont le jour de règlement est passé ou approche.
+                        Clients avec des soldes positifs.
                     </CardDescription>
                 </div>
             </div>
@@ -92,7 +126,7 @@ export default function AlertsPage() {
                                 <p className="font-semibold">{customer.name}</p>
                                 <p className="text-sm">
                                     Solde: <span className="font-bold text-destructive">{formatCurrency(customer.balance)}</span>
-                                    <span className="text-muted-foreground"> | Jour de règlement: {customer.settlementDay}</span>
+                                    {customer.settlementDay && <span className="text-muted-foreground"> | Jour de règlement: {customer.settlementDay}</span>}
                                 </p>
                             </div>
                             <Button asChild variant="destructive" size="sm">

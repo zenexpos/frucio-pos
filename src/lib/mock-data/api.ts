@@ -1,6 +1,6 @@
 'use client';
 import { mockDataStore, saveData, resetToSeedData as resetSeed } from './index';
-import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier } from '@/lib/types';
+import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product } from '@/lib/types';
 import { startOfDay } from 'date-fns';
 
 let nextId = () => Date.now().toString() + Math.random().toString(36).substring(2, 9);
@@ -268,6 +268,31 @@ export const updateSupplier = async (supplierId: string, data: Partial<AddSuppli
 
 export const deleteSupplier = async (supplierId: string) => {
     mockDataStore.suppliers = mockDataStore.suppliers.filter(s => s.id !== supplierId);
+    saveData();
+};
+
+// --- Product Functions ---
+type AddProductData = Omit<Product, 'id'>;
+
+export const addProduct = async (data: AddProductData) => {
+    const newProduct: Product = {
+        ...data,
+        id: nextId(),
+    };
+    mockDataStore.products.push(newProduct);
+    saveData();
+};
+
+export const updateProduct = async (productId: string, data: Partial<AddProductData>) => {
+    const product = mockDataStore.products.find(p => p.id === productId);
+    if (product) {
+        Object.assign(product, data);
+        saveData();
+    }
+};
+
+export const deleteProduct = async (productId: string) => {
+    mockDataStore.products = mockDataStore.products.filter(p => p.id !== productId);
     saveData();
 };
 

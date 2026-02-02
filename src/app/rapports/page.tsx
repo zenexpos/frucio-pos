@@ -7,12 +7,6 @@ import Link from 'next/link';
 
 const reportCards = [
   {
-    title: 'Rapport des Ventes',
-    description: 'Analyse détaillée des ventes par produit, catégorie et période.',
-    icon: TrendingUp,
-    href: '#',
-  },
-  {
     title: 'Rapport des Dettes Clients',
     description: 'Suivi des soldes impayés, des retards de paiement et des clients à relancer.',
     icon: Users,
@@ -57,7 +51,7 @@ export default function RapportsPage() {
                 <CardTitle className="text-lg font-semibold">{report.title}</CardTitle>
                 <Icon className="h-6 w-6 text-muted-foreground" />
               </CardHeader>
-              <CardContent className="flex flex-col justify-between h-full pt-2">
+              <CardContent className="flex flex-col justify-between h-[calc(100%-4rem)] pt-2">
                 <CardDescription>{report.description}</CardDescription>
                 <Button asChild className="mt-4 w-full">
                   <Link href={report.href}>Générer le rapport</Link>
@@ -71,7 +65,7 @@ export default function RapportsPage() {
          <CardHeader>
            <CardTitle>Bientôt disponible</CardTitle>
            <CardDescription>
-             Nous travaillons sur de nouveaux rapports personnalisables pour vous offrir encore plus de perspectives.
+             Nous travaillons sur de nouveaux rapports personnalisables pour vous offrir encore plus de perspectives, comme un rapport détaillé des ventes.
            </CardDescription>
          </CardHeader>
        </Card>

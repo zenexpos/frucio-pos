@@ -1,4 +1,4 @@
-import type { Customer, Transaction, BreadOrder, Expense, Supplier } from '@/lib/types';
+import type { Customer, Transaction, BreadOrder, Expense, Supplier, Product } from '@/lib/types';
 import { subDays, formatISO } from 'date-fns';
 
 export const SEED_CUSTOMERS: Omit<Customer, 'id' | 'totalDebts' | 'totalPayments'>[] = [
@@ -38,6 +38,19 @@ export const SEED_SUPPLIERS: Omit<Supplier, 'id'>[] = [
   { id: '2', name: 'Emballage & Co.', contact: 'commercial@emballage.co', phone: '023-88-99-00', balance: -2000, category: 'Emballage' },
   { id: '3', name: 'Le Jardin Secret', contact: 'jardin.secret@email.com', phone: '0550-10-20-30', balance: 0, category: 'Fruits & Légumes' },
   { id: '4', name: 'Maintenance Express', contact: 'support@maintex.dz', phone: '021-44-33-22', balance: 7500, category: 'Services' },
+];
+
+export const SEED_PRODUCTS: Omit<Product, 'id'>[] = [
+  { name: 'Café Espresso', category: 'Boissons', barcode: '1234567890123', purchasePrice: 1.5, sellingPrice: 2.5, stock: 100, minStock: 20 },
+  { name: 'Croissant au Beurre', category: 'Pâtisseries', barcode: '2345678901234', purchasePrice: 0.8, sellingPrice: 1.8, stock: 50, minStock: 15 },
+  { name: 'Eau Minérale', category: 'Boissons', barcode: '3456789012345', purchasePrice: 0.5, sellingPrice: 1.2, stock: 200, minStock: 50 },
+  { name: "Jus d'Orange Frais", category: 'Boissons', barcode: '4567890123456', purchasePrice: 1.8, sellingPrice: 3.0, stock: 40, minStock: 10 },
+  { name: 'Pain au Chocolat', category: 'Pâtisseries', barcode: '5678901234567', purchasePrice: 0.9, sellingPrice: 1.9, stock: 15, minStock: 15 }, // Low stock example
+  { name: 'Salade César', category: 'Salades', barcode: '6789012345678', purchasePrice: 4.0, sellingPrice: 7.2, stock: 20, minStock: 5 },
+  { name: 'Sandwich Poulet Crudités', category: 'Sandwichs', barcode: '7890123456789', purchasePrice: 3.5, sellingPrice: 5.5, stock: 25, minStock: 10 },
+  { name: 'Tarte au Citron', category: 'Pâtisseries', barcode: '8901234567890', purchasePrice: 2.0, sellingPrice: 3.5, stock: 10, minStock: 5 },
+  { name: 'Thé à la Menthe', category: 'Boissons', barcode: '9012345678901', purchasePrice: 1.2, sellingPrice: 2.2, stock: 80, minStock: 20 },
+  { name: 'Muffin Myrtille', category: 'Pâtisseries', barcode: '0123456789012', purchasePrice: 1.5, sellingPrice: 2.75, stock: 8, minStock: 10 }, // Low stock example
 ];
 
 

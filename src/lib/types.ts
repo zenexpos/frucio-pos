@@ -54,6 +54,18 @@ export interface Supplier {
   category: string;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  category: string;
+  barcode: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  stock: number;
+  minStock: number;
+}
+
+
 export interface AppSettings {
   breadUnitPrice: number;
 }

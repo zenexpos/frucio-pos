@@ -7,6 +7,7 @@ import {
   SEED_BREAD_UNIT_PRICE,
   SEED_EXPENSES,
   SEED_SUPPLIERS,
+  SEED_PRODUCTS,
 } from './seed';
 import type {
   Customer,
@@ -14,6 +15,7 @@ import type {
   BreadOrder,
   Expense,
   Supplier,
+  Product,
 } from '@/lib/types';
 
 interface MockData {
@@ -22,6 +24,7 @@ interface MockData {
   breadOrders: BreadOrder[];
   expenses: Expense[];
   suppliers: Supplier[];
+  products: Product[];
   breadUnitPrice: number;
 }
 
@@ -32,6 +35,7 @@ export let mockDataStore: MockData = {
   breadOrders: [],
   expenses: [],
   suppliers: [],
+  products: [],
   breadUnitPrice: 10,
 };
 
@@ -68,6 +72,9 @@ export function loadData() {
       }
       if (!parsedData.suppliers) {
           parsedData.suppliers = [];
+      }
+      if (!parsedData.products) {
+          parsedData.products = [];
       }
 
       mockDataStore = parsedData;
@@ -107,6 +114,10 @@ export function resetToSeedData() {
     ...s,
     id: (i + 1).toString(),
   }));
+  const products: Product[] = SEED_PRODUCTS.map((p, i) => ({
+      ...p,
+      id: (i + 1).toString(),
+  }));
 
   mockDataStore = {
     customers,
@@ -114,6 +125,7 @@ export function resetToSeedData() {
     breadOrders,
     expenses,
     suppliers,
+    products,
     breadUnitPrice: SEED_BREAD_UNIT_PRICE,
   };
   saveData();

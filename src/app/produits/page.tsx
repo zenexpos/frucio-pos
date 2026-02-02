@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useMockData } from '@/hooks/use-mock-data';
+import type { Product } from '@/lib/types';
 import {
   Search,
-  Plus,
   Pencil,
   Trash2,
   ArrowUp,
@@ -29,23 +30,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import ProduitsLoading from './loading';
+import { AddProductDialog } from '@/components/produits/add-product-dialog';
+import { EditProductDialog } from '@/components/produits/edit-product-dialog';
+import { DeleteProductDialog } from '@/components/produits/delete-product-dialog';
 
-// More detailed mock data for the products page
-const mockProducts = [
-  { id: '1', name: 'Café Espresso', category: 'Boissons', barcode: '1234567890123', purchasePrice: 1.5, sellingPrice: 2.5, stock: 100, minStock: 20 },
-  { id: '2', name: 'Croissant au Beurre', category: 'Pâtisseries', barcode: '2345678901234', purchasePrice: 0.8, sellingPrice: 1.8, stock: 50, minStock: 15 },
-  { id: '3', name: 'Eau Minérale', category: 'Boissons', barcode: '3456789012345', purchasePrice: 0.5, sellingPrice: 1.2, stock: 200, minStock: 50 },
-  { id: '4', name: "Jus d'Orange Frais", category: 'Boissons', barcode: '4567890123456', purchasePrice: 1.8, sellingPrice: 3.0, stock: 40, minStock: 10 },
-  { id: '5', name: 'Pain au Chocolat', category: 'Pâtisseries', barcode: '5678901234567', purchasePrice: 0.9, sellingPrice: 1.9, stock: 15, minStock: 15 }, // Low stock example
-  { id: '6', name: 'Salade César', category: 'Salades', barcode: '6789012345678', purchasePrice: 4.0, sellingPrice: 7.2, stock: 20, minStock: 5 },
-  { id: '7', name: 'Sandwich Poulet Crudités', category: 'Sandwichs', barcode: '7890123456789', purchasePrice: 3.5, sellingPrice: 5.5, stock: 25, minStock: 10 },
-  { id: '8', name: 'Tarte au Citron', category: 'Pâtisseries', barcode: '8901234567890', purchasePrice: 2.0, sellingPrice: 3.5, stock: 10, minStock: 5 },
-  { id: '9', name: 'Thé à la Menthe', category: 'Boissons', barcode: '9012345678901', purchasePrice: 1.2, sellingPrice: 2.2, stock: 80, minStock: 20 },
-  { id: '10', name: 'Muffin Myrtille', category: 'Pâtisseries', barcode: '0123456789012', purchasePrice: 1.5, sellingPrice: 2.75, stock: 8, minStock: 10 }, // Low stock example
-];
-
-type Product = typeof mockProducts[0];
-type SortKey = keyof Product | 'margin' | 'cump';
+type SortKey = keyof Product | 'margin';
 type SortDirection = 'ascending' | 'descending';
 
 interface SortConfig {
@@ -56,12 +46,14 @@ interface SortConfig {
 export default function ProduitsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+  const { products, loading } = useMockData();
 
   const sortedAndFilteredProducts = useMemo(() => {
-    let filtered = mockProducts.filter(product =>
+    if (!products) return [];
+    let filtered = products.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.barcode.includes(searchTerm)
+      (product.barcode || '').includes(searchTerm)
     );
 
     if (sortConfig !== null) {
@@ -72,9 +64,6 @@ export default function ProduitsPage() {
         if (sortConfig.key === 'margin') {
           aValue = a.sellingPrice - a.purchasePrice;
           bValue = b.sellingPrice - b.purchasePrice;
-        } else if (sortConfig.key === 'cump') {
-          aValue = a.purchasePrice; // Assuming CUMP is purchase price for now
-          bValue = b.purchasePrice;
         } else {
           aValue = a[sortConfig.key as keyof Product];
           bValue = b[sortConfig.key as keyof Product];
@@ -91,7 +80,7 @@ export default function ProduitsPage() {
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [searchTerm, sortConfig, products]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
@@ -120,9 +109,12 @@ export default function ProduitsPage() {
     { key: 'stock', label: 'Stock', className: 'text-right hidden sm:table-cell', isSortable: true },
     { key: 'minStock', label: 'Stock min.', className: 'text-right hidden lg:table-cell', isSortable: true },
     { key: 'margin', label: 'Marge', className: 'text-right hidden md:table-cell', isSortable: true },
-    { key: 'cump', label: 'CUMP', className: 'text-right hidden xl:table-cell', isSortable: true },
     { key: 'name', label: 'Actions', className: 'text-right', isSortable: false }, // dummy key for label
   ];
+
+  if (loading) {
+    return <ProduitsLoading />;
+  }
 
   return (
     <div className="space-y-6">
@@ -144,9 +136,7 @@ export default function ProduitsPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Rechercher des produits..." className="pl-8 w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            <Button className="w-full sm:w-auto">
-                <Plus className="mr-2 h-4 w-4" /> Ajouter un produit
-            </Button>
+            <AddProductDialog />
            </div>
         </CardHeader>
         <CardContent>
@@ -186,15 +176,10 @@ export default function ProduitsPage() {
                                     <TableCell className={cn('text-right font-mono p-2 hidden sm:table-cell', isLowStock && 'font-bold text-destructive')}>{product.stock}</TableCell>
                                     <TableCell className="text-right font-mono p-2 hidden lg:table-cell">{product.minStock}</TableCell>
                                     <TableCell className={cn("text-right font-mono p-2 hidden md:table-cell", margin < 0 ? 'text-destructive' : 'text-accent' )}>{formatCurrency(margin)}</TableCell>
-                                    <TableCell className="text-right font-mono p-2 hidden xl:table-cell">{formatCurrency(product.purchasePrice)}</TableCell>
                                     <TableCell className="text-right p-2">
                                         <div className="flex items-center justify-end gap-0.5">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <EditProductDialog product={product} />
+                                            <DeleteProductDialog productId={product.id} productName={product.name} />
                                         </div>
                                     </TableCell>
                                 </TableRow>
