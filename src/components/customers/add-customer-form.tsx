@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { addCustomer } from '@/lib/mock-data/api';
+import type { Customer } from '@/lib/types';
 
 const customerSchema = z.object({
   name: z
@@ -20,7 +21,7 @@ const customerSchema = z.object({
   settlementDay: z.string().optional(),
 });
 
-export function AddCustomerForm({ onSuccess }: { onSuccess?: () => void }) {
+export function AddCustomerForm({ onSuccess }: { onSuccess?: (newCustomer: Customer) => void }) {
   const formRef = useRef<HTMLFormElement>(null);
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
@@ -32,7 +33,7 @@ export function AddCustomerForm({ onSuccess }: { onSuccess?: () => void }) {
       errorMessage: "Une erreur est survenue lors de l'ajout du client.",
     },
     onSubmit: async (data) => {
-      await addCustomer({ ...data, email: data.email || 'N/A' });
+      return addCustomer({ ...data, email: data.email || 'N/A' });
     },
   });
 

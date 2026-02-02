@@ -15,6 +15,7 @@ interface FormDialogProps {
   title: string;
   description: string;
   form: React.ReactElement;
+  onFormSuccess?: (result: any) => void;
 }
 
 export function FormDialog({
@@ -22,14 +23,16 @@ export function FormDialog({
   title,
   description,
   form,
+  onFormSuccess
 }: FormDialogProps) {
   const [open, setOpen] = useState(false);
 
-  const handleSuccess = () => {
+  const handleSuccess = (result: any) => {
     setOpen(false);
+    onFormSuccess?.(result);
   };
   
-  const formWithOnSuccess = cloneElement(form as React.ReactElement<{ onSuccess?: () => void }>, { onSuccess: handleSuccess });
+  const formWithOnSuccess = cloneElement(form as React.ReactElement<{ onSuccess?: (result: any) => void }>, { onSuccess: handleSuccess });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

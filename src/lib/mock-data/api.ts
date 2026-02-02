@@ -23,6 +23,7 @@ export const addCustomer = (data: AddCustomerData) => {
   };
   mockDataStore.customers.push(newCustomer);
   saveData();
+  return newCustomer;
 };
 
 export const updateCustomer = (customerId: string, data: Partial<AddCustomerData>) => {

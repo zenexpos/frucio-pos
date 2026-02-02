@@ -4,10 +4,10 @@ import { useState, type FormEvent } from 'react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 
-interface UseFormSubmissionProps<T extends z.ZodType<any, any>> {
+interface UseFormSubmissionProps<T extends z.ZodType<any, any>, U = void> {
   schema: T;
-  onSubmit: (data: z.infer<T>) => Promise<void>;
-  onSuccess?: () => void;
+  onSubmit: (data: z.infer<T>) => Promise<U>;
+  onSuccess?: (result: U) => void;
   formRef: React.RefObject<HTMLFormElement>;
   config?: {
     successMessage?: string;
@@ -16,13 +16,13 @@ interface UseFormSubmissionProps<T extends z.ZodType<any, any>> {
   };
 }
 
-export function useFormSubmission<T extends z.ZodType<any, any>>({
+export function useFormSubmission<T extends z.ZodType<any, any>, U = void>({
   schema,
   onSubmit,
   onSuccess,
   formRef,
   config,
-}: UseFormSubmissionProps<T>) {
+}: UseFormSubmissionProps<T, U>) {
   const { toast } = useToast();
   const [isPending, setIsPending] = useState(false);
   const [errors, setErrors] = useState<z.inferFormattedError<T> | undefined>(
@@ -53,7 +53,7 @@ export function useFormSubmission<T extends z.ZodType<any, any>>({
     }
 
     try {
-      await onSubmit(validatedFields.data);
+      const result = await onSubmit(validatedFields.data);
 
       toast({
         title: 'Succès !',
@@ -61,7 +61,7 @@ export function useFormSubmission<T extends z.ZodType<any, any>>({
       });
 
       formRef.current?.reset();
-      onSuccess?.();
+      onSuccess?.(result);
     } catch (error) {
       console.error('Form submission error:', error);
       const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de l'opération.";

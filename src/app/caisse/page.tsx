@@ -501,11 +501,16 @@ export default function CaissePage() {
                                 onSelectCustomer={(id) => updateActiveCartState({ customerId: id })}
                                 className="flex-grow"
                             />
-                            <AddCustomerDialog trigger={
-                                <Button variant="outline" size="icon" className="flex-shrink-0">
-                                    <UserPlus className="h-4 w-4" />
-                                </Button>
-                            }/>
+                            <AddCustomerDialog
+                                trigger={
+                                    <Button variant="outline" size="icon" className="flex-shrink-0">
+                                        <UserPlus className="h-4 w-4" />
+                                    </Button>
+                                }
+                                onCustomerAdded={(newCustomer) => {
+                                    updateActiveCartState({ customerId: newCustomer.id });
+                                }}
+                            />
                         </div>
                     )}
                 </div>
