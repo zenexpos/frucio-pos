@@ -13,6 +13,7 @@ import {
   List,
   X,
   User,
+  UserPlus,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,7 +31,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, getBalanceColorClassName } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { Separator } from '@/components/ui/separator';
 import { useMockData } from '@/hooks/use-mock-data';
@@ -48,6 +49,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
+import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 
 const productImages = imageData.caisse;
 
@@ -414,31 +416,45 @@ export default function CaissePage() {
                  <div className="px-4 pb-4">
                     {selectedCustomer ? (
                         <div className="flex items-center justify-between mt-1 p-2 border rounded-md bg-muted/50">
-                            <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground"/>
-                                <span className="font-semibold">{selectedCustomer.name}</span>
+                            <div className="flex items-center gap-3">
+                                <User className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="font-semibold">{selectedCustomer.name}</p>
+                                    <p className={cn("text-xs font-mono", getBalanceColorClassName(selectedCustomer.balance))}>
+                                        Solde: {formatCurrency(selectedCustomer.balance)}
+                                    </p>
+                                </div>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateActiveCartState({ customerId: null })}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateActiveCartState({ customerId: null })}>
                                 <X className="h-4 w-4"/>
                             </Button>
                         </div>
                     ) : (
-                        <Select
-                            value={activeCustomerId || ''}
-                            onValueChange={(value) => updateActiveCartState({ customerId: value === 'none' ? null : value })}
-                        >
-                            <SelectTrigger id="customer-select">
-                                <SelectValue placeholder="Associer à un client..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">Aucun (Vente au comptant)</SelectItem>
-                                {customers.map(customer => (
-                                    <SelectItem key={customer.id} value={customer.id}>
-                                        {customer.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                       <div className="flex items-center gap-2">
+                            <div className="flex-grow">
+                                <Select
+                                    value={activeCustomerId || ''}
+                                    onValueChange={(value) => updateActiveCartState({ customerId: value === 'none' ? null : value })}
+                                >
+                                    <SelectTrigger id="customer-select">
+                                        <SelectValue placeholder="Associer à un client..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Aucun (Vente au comptant)</SelectItem>
+                                        {customers.map(customer => (
+                                            <SelectItem key={customer.id} value={customer.id}>
+                                                {customer.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <AddCustomerDialog trigger={
+                                <Button variant="outline" size="icon" className="flex-shrink-0">
+                                    <UserPlus className="h-4 w-4" />
+                                </Button>
+                            }/>
+                        </div>
                     )}
                 </div>
                 <Separator />
