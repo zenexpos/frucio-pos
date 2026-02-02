@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, FileText, Calendar as CalendarIcon } from 'lucide-react';
+import { Search, FileText, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { TransactionsHistoryTable } from '@/components/history/transactions-history-table';
 import { DateRange } from 'react-day-picker';
 import {
@@ -34,6 +34,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { formatCurrency, cn } from '@/lib/utils';
+import { exportTransactionsToCsv } from '@/lib/mock-data/api';
 
 type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
 type SortDirection = 'ascending' | 'descending';
@@ -253,6 +254,14 @@ export default function HistoryPage() {
                   <SelectItem value="payment">Paiement</SelectItem>
                 </SelectContent>
               </Select>
+               <Button
+                variant="outline"
+                onClick={() => exportTransactionsToCsv(filteredTransactions)}
+                disabled={!hasResults}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Exporter
+              </Button>
             </div>
           </div>
         </CardHeader>

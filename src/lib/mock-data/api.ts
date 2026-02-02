@@ -1,7 +1,7 @@
 'use client';
 import { mockDataStore, saveData, resetToSeedData as resetSeed } from './index';
 import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product, SupplierTransaction, CompanyInfo } from '@/lib/types';
-import { startOfDay } from 'date-fns';
+import { startOfDay, format } from 'date-fns';
 
 let nextId = () => Date.now().toString() + Math.random().toString(36).substring(2, 9);
 
@@ -576,6 +576,47 @@ export const exportSuppliersToCsv = () => {
     const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', 'suppliers-export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+export const exportTransactionsToCsv = (transactions: (Transaction & { customerName: string })[]) => {
+    if (transactions.length === 0) {
+        return;
+    }
+    const headers = ['date', 'customerName', 'description', 'type', 'amount'];
+    const csvRows = [
+        headers.join(',')
+    ];
+
+    for (const transaction of transactions) {
+        const values = headers.map(header => {
+            let val: any;
+            if (header === 'date') {
+                val = format(new Date(transaction.date), 'yyyy-MM-dd HH:mm:ss');
+            } else {
+                val = (transaction as any)[header];
+            }
+            
+            if (val === null || val === undefined) {
+                val = '';
+            }
+            const stringVal = String(val);
+            if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
+                return `"${stringVal.replace(/"/g, '""')}"`;
+            }
+            return stringVal;
+        });
+        csvRows.push(values.join(','));
+    }
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'transactions-export.csv');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
