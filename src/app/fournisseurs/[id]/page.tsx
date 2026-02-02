@@ -10,6 +10,7 @@ import SupplierDetailLoading from './loading';
 import { SupplierHeader } from '@/components/fournisseurs/supplier-header';
 import { SupplierBalanceHistoryChart } from '@/components/fournisseurs/supplier-balance-history-chart';
 import { SupplierTransactionsView } from '@/components/fournisseurs/supplier-transactions-view';
+import { SupplierProducts } from '@/components/fournisseurs/supplier-products';
 
 export default function SupplierDetailPage() {
   const params = useParams();
@@ -68,6 +69,8 @@ export default function SupplierDetailPage() {
         supplierId={supplier.id}
         supplierBalance={supplier.balance}
       />
+
+      <SupplierProducts supplierId={supplier.id} />
     </div>
   );
 }

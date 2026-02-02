@@ -83,6 +83,9 @@ export function loadData() {
       if (!parsedData.products) {
           parsedData.products = [];
       }
+      if (parsedData.products && parsedData.products.length > 0 && !('supplierId' in parsedData.products[0])) {
+        parsedData.products = parsedData.products.map((p: any) => ({...p, supplierId: null}));
+      }
 
       mockDataStore = parsedData;
     } else {

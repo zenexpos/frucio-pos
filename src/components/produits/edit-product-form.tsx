@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,8 @@ import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { updateProduct } from '@/lib/mock-data/api';
 import type { Product } from '@/lib/types';
+import { useMockData } from '@/hooks/use-mock-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const productSchema = z.object({
   name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
@@ -27,6 +29,8 @@ export function EditProductForm({
   onSuccess?: () => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const { suppliers } = useMockData();
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(product.supplierId || null);
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -40,6 +44,7 @@ export function EditProductForm({
       await updateProduct(product.id, {
         ...data,
         barcode: data.barcode || '',
+        supplierId: selectedSupplierId,
       });
     },
   });
@@ -55,6 +60,20 @@ export function EditProductForm({
         <Label htmlFor="category">Catégorie</Label>
         <Input id="category" name="category" defaultValue={product.category} />
         {errors?.category && <p className="text-sm font-medium text-destructive">{errors.category._errors[0]}</p>}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="supplierId">Fournisseur (Optionnel)</Label>
+        <Select defaultValue={selectedSupplierId || 'none'} onValueChange={(value) => setSelectedSupplierId(value === 'none' ? null : value)}>
+            <SelectTrigger id="supplierId">
+                <SelectValue placeholder="Sélectionner un fournisseur..."/>
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="none">Aucun fournisseur</SelectItem>
+                {suppliers.map(supplier => (
+                    <SelectItem key={supplier.id} value={supplier.id}>{supplier.name}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
       </div>
        <div className="space-y-2">
         <Label htmlFor="barcode">Code-barres</Label>

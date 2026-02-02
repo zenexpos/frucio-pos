@@ -48,16 +48,16 @@ export const SEED_SUPPLIER_TRANSACTIONS: Omit<SupplierTransaction, 'id' | 'suppl
 ];
 
 export const SEED_PRODUCTS: Omit<Product, 'id'>[] = [
-  { name: 'Café Espresso', category: 'Boissons', barcode: '1234567890123', purchasePrice: 1.5, sellingPrice: 2.5, stock: 100, minStock: 20 },
-  { name: 'Croissant au Beurre', category: 'Pâtisseries', barcode: '2345678901234', purchasePrice: 0.8, sellingPrice: 1.8, stock: 50, minStock: 15 },
-  { name: 'Eau Minérale', category: 'Boissons', barcode: '3456789012345', purchasePrice: 0.5, sellingPrice: 1.2, stock: 200, minStock: 50 },
-  { name: "Jus d'Orange Frais", category: 'Boissons', barcode: '4567890123456', purchasePrice: 1.8, sellingPrice: 3.0, stock: 40, minStock: 10 },
-  { name: 'Pain au Chocolat', category: 'Pâtisseries', barcode: '5678901234567', purchasePrice: 0.9, sellingPrice: 1.9, stock: 15, minStock: 15 }, // Low stock example
-  { name: 'Salade César', category: 'Salades', barcode: '6789012345678', purchasePrice: 4.0, sellingPrice: 7.2, stock: 20, minStock: 5 },
-  { name: 'Sandwich Poulet Crudités', category: 'Sandwichs', barcode: '7890123456789', purchasePrice: 3.5, sellingPrice: 5.5, stock: 25, minStock: 10 },
-  { name: 'Tarte au Citron', category: 'Pâtisseries', barcode: '8901234567890', purchasePrice: 2.0, sellingPrice: 3.5, stock: 10, minStock: 5 },
-  { name: 'Thé à la Menthe', category: 'Boissons', barcode: '9012345678901', purchasePrice: 1.2, sellingPrice: 2.2, stock: 80, minStock: 20 },
-  { name: 'Muffin Myrtille', category: 'Pâtisseries', barcode: '0123456789012', purchasePrice: 1.5, sellingPrice: 2.75, stock: 8, minStock: 10 }, // Low stock example
+  { name: 'Café Espresso', category: 'Boissons', barcode: '1234567890123', purchasePrice: 1.5, sellingPrice: 2.5, stock: 100, minStock: 20, supplierId: '1' },
+  { name: 'Croissant au Beurre', category: 'Pâtisseries', barcode: '2345678901234', purchasePrice: 0.8, sellingPrice: 1.8, stock: 50, minStock: 15, supplierId: '1' },
+  { name: 'Eau Minérale', category: 'Boissons', barcode: '3456789012345', purchasePrice: 0.5, sellingPrice: 1.2, stock: 200, minStock: 50, supplierId: '2' },
+  { name: "Jus d'Orange Frais", category: 'Boissons', barcode: '4567890123456', purchasePrice: 1.8, sellingPrice: 3.0, stock: 40, minStock: 10, supplierId: '3' },
+  { name: 'Pain au Chocolat', category: 'Pâtisseries', barcode: '5678901234567', purchasePrice: 0.9, sellingPrice: 1.9, stock: 15, minStock: 15, supplierId: '1' },
+  { name: 'Salade César', category: 'Salades', barcode: '6789012345678', purchasePrice: 4.0, sellingPrice: 7.2, stock: 20, minStock: 5, supplierId: '3' },
+  { name: 'Sandwich Poulet Crudités', category: 'Sandwichs', barcode: '7890123456789', purchasePrice: 3.5, sellingPrice: 5.5, stock: 25, minStock: 10, supplierId: null },
+  { name: 'Tarte au Citron', category: 'Pâtisseries', barcode: '8901234567890', purchasePrice: 2.0, sellingPrice: 3.5, stock: 10, minStock: 5, supplierId: '3' },
+  { name: 'Thé à la Menthe', category: 'Boissons', barcode: '9012345678901', purchasePrice: 1.2, sellingPrice: 2.2, stock: 80, minStock: 20, supplierId: '1' },
+  { name: 'Muffin Myrtille', category: 'Pâtisseries', barcode: '0123456789012', purchasePrice: 1.5, sellingPrice: 2.75, stock: 8, minStock: 10, supplierId: null }, // Low stock example
 ];
 
 

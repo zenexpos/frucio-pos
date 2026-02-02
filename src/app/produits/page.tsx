@@ -74,7 +74,12 @@ export default function ProduitsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const { products, loading } = useMockData();
+  const { products, suppliers, loading } = useMockData();
+
+  const supplierMap = useMemo(() => {
+    if (!suppliers) return new Map();
+    return new Map(suppliers.map(s => [s.id, s.name]));
+  }, [suppliers]);
 
   const getProductImage = (product: Product) => {
       const imageId = slugify(product.name);
@@ -98,8 +103,8 @@ export default function ProduitsPage() {
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
-        let aValue: string | number;
-        let bValue: string | number;
+        let aValue: string | number | null | undefined;
+        let bValue: string | number | null | undefined;
 
         if (sortConfig.key === 'margin') {
           aValue = a.sellingPrice - a.purchasePrice;
@@ -147,11 +152,10 @@ export default function ProduitsPage() {
   const headers: { key: SortKey; label: string; className?: string, isSortable: boolean }[] = [
     { key: 'name', label: 'Nom', isSortable: true },
     { key: 'category', label: 'Catégorie', className: 'hidden md:table-cell', isSortable: true },
-    { key: 'barcode', label: 'Code-barres', className: 'hidden lg:table-cell', isSortable: true },
+    { key: 'supplierId', label: 'Fournisseur', className: 'hidden lg:table-cell', isSortable: true },
     { key: 'purchasePrice', label: "Prix d'achat", className: 'text-right hidden sm:table-cell', isSortable: true },
     { key: 'sellingPrice', label: 'Prix de vente', className: 'text-right', isSortable: true },
     { key: 'stock', label: 'Stock', className: 'text-right hidden sm:table-cell', isSortable: true },
-    { key: 'minStock', label: 'Stock min.', className: 'text-right hidden lg:table-cell', isSortable: true },
     { key: 'margin', label: 'Marge', className: 'text-right hidden md:table-cell', isSortable: true },
     { key: 'name', label: 'Actions', className: 'text-right', isSortable: false }, // dummy key for label
   ];
@@ -237,11 +241,12 @@ export default function ProduitsPage() {
                                         <TableCell className="p-2 hidden md:table-cell">
                                             <Badge variant="secondary">{product.category}</Badge>
                                         </TableCell>
-                                        <TableCell className="font-mono text-xs p-2 hidden lg:table-cell">{product.barcode}</TableCell>
+                                        <TableCell className="p-2 hidden lg:table-cell text-muted-foreground">
+                                          {product.supplierId ? supplierMap.get(product.supplierId) : '-'}
+                                        </TableCell>
                                         <TableCell className="text-right font-mono p-2 hidden sm:table-cell">{formatCurrency(product.purchasePrice)}</TableCell>
                                         <TableCell className="text-right font-mono font-semibold p-2">{formatCurrency(product.sellingPrice)}</TableCell>
                                         <TableCell className={cn('text-right font-mono p-2 hidden sm:table-cell', (isLowStock || isOutOfStock) && 'font-bold text-destructive')}>{product.stock}</TableCell>
-                                        <TableCell className="text-right font-mono p-2 hidden lg:table-cell">{product.minStock}</TableCell>
                                         <TableCell className={cn("text-right font-mono p-2 hidden md:table-cell", margin < 0 ? 'text-destructive' : 'text-accent' )}>{formatCurrency(margin)}</TableCell>
                                         <TableCell className="text-right p-2">
                                             <div className="flex items-center justify-end gap-0.5">
