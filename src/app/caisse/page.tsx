@@ -136,11 +136,30 @@ export default function CaissePage() {
   };
 
   const addToCart = (product: Product) => {
-    const cart = [...activeCart];
-    const existingItemIndex = cart.findIndex(item => item.product.id === product.id);
+    if (product.stock <= 0) {
+        toast({
+            title: 'Produit épuisé',
+            description: `${product.name} n'est pas disponible en stock.`,
+            variant: 'destructive',
+        });
+        return;
+    }
 
-    if (existingItemIndex > -1) {
-        cart[existingItemIndex].quantity += 1;
+    const cart = [...activeCart];
+    const existingItem = cart.find(item => item.product.id === product.id);
+    const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
+
+    if (currentQuantityInCart >= product.stock) {
+      toast({
+        title: 'Stock insuffisant',
+        description: `Vous avez déjà la quantité maximale de ${product.name} dans le panier.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (existingItem) {
+        existingItem.quantity += 1;
     } else {
         cart.push({ product, quantity: 1 });
     }
@@ -152,6 +171,17 @@ export default function CaissePage() {
     const itemIndex = cart.findIndex(item => item.product.id === productId);
 
     if (itemIndex > -1) {
+        const item = cart[itemIndex];
+        if (quantity > item.product.stock) {
+            toast({
+              title: 'Stock insuffisant',
+              description: `Le stock disponible pour ${item.product.name} est de ${item.product.stock}.`,
+              variant: 'destructive',
+            });
+            // Do not update if requested quantity is over stock
+            return;
+        }
+
         if (quantity <= 0) {
             cart.splice(itemIndex, 1);
         } else {
@@ -192,7 +222,8 @@ export default function CaissePage() {
   };
   
   const handlePaymentSuccess = () => {
-      updateActiveCartState({ items: [], discount: 0, customerId: null });
+      // Clear current cart, but keep the customer if they were selected
+      updateActiveCartState({ items: [], discount: 0 });
   }
 
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -327,24 +358,33 @@ export default function CaissePage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {filteredProducts.map(product => {
                         const { url, hint } = getProductImage(product);
+                        const isOutOfStock = product.stock <= 0;
+                        const isLowStock = !isOutOfStock && product.stock <= product.minStock;
                         return (
-                            <Card key={product.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                            <Card key={product.id} className={cn("overflow-hidden shadow-md hover:shadow-lg transition-shadow", isOutOfStock && "bg-muted/50", isLowStock && "border-amber-500")}>
                                 <div className="relative">
                                     <Image
                                         src={url}
                                         alt={product.name}
                                         width={400}
                                         height={400}
-                                        className="object-cover w-full h-32"
+                                        className={cn("object-cover w-full h-32", isOutOfStock && "grayscale")}
                                         data-ai-hint={hint}
                                     />
-                                    <Badge variant="secondary" className="absolute top-2 right-2">{formatCurrency(product.sellingPrice)}</Badge>
+                                    {isOutOfStock ? (
+                                      <Badge variant="destructive" className="absolute top-2 left-2">ÉPUISÉ</Badge>
+                                    ) : (
+                                      <Badge variant="secondary" className="absolute top-2 right-2">{formatCurrency(product.sellingPrice)}</Badge>
+                                    )}
+                                    {isLowStock && (
+                                        <Badge variant="outline" className="absolute top-2 left-2 bg-background/80 border-amber-500 text-amber-600">Stock Faible</Badge>
+                                    )}
                                 </div>
                                 <CardContent className="p-3">
                                     <h3 className="font-semibold truncate text-sm">{product.name}</h3>
                                     <p className="text-xs text-muted-foreground">{product.category}</p>
-                                    <Button className="w-full mt-2" size="sm" onClick={() => addToCart(product)}>
-                                        <PlusCircle className="mr-2 h-4 w-4" /> Ajouter
+                                    <Button className="w-full mt-2" size="sm" onClick={() => addToCart(product)} disabled={isOutOfStock}>
+                                        {isOutOfStock ? 'Stock 0' : <><PlusCircle className="mr-2 h-4 w-4" /> Ajouter</>}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -364,19 +404,22 @@ export default function CaissePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredProducts.map(product => (
-                                <TableRow key={product.id}>
+                            {filteredProducts.map(product => {
+                                const isOutOfStock = product.stock <= 0;
+                                const isLowStock = !isOutOfStock && product.stock <= product.minStock;
+                                return (
+                                <TableRow key={product.id} className={cn(isOutOfStock && "text-muted-foreground bg-muted/50", isLowStock && "bg-amber-50/50 dark:bg-amber-900/10")}>
                                     <TableCell className="font-medium">{product.name}</TableCell>
                                     <TableCell className="hidden sm:table-cell"><Badge variant="secondary">{product.category}</Badge></TableCell>
-                                    <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
+                                    <TableCell className={cn("hidden md:table-cell", isOutOfStock && "font-bold", isLowStock && "text-amber-600 dark:text-amber-400 font-bold")}>{product.stock}</TableCell>
                                     <TableCell className="text-right font-mono">{formatCurrency(product.sellingPrice)}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button size="sm" onClick={() => addToCart(product)}>
-                                            <PlusCircle className="mr-2 h-4 w-4" /> Ajouter
+                                        <Button size="sm" onClick={() => addToCart(product)} disabled={isOutOfStock}>
+                                            {isOutOfStock ? 'Épuisé' : <><PlusCircle className="mr-2 h-4 w-4" /> Ajouter</>}
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </div>
