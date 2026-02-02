@@ -2,12 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import type { Transaction } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { TransactionsTable } from './transactions-table';
 import { AddTransactionDialog } from './add-transaction-dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle, MinusCircle, FileText } from 'lucide-react';
+import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
 
 export function TransactionsView({
   transactions,
@@ -97,6 +98,12 @@ export function TransactionsView({
           </div>
         )}
       </CardContent>
+      <CardFooter className="hidden print:flex justify-end pt-8">
+        <div className="text-right">
+            <p className="text-muted-foreground">Solde Final</p>
+            <p className={`text-2xl font-bold ${getBalanceColorClassName(customerBalance)}`}>{formatCurrency(customerBalance)}</p>
+        </div>
+      </CardFooter>
     </Card>
   );
 }

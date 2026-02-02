@@ -16,6 +16,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EditCustomerDialog } from './edit-customer-dialog';
 import { DeleteCustomerDialog } from './delete-customer-dialog';
+import { useMockData } from '@/hooks/use-mock-data';
+import Image from 'next/image';
 
 export function CustomerHeader({
   customer,
@@ -26,6 +28,9 @@ export function CustomerHeader({
   transactions: Transaction[];
   onDeleteSuccess?: () => void;
 }) {
+  const { settings } = useMockData();
+  const companyInfo = settings.companyInfo;
+
   const { totalDebt, totalPayments } = useMemo(() => {
     if (!transactions) return { totalDebt: 0, totalPayments: 0 };
     return transactions.reduce(
@@ -42,8 +47,33 @@ export function CustomerHeader({
   }, [transactions]);
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="print:shadow-none print:border-none">
+       <div className="hidden print:block p-6 mb-4">
+        <div className="flex justify-between items-start">
+            <div>
+                {companyInfo.logoUrl && (
+                    <Image src={companyInfo.logoUrl} alt={companyInfo.name} width={120} height={60} className="mb-4 object-contain"/>
+                )}
+                <h1 className="text-2xl font-bold">{companyInfo.name}</h1>
+                <p className="text-muted-foreground">{companyInfo.address}</p>
+                <p className="text-muted-foreground">{companyInfo.phone}</p>
+                <p className="text-muted-foreground">{companyInfo.email}</p>
+                 <p className="text-muted-foreground text-xs">{companyInfo.extraInfo}</p>
+            </div>
+            <div className="text-right">
+                <h2 className="text-3xl font-bold text-primary">Relevé de Compte</h2>
+                <p className="text-muted-foreground">Date: {format(new Date(), 'dd/MM/yyyy')}</p>
+            </div>
+        </div>
+        <div className="mt-8 border-t pt-4">
+            <h3 className="font-semibold">Client:</h3>
+            <p>{customer.name}</p>
+            <p>{customer.phone}</p>
+            <p>{customer.email}</p>
+        </div>
+      </div>
+
+      <CardHeader className="print:hidden">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <CardTitle>{customer.name}</CardTitle>
@@ -81,8 +111,8 @@ export function CustomerHeader({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-muted-foreground border-t pt-4">
-          <div className="flex items-center gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-muted-foreground border-t pt-4 print:grid-cols-2 print:border-none print:pt-0">
+          <div className="flex items-center gap-2 print:hidden">
             <Phone className="h-4 w-4" />
             <span>{customer.phone}</span>
           </div>
