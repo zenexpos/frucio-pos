@@ -18,7 +18,10 @@ import {
   TrendingDown,
   Bell,
   FileText,
+  Menu,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -41,59 +44,109 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     { href: '/parametres', label: 'Paramètres', icon: Settings },
   ];
 
-  return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-10 grid h-16 grid-cols-3 items-center border-b bg-background px-4 md:px-6 no-print">
-        {/* Left Side */}
-        <div className="flex items-center justify-start">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/icon.svg"
-              alt="App Logo"
-              width={32}
-              height={32}
-              className="rounded-lg"
-            />
-            <span className="hidden sm:inline-block text-xl font-semibold text-foreground">
-              Gestion de Crédit
-            </span>
+  const NavContent = () => (
+     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+      {navLinks.map((link) => {
+        const Icon = link.icon;
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+              pathname === link.href ? 'bg-muted text-primary' : ''
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            {link.label}
           </Link>
-        </div>
+        );
+      })}
+    </nav>
+  );
 
-        {/* Centered Navigation */}
-        <nav className="flex items-center justify-center gap-1 text-sm font-medium">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                title={link.label}
-                className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground',
-                  pathname === link.href
-                    ? 'bg-accent text-accent-foreground'
-                    : ''
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="sr-only">{link.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
 
-        {/* Right Side */}
-        <div className="flex items-center justify-end gap-4">
-          <Clock />
-          <div className="border-l pl-4">
-            <ThemeToggle />
+  return (
+    <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
+      <div className="hidden border-r bg-muted/40 md:block no-print">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <Link href="/" className="flex items-center gap-2 font-semibold">
+               <Image
+                src="/icon.svg"
+                alt="App Logo"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+              <span className="text-xl">Gestion de Crédit</span>
+            </Link>
+          </div>
+          <div className="flex-1 py-4">
+             <NavContent />
           </div>
         </div>
-      </header>
-      <main className="flex-1 p-4 sm:p-6 md:p-8">
-        <div className="mx-auto w-full max-w-none">{children}</div>
-      </main>
+      </div>
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 no-print">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col">
+               <nav className="grid gap-2 text-lg font-medium mt-8">
+                  <Link
+                    href="#"
+                    className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  >
+                    <Image
+                      src="/icon.svg"
+                      alt="App Logo"
+                      width={32}
+                      height={32}
+                      className="rounded-lg"
+                    />
+                    <span className="text-xl">Gestion de Crédit</span>
+                  </Link>
+                  {navLinks.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground',
+                          pathname === link.href ? 'bg-muted text-foreground' : ''
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+            </SheetContent>
+          </Sheet>
+          
+          <div className="w-full flex-1">
+           {/* Can add search or breadcrumbs here later */}
+          </div>
+          <Clock />
+          <div className="pl-4">
+            <ThemeToggle />
+          </div>
+        </header>
+        <main className="flex-1 p-4 sm:p-6 md:p-8">
+          <div className="mx-auto w-full max-w-none">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
