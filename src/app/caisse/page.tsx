@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Search,
@@ -11,6 +11,7 @@ import {
   PlusCircle,
   LayoutGrid,
   List,
+  X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -35,7 +36,15 @@ import { useMockData } from '@/hooks/use-mock-data';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaymentDialog } from '@/components/caisse/payment-dialog';
-
+import { useToast } from '@/hooks/use-toast';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const productImages = imageData.caisse;
 
@@ -60,13 +69,36 @@ const slugify = (text: string) => {
 
 export default function CaissePage() {
   const { products, loading } = useMockData();
+  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState('vente-1');
   const [carts, setCarts] = useState<Record<string, CartItem[]>>({ 'vente-1': [] });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Toutes');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [barcode, setBarcode] = useState('');
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
   
   const activeCart = carts[activeTab] || [];
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'F1') {
+            e.preventDefault();
+            searchInputRef.current?.focus();
+        } else if (e.key === 'F2') {
+            e.preventDefault();
+            barcodeInputRef.current?.focus();
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const categories = useMemo(() => {
     if (!products) return [];
@@ -109,13 +141,34 @@ export default function CaissePage() {
   };
   
   const addNewTab = () => {
-    const nextId = Object.keys(carts).length + 1;
-    // Basic check to prevent infinite tabs
+    const nextId = (Math.max(...Object.keys(carts).map(k => parseInt(k.split('-')[1]))) || 0) + 1;
     if(nextId > 10) return;
     const newTabId = `vente-${nextId}`;
     setCarts(prev => ({...prev, [newTabId]: []}));
     setActiveTab(newTabId);
   }
+
+  const closeTab = (tabIdToClose: string) => {
+    if (Object.keys(carts).length <= 1) {
+        toast({
+            title: 'Action non autorisée',
+            description: 'Vous ne pouvez pas fermer le dernier onglet de vente.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    setCarts(prevCarts => {
+        const newCarts = {...prevCarts};
+        delete newCarts[tabIdToClose];
+        
+        if (activeTab === tabIdToClose) {
+            setActiveTab(Object.keys(newCarts)[0]);
+        }
+        
+        return newCarts;
+    });
+  };
   
   const handlePaymentSuccess = () => {
       // Clear the current cart
@@ -125,6 +178,29 @@ export default function CaissePage() {
           return newCarts;
       });
   }
+
+  const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!barcode.trim()) return;
+
+        const product = products.find(p => p.barcode === barcode.trim());
+        if (product) {
+            addToCart(product);
+            setBarcode(''); // Clear input after adding
+            toast({
+                title: 'Produit ajouté',
+                description: `${product.name} a été ajouté au panier.`,
+            });
+        } else {
+            toast({
+                title: 'Produit non trouvé',
+                description: `Aucun produit ne correspond au code-barres "${barcode}".`,
+                variant: 'destructive',
+            });
+        }
+    }
+  };
 
   const subtotal = useMemo(() => {
     return activeCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
@@ -205,11 +281,11 @@ export default function CaissePage() {
             <div className="flex flex-col md:flex-row gap-2">
               <div className="relative flex-grow">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Rechercher des produits... (F1)" className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <Input ref={searchInputRef} placeholder="Rechercher des produits... (F1)" className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
               <div className="relative">
                 <Barcode className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Saisir le code-barres... (F2)" className="pl-8" />
+                <Input ref={barcodeInputRef} placeholder="Saisir le code-barres... (F2)" className="pl-8" value={barcode} onChange={e => setBarcode(e.target.value)} onKeyDown={handleBarcodeScan} />
               </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-full md:w-[200px]">
@@ -220,40 +296,71 @@ export default function CaissePage() {
                 </SelectContent>
               </Select>
                <div className="flex items-center gap-1">
-                    <Button variant="outline" size="icon"><LayoutGrid className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon"><List className="h-4 w-4" /></Button>
+                    <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('grid')}><LayoutGrid className="h-4 w-4" /></Button>
+                    <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('list')}><List className="h-4 w-4" /></Button>
                 </div>
             </div>
           </CardHeader>
         </Card>
         <div className="flex-grow overflow-auto p-1 mt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredProducts.map(product => {
-                    const { url, hint } = getProductImage(product);
-                    return (
-                        <Card key={product.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                            <div className="relative">
-                                <Image
-                                    src={url}
-                                    alt={product.name}
-                                    width={400}
-                                    height={400}
-                                    className="object-cover w-full h-32"
-                                    data-ai-hint={hint}
-                                />
-                                <Badge variant="secondary" className="absolute top-2 right-2">{formatCurrency(product.sellingPrice)}</Badge>
-                            </div>
-                            <CardContent className="p-3">
-                                <h3 className="font-semibold truncate text-sm">{product.name}</h3>
-                                <p className="text-xs text-muted-foreground">{product.category}</p>
-                                <Button className="w-full mt-2" size="sm" onClick={() => addToCart(product)}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Ajouter
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    )
-                })}
-            </div>
+            {viewMode === 'grid' ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {filteredProducts.map(product => {
+                        const { url, hint } = getProductImage(product);
+                        return (
+                            <Card key={product.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                                <div className="relative">
+                                    <Image
+                                        src={url}
+                                        alt={product.name}
+                                        width={400}
+                                        height={400}
+                                        className="object-cover w-full h-32"
+                                        data-ai-hint={hint}
+                                    />
+                                    <Badge variant="secondary" className="absolute top-2 right-2">{formatCurrency(product.sellingPrice)}</Badge>
+                                </div>
+                                <CardContent className="p-3">
+                                    <h3 className="font-semibold truncate text-sm">{product.name}</h3>
+                                    <p className="text-xs text-muted-foreground">{product.category}</p>
+                                    <Button className="w-full mt-2" size="sm" onClick={() => addToCart(product)}>
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Ajouter
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
+                </div>
+            ) : (
+                <div className="border rounded-lg">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Produit</TableHead>
+                                <TableHead className="hidden sm:table-cell">Catégorie</TableHead>
+                                <TableHead className="hidden md:table-cell">Stock</TableHead>
+                                <TableHead className="text-right">Prix</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredProducts.map(product => (
+                                <TableRow key={product.id}>
+                                    <TableCell className="font-medium">{product.name}</TableCell>
+                                    <TableCell className="hidden sm:table-cell"><Badge variant="secondary">{product.category}</Badge></TableCell>
+                                    <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
+                                    <TableCell className="text-right font-mono">{formatCurrency(product.sellingPrice)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button size="sm" onClick={() => addToCart(product)}>
+                                            <PlusCircle className="mr-2 h-4 w-4" /> Ajouter
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
         </div>
       </div>
 
@@ -263,9 +370,22 @@ export default function CaissePage() {
             <CardHeader>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <div className="flex items-center justify-between">
-                    <TabsList>
+                    <TabsList className="flex-grow">
                         {Object.keys(carts).map(tabId => (
-                            <TabsTrigger key={tabId} value={tabId}>{tabId.replace('-', ' ')}</TabsTrigger>
+                            <TabsTrigger key={tabId} value={tabId} className="relative pr-7 flex-grow">
+                                {tabId.replace('-', ' ')}
+                                 <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="absolute top-1/2 right-0 -translate-y-1/2 h-5 w-5 rounded-full"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        closeTab(tabId);
+                                    }}
+                                >
+                                    <X className="h-3 w-3" />
+                                </Button>
+                            </TabsTrigger>
                         ))}
                     </TabsList>
                     <Button size="icon" variant="ghost" onClick={addNewTab}><Plus /></Button>
