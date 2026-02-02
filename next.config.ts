@@ -6,7 +6,7 @@ const withPWA = withPWAInit({
   register: true,
   scope: '/',
   sw: 'sw.js',
-  disable: false, // Ensure PWA is enabled in development
+  disable: process.env.NODE_ENV === 'development',
 });
 
 const nextConfig: NextConfig = {
