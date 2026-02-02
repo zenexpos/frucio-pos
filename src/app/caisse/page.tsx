@@ -85,6 +85,7 @@ export default function CaissePage() {
 
   const [activeTab, setActiveTab] = useState('vente-1');
   const [carts, setCarts] = useState<Record<string, CartState>>({ 'vente-1': { items: [], discount: 0, customerId: null } });
+  const [isStateLoaded, setIsStateLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Toutes');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -119,6 +120,46 @@ export default function CaissePage() {
         window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  // Load cart from localStorage on initial render
+  useEffect(() => {
+    try {
+      const savedCarts = localStorage.getItem('caisse-carts-data');
+      if (savedCarts) {
+        const parsedCarts = JSON.parse(savedCarts);
+        // Basic validation
+        if (typeof parsedCarts === 'object' && parsedCarts !== null && Object.keys(parsedCarts).length > 0) {
+          setCarts(parsedCarts);
+          const firstTabKey = Object.keys(parsedCarts)[0];
+          if (firstTabKey) {
+            setActiveTab(firstTabKey);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load cart state from localStorage", error);
+      // If there's an error, we just proceed with the default empty state
+    } finally {
+        setIsStateLoaded(true);
+    }
+  }, []); // Empty array means this runs only once on mount
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (!isStateLoaded) {
+      return; // Don't save until the initial state is loaded
+    }
+    try {
+      localStorage.setItem('caisse-carts-data', JSON.stringify(carts));
+    } catch (error) {
+      console.error("Failed to save cart state to localStorage", error);
+      toast({
+        title: 'Erreur de sauvegarde',
+        description: "Impossible de sauvegarder l'état du panier. Les modifications pourraient être perdues.",
+        variant: 'destructive',
+      });
+    }
+  }, [carts, isStateLoaded, toast]);
 
   const categories = useMemo(() => {
     if (!products) return [];
@@ -223,8 +264,12 @@ export default function CaissePage() {
   };
   
   const handlePaymentSuccess = () => {
-      // Clear current cart, but keep the customer if they were selected
-      updateActiveCartState({ items: [], discount: 0 });
+      if (Object.keys(carts).length > 1) {
+          closeTab(activeTab);
+      } else {
+          // Clear current cart, but keep the customer if they were selected
+          updateActiveCartState({ items: [], discount: 0 });
+      }
   }
 
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -277,7 +322,7 @@ export default function CaissePage() {
       return { url: `https://picsum.photos/seed/${product.id}/400/400`, hint: 'product' };
   }
   
-  if (loading) {
+  if (loading || !isStateLoaded) {
       return (
         <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-8rem)]">
           <div className="flex-grow flex flex-col">
