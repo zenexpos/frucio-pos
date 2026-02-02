@@ -22,7 +22,7 @@ import { ShoppingCart, FileWarning, ClipboardList } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useMockData } from '@/hooks/use-mock-data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, addDays, isAfter } from 'date-fns';
+import { format, addDays, isAfter, differenceInCalendarDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function AlertsPage() {
@@ -64,9 +64,12 @@ export default function AlertsPage() {
         // Only show customers who are late.
         if (!isLate) return null;
 
+        const daysOverdue = differenceInCalendarDays(today, dueDate);
+
         return {
           ...customer,
           dueDate,
+          daysOverdue,
         };
       })
       .filter((c): c is NonNullable<typeof c> => c !== null);
@@ -214,7 +217,8 @@ export default function AlertsPage() {
                           locale: fr,
                         })}
                         <span className="text-destructive text-xs ml-1">
-                          (En retard)
+                          (Retard de {customer.daysOverdue}{' '}
+                          {customer.daysOverdue > 1 ? 'jours' : 'jour'})
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
