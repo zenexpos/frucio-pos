@@ -35,6 +35,14 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { formatCurrency, cn } from '@/lib/utils';
 
+type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
+type SortDirection = 'ascending' | 'descending';
+
+interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+}
+
 export default function HistoryPage() {
   const { customers, transactions, loading } = useMockData();
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +52,7 @@ export default function HistoryPage() {
     from: subDays(new Date(), 29),
     to: new Date(),
   });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'descending' });
 
   const transactionsWithCustomer = useMemo(() => {
     return transactions
@@ -53,12 +62,11 @@ export default function HistoryPage() {
           ...transaction,
           customerName: customer?.name || 'Inconnu',
         };
-      })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      });
   }, [transactions, customers]);
 
   const filteredTransactions = useMemo(() => {
-    return transactionsWithCustomer.filter((transaction) => {
+    let filtered = transactionsWithCustomer.filter((transaction) => {
       const searchMatch =
         transaction.description
           .toLowerCase()
@@ -83,12 +91,40 @@ export default function HistoryPage() {
 
       return searchMatch && customerMatch && typeMatch && dateMatch;
     });
+
+    if (sortConfig !== null) {
+      filtered.sort((a, b) => {
+        let aValue: any = a[sortConfig.key];
+        let bValue: any = b[sortConfig.key];
+        
+        if (sortConfig.key === 'date') {
+          aValue = new Date(a.date).getTime();
+          bValue = new Date(b.date).getTime();
+        }
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+
   }, [
     transactionsWithCustomer,
     searchTerm,
     selectedCustomerId,
     transactionType,
     date,
+    sortConfig,
   ]);
   
   const { totalDebts, totalPayments, netChange } = useMemo(() => {
@@ -105,6 +141,14 @@ export default function HistoryPage() {
       { totalDebts: 0, totalPayments: 0, netChange: 0 }
     );
   }, [filteredTransactions]);
+
+  const requestSort = (key: SortKey) => {
+    let direction: SortDirection = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
 
   if (loading) {
     return <HistoryLoading />;
@@ -214,7 +258,11 @@ export default function HistoryPage() {
         </CardHeader>
         <CardContent>
           {hasResults ? (
-            <TransactionsHistoryTable transactions={filteredTransactions} />
+            <TransactionsHistoryTable 
+              transactions={filteredTransactions} 
+              onSort={requestSort}
+              sortConfig={sortConfig}
+            />
           ) : (
             <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-4">
               <FileText className="h-12 w-12 text-muted-foreground" />

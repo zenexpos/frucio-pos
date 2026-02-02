@@ -10,7 +10,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowUpRight, ArrowDownLeft, ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EditTransactionDialog } from '@/components/transactions/edit-transaction-dialog';
@@ -20,21 +21,55 @@ interface TransactionWithCustomer extends Transaction {
   customerName: string;
 }
 
+type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
+type SortDirection = 'ascending' | 'descending';
+
+interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+}
+
 export function TransactionsHistoryTable({
   transactions,
+  onSort,
+  sortConfig,
 }: {
   transactions: TransactionWithCustomer[];
+  onSort: (key: SortKey) => void;
+  sortConfig: SortConfig;
 }) {
+  const getSortIcon = (key: SortKey) => {
+    if (sortConfig.key !== key) {
+      return <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
+    }
+    if (sortConfig.direction === 'ascending') {
+      return <ArrowUp className="ml-2 h-4 w-4" />;
+    }
+    return <ArrowDown className="ml-2 h-4 w-4" />;
+  };
+
   return (
     <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Client</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Montant</TableHead>
+            <TableHead>
+                <Button variant="ghost" onClick={() => onSort('customerName')} className="px-2 py-1 h-auto">Client {getSortIcon('customerName')}</Button>
+            </TableHead>
+            <TableHead>
+                <Button variant="ghost" onClick={() => onSort('description')} className="px-2 py-1 h-auto">Description {getSortIcon('description')}</Button>
+            </TableHead>
+            <TableHead>
+                <Button variant="ghost" onClick={() => onSort('type')} className="px-2 py-1 h-auto">Type {getSortIcon('type')}</Button>
+            </TableHead>
+            <TableHead>
+                <Button variant="ghost" onClick={() => onSort('date')} className="px-2 py-1 h-auto">Date {getSortIcon('date')}</Button>
+            </TableHead>
+            <TableHead className="text-right">
+                <div className="flex justify-end w-full">
+                    <Button variant="ghost" onClick={() => onSort('amount')} className="px-2 py-1 h-auto">Montant {getSortIcon('amount')}</Button>
+                </div>
+            </TableHead>
             <TableHead className="text-right no-print">Actions</TableHead>
           </TableRow>
         </TableHeader>
