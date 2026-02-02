@@ -22,11 +22,11 @@ import { ShoppingCart, FileWarning } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useMockData } from '@/hooks/use-mock-data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+import { format, addDays, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function AlertsPage() {
-  const { products, customers, transactions, loading } = useMockData();
+  const { products, customers, transactions, settings, loading } = useMockData();
 
   const lowStockProducts = useMemo(() => {
     if (!products) return [];
@@ -35,30 +35,39 @@ export default function AlertsPage() {
   }, [products]);
 
   const overdueCustomers = useMemo(() => {
-    if (!customers || !transactions) return [];
+    if (!customers || !transactions || !settings?.companyInfo) return [];
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const paymentTermsDays = settings.companyInfo.paymentTermsDays;
+
     return customers
-      .filter((c) => c.balance > 0)
       .map((customer) => {
+        if (customer.balance <= 0) return null;
+
         const customerDebts = transactions
           .filter((t) => t.customerId === customer.id && t.type === 'debt')
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         
-        // We'll use the date of the most recent debt as the "due date" for the alert.
         const lastDebt = customerDebts[0];
-        const dueDate = lastDebt ? new Date(lastDebt.date) : null;
-        const isLate = dueDate ? dueDate < today : false;
+        if (!lastDebt) return null;
+
+        const debtDate = new Date(lastDebt.date);
+        const dueDate = addDays(debtDate, paymentTermsDays);
+        
+        const isLate = isAfter(today, dueDate);
+
+        // Only show customers who are late.
+        if (!isLate) return null;
 
         return {
           ...customer,
           dueDate,
-          isLate,
         };
-      });
-  }, [customers, transactions]);
+      })
+      .filter((c): c is NonNullable<typeof c> => c !== null);
+  }, [customers, transactions, settings]);
 
   if (loading) {
     return (
@@ -155,7 +164,7 @@ export default function AlertsPage() {
         <CardHeader>
           <CardTitle>Alertes de Paiement</CardTitle>
           <CardDescription>
-            Clients avec des paiements dus prochainement.
+            Clients avec des paiements en retard basés sur vos conditions de paiement.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -180,14 +189,8 @@ export default function AlertsPage() {
                             {formatCurrency(customer.balance)}
                         </TableCell>
                         <TableCell>
-                            {customer.dueDate ? (
-                                <>
-                                {format(customer.dueDate, 'MMM dd, yyyy', { locale: fr })}
-                                {customer.isLate && <span className="text-destructive text-xs ml-1">(En retard)</span>}
-                                </>
-                            ) : (
-                                customer.settlementDay || 'Non défini'
-                            )}
+                            {format(customer.dueDate, 'dd MMM yyyy', { locale: fr })}
+                            <span className="text-destructive text-xs ml-1">(En retard)</span>
                         </TableCell>
                         <TableCell className="text-right">
                             <Button asChild variant="ghost" size="icon">
