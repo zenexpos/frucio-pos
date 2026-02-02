@@ -20,9 +20,11 @@ import { deleteSupplier } from '@/lib/mock-data/api';
 export function DeleteSupplierDialog({
   supplierId,
   supplierName,
+  trigger,
 }: {
   supplierId: string;
   supplierName: string;
+  trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -49,12 +51,16 @@ export function DeleteSupplierDialog({
     }
   };
 
+  const defaultTrigger = (
+    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  );
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {trigger || defaultTrigger}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
