@@ -21,10 +21,12 @@ export function DeleteCustomerDialog({
   customerId,
   customerName,
   onSuccess,
+  trigger,
 }: {
   customerId: string;
   customerName: string;
   onSuccess?: () => void;
+  trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -52,13 +54,17 @@ export function DeleteCustomerDialog({
     }
   };
 
+  const defaultTrigger = (
+    <Button variant="ghost" size="icon">
+      <Trash2 className="text-destructive" />
+      <span className="sr-only">Supprimer le client</span>
+    </Button>
+  );
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Trash2 className="text-destructive" />
-          <span className="sr-only">Supprimer le client</span>
-        </Button>
+        {trigger || defaultTrigger}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
