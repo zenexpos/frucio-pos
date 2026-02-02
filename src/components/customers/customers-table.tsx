@@ -11,13 +11,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
-  ArrowRight,
   PlusCircle,
   MinusCircle,
   ChevronsUpDown,
   ArrowUp,
   ArrowDown,
   CalendarCheck2,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -56,7 +57,7 @@ export function CustomersTable({
               <Button
                 variant="ghost"
                 onClick={() => onSort('name')}
-                className="px-2 py-1"
+                className="px-2 py-1 h-auto"
               >
                 Nom {getSortIcon('name')}
               </Button>
@@ -65,7 +66,7 @@ export function CustomersTable({
               <Button
                 variant="ghost"
                 onClick={() => onSort('email')}
-                className="px-2 py-1"
+                className="px-2 py-1 h-auto"
               >
                 Email {getSortIcon('email')}
               </Button>
@@ -74,7 +75,7 @@ export function CustomersTable({
               <Button
                 variant="ghost"
                 onClick={() => onSort('phone')}
-                className="px-2 py-1"
+                className="px-2 py-1 h-auto"
               >
                 Téléphone {getSortIcon('phone')}
               </Button>
@@ -83,7 +84,7 @@ export function CustomersTable({
               <Button
                 variant="ghost"
                 onClick={() => onSort('settlementDay')}
-                className="px-2 py-1"
+                className="px-2 py-1 h-auto"
               >
                 Jour de règlement {getSortIcon('settlementDay')}
               </Button>
@@ -92,9 +93,9 @@ export function CustomersTable({
               <Button
                 variant="ghost"
                 onClick={() => onSort('totalDebts')}
-                className="px-2 py-1"
+                className="px-2 py-1 h-auto"
               >
-                Total des Dettes {getSortIcon('totalDebts')}
+                Total Dépensé {getSortIcon('totalDebts')}
               </Button>
             </TableHead>
             <TableHead className="text-right">
@@ -102,7 +103,7 @@ export function CustomersTable({
                 <Button
                   variant="ghost"
                   onClick={() => onSort('balance')}
-                  className="px-2 py-1"
+                  className="px-2 py-1 h-auto"
                 >
                   Solde {getSortIcon('balance')}
                 </Button>
@@ -120,7 +121,9 @@ export function CustomersTable({
 
             return (
               <TableRow key={customer.id}>
-                <TableCell className="font-medium">{customer.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link href={`/clients/${customer.id}`} className="hover:underline">{customer.name}</Link>
+                </TableCell>
                 <TableCell className="hidden sm:table-cell text-muted-foreground">{customer.email}</TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground">{customer.phone}</TableCell>
                 <TableCell className="hidden lg:table-cell text-muted-foreground">
@@ -152,7 +155,7 @@ export function CustomersTable({
                       type="debt"
                       customerId={customer.id}
                       trigger={
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                           <PlusCircle />
                           <span className="sr-only">Ajouter une dette</span>
                         </Button>
@@ -165,7 +168,7 @@ export function CustomersTable({
                         defaultAmount={customer.balance}
                         defaultDescription="Règlement du solde"
                         trigger={
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MinusCircle className="text-accent" />
                             <span className="sr-only">
                               Ajouter un paiement
@@ -174,17 +177,25 @@ export function CustomersTable({
                         }
                       />
                     )}
-                    <EditCustomerDialog customer={customer} />
+                    <EditCustomerDialog 
+                      customer={customer}
+                      trigger={
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Pencil />
+                          <span className="sr-only">Modifier le client</span>
+                        </Button>
+                      }
+                    />
                     <DeleteCustomerDialog
                       customerId={customer.id}
                       customerName={customer.name}
+                       trigger={
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Trash2 className="text-destructive" />
+                          <span className="sr-only">Supprimer le client</span>
+                        </Button>
+                      }
                     />
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/clients/${customer.id}`}>
-                        <span className="sr-only">Voir les détails</span>
-                        <ArrowRight />
-                      </Link>
-                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
