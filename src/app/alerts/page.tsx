@@ -22,9 +22,11 @@ import { ShoppingCart, FileWarning } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useMockData } from '@/hooks/use-mock-data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default function AlertsPage() {
-  const { products, customers, loading } = useMockData();
+  const { products, customers, transactions, loading } = useMockData();
 
   const lowStockProducts = useMemo(() => {
     if (!products) return [];
@@ -33,10 +35,30 @@ export default function AlertsPage() {
   }, [products]);
 
   const overdueCustomers = useMemo(() => {
-    if (!customers) return [];
-    // Simple logic: any customer with a positive balance is considered "overdue" for alert purposes.
-    return customers.filter((c) => c.balance > 0);
-  }, [customers]);
+    if (!customers || !transactions) return [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return customers
+      .filter((c) => c.balance > 0)
+      .map((customer) => {
+        const customerDebts = transactions
+          .filter((t) => t.customerId === customer.id && t.type === 'debt')
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        // We'll use the date of the most recent debt as the "due date" for the alert.
+        const lastDebt = customerDebts[0];
+        const dueDate = lastDebt ? new Date(lastDebt.date) : null;
+        const isLate = dueDate ? dueDate < today : false;
+
+        return {
+          ...customer,
+          dueDate,
+          isLate,
+        };
+      });
+  }, [customers, transactions]);
 
   if (loading) {
     return (
@@ -144,7 +166,7 @@ export default function AlertsPage() {
                     <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Solde</TableHead>
-                        <TableHead>Jour de règlement</TableHead>
+                        <TableHead>Date d'échéance</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                     </TableHeader>
@@ -157,7 +179,16 @@ export default function AlertsPage() {
                         <TableCell className="font-semibold text-destructive">
                             {formatCurrency(customer.balance)}
                         </TableCell>
-                        <TableCell>{customer.settlementDay || 'Non défini'}</TableCell>
+                        <TableCell>
+                            {customer.dueDate ? (
+                                <>
+                                {format(customer.dueDate, 'dd MMM, yyyy', { locale: fr })}
+                                {customer.isLate && <span className="text-destructive text-xs ml-1">(En retard)</span>}
+                                </>
+                            ) : (
+                                customer.settlementDay || 'Non défini'
+                            )}
+                        </TableCell>
                         <TableCell className="text-right">
                             <Button asChild variant="ghost" size="icon">
                               <Link href={`/clients/${customer.id}`}>
