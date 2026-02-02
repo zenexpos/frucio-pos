@@ -12,6 +12,7 @@ import {
   LayoutGrid,
   List,
   X,
+  User,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -33,7 +34,7 @@ import { formatCurrency, cn } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { Separator } from '@/components/ui/separator';
 import { useMockData } from '@/hooks/use-mock-data';
-import type { Product } from '@/lib/types';
+import type { Product, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaymentDialog } from '@/components/caisse/payment-dialog';
 import { DiscountDialog } from '@/components/caisse/discount-dialog';
@@ -46,12 +47,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
 
 const productImages = imageData.caisse;
 
 interface CartItem {
   product: Product;
   quantity: number;
+}
+
+interface CartState {
+    items: CartItem[];
+    discount: number;
+    customerId: string | null;
 }
 
 // Helper to generate a slug from a product name
@@ -69,21 +77,28 @@ const slugify = (text: string) => {
 
 
 export default function CaissePage() {
-  const { products, loading } = useMockData();
+  const { products, customers, loading } = useMockData();
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState('vente-1');
-  const [carts, setCarts] = useState<Record<string, CartItem[]>>({ 'vente-1': [] });
+  const [carts, setCarts] = useState<Record<string, CartState>>({ 'vente-1': { items: [], discount: 0, customerId: null } });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Toutes');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [barcode, setBarcode] = useState('');
-  const [discount, setDiscount] = useState(0);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   
-  const activeCart = carts[activeTab] || [];
+  const activeCartState = carts[activeTab] || { items: [], discount: 0, customerId: null };
+  const activeCart = activeCartState.items;
+  const activeDiscount = activeCartState.discount;
+  const activeCustomerId = activeCartState.customerId;
+
+  const selectedCustomer = useMemo(() => {
+    if (!activeCustomerId || !customers) return null;
+    return customers.find(c => c.id === activeCustomerId);
+  }, [activeCustomerId, customers]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -108,45 +123,47 @@ export default function CaissePage() {
     return ['Toutes', ...Array.from(new Set(allCategories))];
   }, [products]);
 
-  const addToCart = (product: Product) => {
-    setCarts(prevCarts => {
-        const newCarts = {...prevCarts};
-        const cart = [...(newCarts[activeTab] || [])];
-        const existingItemIndex = cart.findIndex(item => item.product.id === product.id);
+  const updateActiveCartState = (newState: Partial<CartState>) => {
+      setCarts(prevCarts => ({
+          ...prevCarts,
+          [activeTab]: {
+              ...(prevCarts[activeTab] || { items: [], discount: 0, customerId: null }),
+              ...newState
+          }
+      }));
+  };
 
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity += 1;
-        } else {
-            cart.push({ product, quantity: 1 });
-        }
-        newCarts[activeTab] = cart;
-        return newCarts;
-    });
+  const addToCart = (product: Product) => {
+    const cart = [...activeCart];
+    const existingItemIndex = cart.findIndex(item => item.product.id === product.id);
+
+    if (existingItemIndex > -1) {
+        cart[existingItemIndex].quantity += 1;
+    } else {
+        cart.push({ product, quantity: 1 });
+    }
+    updateActiveCartState({ items: cart });
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    setCarts(prevCarts => {
-        const newCarts = {...prevCarts};
-        const cart = [...(newCarts[activeTab] || [])];
-        const itemIndex = cart.findIndex(item => item.product.id === productId);
+    let cart = [...activeCart];
+    const itemIndex = cart.findIndex(item => item.product.id === productId);
 
-        if (itemIndex > -1) {
-            if (quantity <= 0) {
-                cart.splice(itemIndex, 1);
-            } else {
-                cart[itemIndex].quantity = quantity;
-            }
+    if (itemIndex > -1) {
+        if (quantity <= 0) {
+            cart.splice(itemIndex, 1);
+        } else {
+            cart[itemIndex].quantity = quantity;
         }
-        newCarts[activeTab] = cart;
-        return newCarts;
-    });
+    }
+    updateActiveCartState({ items: cart });
   };
   
   const addNewTab = () => {
     const nextId = (Math.max(...Object.keys(carts).map(k => parseInt(k.split('-')[1]))) || 0) + 1;
     if(nextId > 10) return;
     const newTabId = `vente-${nextId}`;
-    setCarts(prev => ({...prev, [newTabId]: []}));
+    setCarts(prev => ({...prev, [newTabId]: { items: [], discount: 0, customerId: null }}));
     setActiveTab(newTabId);
   }
 
@@ -173,14 +190,7 @@ export default function CaissePage() {
   };
   
   const handlePaymentSuccess = () => {
-      // Clear the current cart
-      setCarts(prevCarts => {
-          const newCarts = {...prevCarts};
-          newCarts[activeTab] = [];
-          return newCarts;
-      });
-      // Reset discount
-      setDiscount(0);
+      updateActiveCartState({ items: [], discount: 0, customerId: null });
   }
 
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -210,7 +220,7 @@ export default function CaissePage() {
     return activeCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
   }, [activeCart]);
 
-  const total = subtotal - discount;
+  const total = subtotal - activeDiscount;
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -277,6 +287,8 @@ export default function CaissePage() {
         </div>
       )
   }
+
+  const paymentButtonText = selectedCustomer ? "Ajouter au compte" : "Paiement";
 
   return (
     <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-8rem)]">
@@ -373,30 +385,63 @@ export default function CaissePage() {
       {/* Cart Section */}
       <div className="w-full md:w-[380px] lg:w-[420px] flex-shrink-0">
         <Card className="flex flex-col h-full">
-            <CardHeader>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <div className="flex items-center justify-between">
-                    <TabsList className="flex-grow">
-                        {Object.keys(carts).map(tabId => (
-                            <TabsTrigger key={tabId} value={tabId} className="relative pr-7 flex-grow">
-                                {tabId.replace('-', ' ')}
-                                 <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="absolute top-1/2 right-0 -translate-y-1/2 h-5 w-5 rounded-full"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        closeTab(tabId);
-                                    }}
-                                >
-                                    <X className="h-3 w-3" />
-                                </Button>
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                    <Button size="icon" variant="ghost" onClick={addNewTab}><Plus /></Button>
-                  </div>
-                </Tabs>
+            <CardHeader className="p-0">
+                <div className="p-4">
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                      <div className="flex items-center justify-between">
+                        <TabsList className="flex-grow">
+                            {Object.keys(carts).map(tabId => (
+                                <TabsTrigger key={tabId} value={tabId} className="relative pr-7 flex-grow">
+                                    {tabId.replace('-', ' ')}
+                                     <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="absolute top-1/2 right-0 -translate-y-1/2 h-5 w-5 rounded-full"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            closeTab(tabId);
+                                        }}
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </Button>
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                        <Button size="icon" variant="ghost" onClick={addNewTab}><Plus /></Button>
+                      </div>
+                    </Tabs>
+                </div>
+                 <div className="px-4 pb-4">
+                    {selectedCustomer ? (
+                        <div className="flex items-center justify-between mt-1 p-2 border rounded-md bg-muted/50">
+                            <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-muted-foreground"/>
+                                <span className="font-semibold">{selectedCustomer.name}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateActiveCartState({ customerId: null })}>
+                                <X className="h-4 w-4"/>
+                            </Button>
+                        </div>
+                    ) : (
+                        <Select
+                            value={activeCustomerId || ''}
+                            onValueChange={(value) => updateActiveCartState({ customerId: value === 'none' ? null : value })}
+                        >
+                            <SelectTrigger id="customer-select">
+                                <SelectValue placeholder="Associer à un client..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">Aucun (Vente au comptant)</SelectItem>
+                                {customers.map(customer => (
+                                    <SelectItem key={customer.id} value={customer.id}>
+                                        {customer.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                </div>
+                <Separator />
             </CardHeader>
           <div className="flex-grow overflow-auto p-4">
             {activeCart.length === 0 ? (
@@ -432,18 +477,18 @@ export default function CaissePage() {
                     <span>{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className={cn(discount > 0 && 'text-destructive')}>Réduction</span>
-                     {discount > 0 ? (
+                    <span className={cn(activeDiscount > 0 && 'text-destructive')}>Réduction</span>
+                     {activeDiscount > 0 ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-semibold text-destructive">-{formatCurrency(discount)}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDiscount(0)}>
+                            <span className="font-semibold text-destructive">-{formatCurrency(activeDiscount)}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateActiveCartState({ discount: 0 })}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
                     ) : (
                         <DiscountDialog 
                             subtotal={subtotal}
-                            onApplyDiscount={setDiscount}
+                            onApplyDiscount={(discountValue) => updateActiveCartState({ discount: discountValue })}
                             trigger={
                                 <Button variant="link" size="sm" className="h-auto p-0" disabled={subtotal <= 0}>
                                     Ajouter
@@ -461,8 +506,10 @@ export default function CaissePage() {
             <PaymentDialog
                 cartItems={activeCart}
                 total={total}
+                customerId={activeCustomerId}
+                customerName={selectedCustomer?.name || null}
                 onSuccess={handlePaymentSuccess}
-                trigger={<Button className="w-full" size="lg" disabled={activeCart.length === 0}>Paiement</Button>}
+                trigger={<Button className="w-full" size="lg" disabled={activeCart.length === 0}>{paymentButtonText}</Button>}
             />
           </div>
         </Card>

@@ -28,11 +28,15 @@ export function PaymentDialog({
   cartItems,
   onSuccess,
   total,
+  customerId,
+  customerName,
   trigger,
 }: {
   cartItems: CartItem[];
   onSuccess: () => void;
   total: number;
+  customerId: string | null;
+  customerName: string | null;
   trigger: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -50,10 +54,12 @@ export function PaymentDialog({
     }
     setIsPending(true);
     try {
-      await processSale(cartItems);
+      await processSale(cartItems, { total, customerId, customerName });
       toast({
-        title: 'Paiement réussi !',
-        description: 'La vente a été enregistrée et le stock mis à jour.',
+        title: customerId ? 'Vente ajoutée au compte' : 'Paiement réussi !',
+        description: customerId
+          ? `La vente a été ajoutée au compte de ${customerName}.`
+          : 'La vente a été enregistrée et le stock mis à jour.',
       });
       onSuccess();
       setOpen(false);
@@ -69,17 +75,30 @@ export function PaymentDialog({
     }
   };
 
+  const title = customerId ? "Confirmer et ajouter au compte" : "Confirmer le Paiement";
+  const description = customerId ? (
+    <>
+        Vous êtes sur le point d'ajouter une vente d'un total de <span className="font-bold">{formatCurrency(total)}</span> au compte de <span className="font-bold">{customerName}</span>. Cette action mettra à jour le stock et augmentera la dette du client. Êtes-vous sûr ?
+    </>
+  ) : (
+     <>
+        Vous êtes sur le point de finaliser une vente d'un total de{' '}
+        <span className="font-bold">{formatCurrency(total)}</span>. Cette
+        action mettra à jour le stock des produits. Êtes-vous sûr de vouloir
+        continuer ?
+     </>
+  );
+  const actionText = customerId ? "Ajouter au compte" : "Confirmer et Payer";
+
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmer le Paiement</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            Vous êtes sur le point de finaliser une vente d'un total de{' '}
-            <span className="font-bold">{formatCurrency(total)}</span>. Cette
-            action mettra à jour le stock des produits. Êtes-vous sûr de vouloir
-            continuer ?
+            {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -88,7 +107,7 @@ export function PaymentDialog({
             {isPending ? (
               <Loader2 className="animate-spin" />
             ) : (
-              'Confirmer et Payer'
+              actionText
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

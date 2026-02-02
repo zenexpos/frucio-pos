@@ -211,7 +211,13 @@ export const resetBreadOrders = async () => {
 };
 
 // --- Caisse Functions ---
-export const processSale = async (cartItems: { product: Product, quantity: number }[]) => {
+interface SaleDetails {
+    total: number;
+    customerId: string | null;
+    customerName: string | null; // For the transaction description
+}
+
+export const processSale = async (cartItems: { product: Product, quantity: number }[], saleDetails: SaleDetails) => {
   if (!cartItems || cartItems.length === 0) {
     throw new Error("Le panier est vide.");
   }
@@ -236,7 +242,20 @@ export const processSale = async (cartItems: { product: Product, quantity: numbe
     }
   }
 
-  saveData();
+  // If a customer is associated, create a debt transaction
+  if (saleDetails.customerId && saleDetails.total > 0) {
+      addTransaction({
+          customerId: saleDetails.customerId,
+          type: 'debt',
+          amount: saleDetails.total,
+          description: "Achat à la caisse",
+          date: new Date().toISOString(),
+      });
+      // addTransaction calls saveData(), so we don't need another call here.
+  } else {
+    // If no customer, just save the stock updates.
+    saveData();
+  }
 };
 
 
