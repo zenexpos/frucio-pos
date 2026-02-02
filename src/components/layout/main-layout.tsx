@@ -37,7 +37,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
 
   const navLinks = [
-    { href: '/', label: 'Tableau de bord', icon: LayoutDashboard },
     { href: '/caisse', label: 'Caisse', icon: Landmark },
     { href: '/produits', label: 'Produits', icon: Package },
     { href: '/clients', label: 'Clients', icon: Users },
@@ -51,7 +50,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     { href: '/rapports', label: 'Rapports', icon: FileText },
     { href: '/history', label: 'Historique', icon: History },
     { href: '/alerts', label: 'Alertes', icon: Bell },
-    { href: '/parametres', label: 'Paramètres', icon: Settings },
   ];
 
   const NavContent = () => (
@@ -85,7 +83,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <div className="hidden border-r bg-card md:block no-print">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
+            <Link href="/caisse" className="flex items-center gap-2 font-semibold">
                <Image
                 src="/icon.svg"
                 alt="App Logo"
@@ -116,7 +114,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                  <Link href="/" className="flex items-center gap-2 font-semibold">
+                  <Link href="/caisse" className="flex items-center gap-2 font-semibold">
                     <Image
                       src="/icon.svg"
                       alt="App Logo"
