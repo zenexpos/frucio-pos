@@ -29,13 +29,14 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { Separator } from '@/components/ui/separator';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaymentDialog } from '@/components/caisse/payment-dialog';
+import { DiscountDialog } from '@/components/caisse/discount-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
   Table,
@@ -77,6 +78,7 @@ export default function CaissePage() {
   const [selectedCategory, setSelectedCategory] = useState('Toutes');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [barcode, setBarcode] = useState('');
+  const [discount, setDiscount] = useState(0);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -177,6 +179,8 @@ export default function CaissePage() {
           newCarts[activeTab] = [];
           return newCarts;
       });
+      // Reset discount
+      setDiscount(0);
   }
 
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -205,6 +209,8 @@ export default function CaissePage() {
   const subtotal = useMemo(() => {
     return activeCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
   }, [activeCart]);
+
+  const total = subtotal - discount;
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -425,19 +431,36 @@ export default function CaissePage() {
                     <span>Sous-total</span>
                     <span>{formatCurrency(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-muted-foreground">
-                    <span>Réduction</span>
-                    <Button variant="link" size="sm" className="h-auto p-0">Ajouter</Button>
+                <div className="flex justify-between items-center">
+                    <span className={cn(discount > 0 && 'text-destructive')}>Réduction</span>
+                     {discount > 0 ? (
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-destructive">-{formatCurrency(discount)}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDiscount(0)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <DiscountDialog 
+                            subtotal={subtotal}
+                            onApplyDiscount={setDiscount}
+                            trigger={
+                                <Button variant="link" size="sm" className="h-auto p-0" disabled={subtotal <= 0}>
+                                    Ajouter
+                                </Button>
+                            }
+                        />
+                    )}
                 </div>
             </div>
             <Separator />
             <div className="flex justify-between items-center text-lg font-bold">
                 <span>Total Général</span>
-                <span>{formatCurrency(subtotal)}</span>
+                <span>{formatCurrency(total)}</span>
             </div>
             <PaymentDialog
                 cartItems={activeCart}
-                total={subtotal}
+                total={total}
                 onSuccess={handlePaymentSuccess}
                 trigger={<Button className="w-full" size="lg" disabled={activeCart.length === 0}>Paiement</Button>}
             />
