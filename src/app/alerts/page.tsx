@@ -47,21 +47,34 @@ export default function AlertsPage() {
       .map((customer) => {
         if (customer.balance <= 0) return null;
 
-        const customerDebts = transactions
-          .filter((t) => t.customerId === customer.id && t.type === 'debt')
-          .sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
+        // We need to work backwards from the final balance.
+        const customerTransactions = transactions
+          .filter((t) => t.customerId === customer.id)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // sort descending
 
-        const lastDebt = customerDebts[0];
-        if (!lastDebt) return null;
+        let balanceLookback = customer.balance;
+        let oldestUnpaidDebtDate: Date | null = null;
 
-        const debtDate = new Date(lastDebt.date);
-        const dueDate = addDays(debtDate, paymentTermsDays);
+        for (const t of customerTransactions) {
+          if (t.type === 'debt') {
+            oldestUnpaidDebtDate = new Date(t.date); // This is a candidate for the oldest debt
+            balanceLookback -= t.amount;
+          } else { // payment
+            balanceLookback += t.amount;
+          }
+          if (balanceLookback <= 0) {
+            // We have found the sequence of transactions that account for the current balance.
+            // The last `oldestUnpaidDebtDate` we set is the correct one.
+            break;
+          }
+        }
+
+        if (!oldestUnpaidDebtDate) return null;
+
+        const dueDate = addDays(oldestUnpaidDebtDate, paymentTermsDays);
 
         const isLate = isAfter(today, dueDate);
 
-        // Only show customers who are late.
         if (!isLate) return null;
 
         const daysOverdue = differenceInCalendarDays(today, dueDate);
