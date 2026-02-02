@@ -17,6 +17,7 @@ const supplierSchema = z.object({
   phone: z.string().optional(),
   category: z.string().optional(),
   balance: z.coerce.number().optional(),
+  visitDay: z.string().optional(),
 });
 
 export function EditSupplierForm({
@@ -60,12 +61,16 @@ export function EditSupplierForm({
         <Input id="category" name="category" defaultValue={supplier.category} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="contact">Contact (email)</Label>
-        <Input id="contact" name="contact" defaultValue={supplier.contact} />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="phone">Téléphone</Label>
         <Input id="phone" name="phone" defaultValue={supplier.phone} />
+      </div>
+       <div className="space-y-2">
+        <Label htmlFor="visitDay">Jours de visite</Label>
+        <Input id="visitDay" name="visitDay" defaultValue={supplier.visitDay} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="contact">Contact (email)</Label>
+        <Input id="contact" name="contact" defaultValue={supplier.contact} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="balance">Solde</Label>

@@ -34,10 +34,10 @@ export const SEED_EXPENSES: Omit<Expense, 'id'>[] = [
 ];
 
 export const SEED_SUPPLIERS: Omit<Supplier, 'id' | 'totalPurchases' | 'totalPayments'>[] = [
-  { name: 'Moulin Sidi Ali', contact: 'contact@sidiali.dz', phone: '021-55-66-77', balance: 0, category: 'Matières Premières' },
-  { name: 'Emballage & Co.', contact: 'commercial@emballage.co', phone: '023-88-99-00', balance: 0, category: 'Emballage' },
-  { name: 'Le Jardin Secret', contact: 'jardin.secret@email.com', phone: '0550-10-20-30', balance: 0, category: 'Fruits & Légumes' },
-  { name: 'Maintenance Express', contact: 'support@maintex.dz', phone: '021-44-33-22', balance: 0, category: 'Services' },
+  { name: 'Moulin Sidi Ali', contact: 'contact@sidiali.dz', phone: '021-55-66-77', balance: 0, category: 'Matières Premières', visitDay: 'Lundi' },
+  { name: 'Emballage & Co.', contact: 'commercial@emballage.co', phone: '023-88-99-00', balance: 0, category: 'Emballage', visitDay: 'Mercredi' },
+  { name: 'Le Jardin Secret', contact: 'jardin.secret@email.com', phone: '0550-10-20-30', balance: 0, category: 'Fruits & Légumes', visitDay: 'Samedi' },
+  { name: 'Maintenance Express', contact: 'support@maintex.dz', phone: '021-44-33-22', balance: 0, category: 'Services', visitDay: '' },
 ];
 
 export const SEED_SUPPLIER_TRANSACTIONS: Omit<SupplierTransaction, 'id' | 'supplierId'>[] = [

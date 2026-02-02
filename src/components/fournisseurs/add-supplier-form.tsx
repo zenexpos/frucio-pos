@@ -16,6 +16,7 @@ const supplierSchema = z.object({
   phone: z.string().optional(),
   category: z.string().optional(),
   balance: z.coerce.number().optional().default(0),
+  visitDay: z.string().optional(),
 });
 
 export function AddSupplierForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -35,6 +36,7 @@ export function AddSupplierForm({ onSuccess }: { onSuccess?: () => void }) {
         contact: data.contact || '',
         phone: data.phone || '',
         category: data.category || '',
+        visitDay: data.visitDay || '',
       });
     },
   });
@@ -54,13 +56,17 @@ export function AddSupplierForm({ onSuccess }: { onSuccess?: () => void }) {
         <Label htmlFor="category">Catégorie</Label>
         <Input id="category" name="category" placeholder="Ex: Matières Premières" />
       </div>
+       <div className="space-y-2">
+        <Label htmlFor="phone">Téléphone</Label>
+        <Input id="phone" name="phone" placeholder="021-00-00-00" />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="visitDay">Jours de visite</Label>
+        <Input id="visitDay" name="visitDay" placeholder="Ex: Lundi" />
+      </div>
       <div className="space-y-2">
         <Label htmlFor="contact">Contact (email)</Label>
         <Input id="contact" name="contact" placeholder="contact@example.com" />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="phone">Téléphone</Label>
-        <Input id="phone" name="phone" placeholder="021-00-00-00" />
       </div>
       <div className="space-y-2">
         <Label htmlFor="balance">Solde initial</Label>

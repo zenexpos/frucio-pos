@@ -63,6 +63,7 @@ export interface Supplier {
   phone: string;
   balance: number;
   category: string;
+  visitDay?: string;
   // These are calculated client-side
   totalPurchases?: number;
   totalPayments?: number;

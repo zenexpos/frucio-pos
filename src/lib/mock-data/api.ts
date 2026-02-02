@@ -296,6 +296,7 @@ interface AddSupplierData {
     phone: string;
     category: string;
     balance: number;
+    visitDay?: string;
 }
 
 export const addSupplier = async (data: AddSupplierData) => {
@@ -517,7 +518,7 @@ export const exportSuppliersToCsv = () => {
     if (mockDataStore.suppliers.length === 0) {
         return;
     }
-    const headers = ['id', 'name', 'category', 'contact', 'phone', 'balance'];
+    const headers = ['id', 'name', 'category', 'contact', 'phone', 'balance', 'visitDay'];
     const csvRows = [
         headers.join(',')
     ];
