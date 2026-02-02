@@ -45,6 +45,17 @@ export interface Expense {
   date: string; // ISO string
 }
 
+export type SupplierTransactionType = 'purchase' | 'payment';
+
+export interface SupplierTransaction {
+  id: string;
+  supplierId: string;
+  type: SupplierTransactionType;
+  amount: number;
+  date: string; // ISO Date string
+  description: string;
+}
+
 export interface Supplier {
   id: string;
   name: string;
@@ -52,6 +63,9 @@ export interface Supplier {
   phone: string;
   balance: number;
   category: string;
+  // These are calculated client-side
+  totalPurchases?: number;
+  totalPayments?: number;
 }
 
 export interface Product {

@@ -1,4 +1,4 @@
-import type { Customer, Transaction, BreadOrder, Expense, Supplier, Product } from '@/lib/types';
+import type { Customer, Transaction, BreadOrder, Expense, Supplier, Product, SupplierTransaction } from '@/lib/types';
 import { subDays, formatISO } from 'date-fns';
 
 export const SEED_CUSTOMERS: Omit<Customer, 'id' | 'totalDebts' | 'totalPayments'>[] = [
@@ -33,11 +33,18 @@ export const SEED_EXPENSES: Omit<Expense, 'id'>[] = [
   { description: 'Salaire employé', category: 'Salaires', amount: 40000, date: formatISO(subDays(new Date(), 0)) },
 ];
 
-export const SEED_SUPPLIERS: Omit<Supplier, 'id'>[] = [
-  { id: '1', name: 'Moulin Sidi Ali', contact: 'contact@sidiali.dz', phone: '021-55-66-77', balance: 15000, category: 'Matières Premières' },
-  { id: '2', name: 'Emballage & Co.', contact: 'commercial@emballage.co', phone: '023-88-99-00', balance: -2000, category: 'Emballage' },
-  { id: '3', name: 'Le Jardin Secret', contact: 'jardin.secret@email.com', phone: '0550-10-20-30', balance: 0, category: 'Fruits & Légumes' },
-  { id: '4', name: 'Maintenance Express', contact: 'support@maintex.dz', phone: '021-44-33-22', balance: 7500, category: 'Services' },
+export const SEED_SUPPLIERS: Omit<Supplier, 'id' | 'totalPurchases' | 'totalPayments'>[] = [
+  { name: 'Moulin Sidi Ali', contact: 'contact@sidiali.dz', phone: '021-55-66-77', balance: 0, category: 'Matières Premières' },
+  { name: 'Emballage & Co.', contact: 'commercial@emballage.co', phone: '023-88-99-00', balance: 0, category: 'Emballage' },
+  { name: 'Le Jardin Secret', contact: 'jardin.secret@email.com', phone: '0550-10-20-30', balance: 0, category: 'Fruits & Légumes' },
+  { name: 'Maintenance Express', contact: 'support@maintex.dz', phone: '021-44-33-22', balance: 0, category: 'Services' },
+];
+
+export const SEED_SUPPLIER_TRANSACTIONS: Omit<SupplierTransaction, 'id' | 'supplierId'>[] = [
+  { type: 'purchase', amount: 50000, date: formatISO(subDays(new Date(), 10)), description: 'Achat initial de farine et levure' },
+  { type: 'payment', amount: 35000, date: formatISO(subDays(new Date(), 8)), description: 'Paiement partiel facture #1' },
+  { type: 'purchase', amount: 4000, date: formatISO(subDays(new Date(), 5)), description: 'Achat boîtes à gâteaux' },
+  { type: 'purchase', amount: 15000, date: formatISO(subDays(new Date(), 2)), description: 'Achat fruits de saison' },
 ];
 
 export const SEED_PRODUCTS: Omit<Product, 'id'>[] = [

@@ -16,15 +16,19 @@ import {
   Mail,
   Phone,
   Building,
+  PlusCircle,
+  MinusCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { EditSupplierDialog } from './edit-supplier-dialog';
 import { DeleteSupplierDialog } from './delete-supplier-dialog';
+import { AddSupplierTransactionDialog } from './add-supplier-transaction-dialog';
 
 export function FournisseurCard({ supplier }: { supplier: Supplier }) {
   const getInitials = (name: string) => {
@@ -84,6 +88,28 @@ export function FournisseurCard({ supplier }: { supplier: Supplier }) {
                   className="text-destructive focus:text-destructive focus:bg-destructive/10"
                 >
                   Supprimer
+                </DropdownMenuItem>
+              }
+            />
+            <DropdownMenuSeparator />
+            <AddSupplierTransactionDialog
+              type="purchase"
+              supplierId={supplier.id}
+              trigger={
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Enregistrer un Achat
+                </DropdownMenuItem>
+              }
+            />
+             <AddSupplierTransactionDialog
+              type="payment"
+              supplierId={supplier.id}
+              defaultAmount={supplier.balance > 0 ? supplier.balance : undefined}
+              trigger={
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <MinusCircle className="mr-2 h-4 w-4" />
+                  Enregistrer un Paiement
                 </DropdownMenuItem>
               }
             />

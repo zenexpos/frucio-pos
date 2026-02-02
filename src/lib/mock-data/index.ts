@@ -8,6 +8,7 @@ import {
   SEED_EXPENSES,
   SEED_SUPPLIERS,
   SEED_PRODUCTS,
+  SEED_SUPPLIER_TRANSACTIONS,
 } from './seed';
 import type {
   Customer,
@@ -16,6 +17,7 @@ import type {
   Expense,
   Supplier,
   Product,
+  SupplierTransaction,
 } from '@/lib/types';
 
 interface MockData {
@@ -24,6 +26,7 @@ interface MockData {
   breadOrders: BreadOrder[];
   expenses: Expense[];
   suppliers: Supplier[];
+  supplierTransactions: SupplierTransaction[];
   products: Product[];
   breadUnitPrice: number;
 }
@@ -35,6 +38,7 @@ export let mockDataStore: MockData = {
   breadOrders: [],
   expenses: [],
   suppliers: [],
+  supplierTransactions: [],
   products: [],
   breadUnitPrice: 10,
 };
@@ -72,6 +76,9 @@ export function loadData() {
       }
       if (!parsedData.suppliers) {
           parsedData.suppliers = [];
+      }
+       if (!parsedData.supplierTransactions) {
+          parsedData.supplierTransactions = [];
       }
       if (!parsedData.products) {
           parsedData.products = [];
@@ -114,10 +121,30 @@ export function resetToSeedData() {
     ...s,
     id: (i + 1).toString(),
   }));
+   const supplierTransactions: SupplierTransaction[] = SEED_SUPPLIER_TRANSACTIONS.map((t, i) => ({
+    ...t,
+    id: (i + 1).toString(),
+    supplierId: suppliers[i % suppliers.length]!.id,
+  }));
   const products: Product[] = SEED_PRODUCTS.map((p, i) => ({
       ...p,
       id: (i + 1).toString(),
   }));
+
+  // Recalculate balances after seeding
+  customers.forEach(customer => {
+      customer.balance = 0;
+      transactions.filter(t => t.customerId === customer.id).forEach(t => {
+          customer.balance += t.type === 'debt' ? t.amount : -t.amount;
+      })
+  });
+
+  suppliers.forEach(supplier => {
+      supplier.balance = 0;
+      supplierTransactions.filter(t => t.supplierId === supplier.id).forEach(t => {
+          supplier.balance += t.type === 'purchase' ? t.amount : -t.amount;
+      });
+  });
 
   mockDataStore = {
     customers,
@@ -125,6 +152,7 @@ export function resetToSeedData() {
     breadOrders,
     expenses,
     suppliers,
+    supplierTransactions,
     products,
     breadUnitPrice: SEED_BREAD_UNIT_PRICE,
   };

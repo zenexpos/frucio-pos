@@ -9,6 +9,7 @@ import type {
   Expense,
   Supplier,
   Product,
+  SupplierTransaction,
 } from '@/lib/types';
 
 interface MockDataState {
@@ -18,6 +19,7 @@ interface MockDataState {
   expenses: Expense[];
   suppliers: Supplier[];
   products: Product[];
+  supplierTransactions: SupplierTransaction[];
   settings: AppSettings;
   loading: boolean;
 }
@@ -30,6 +32,7 @@ export function useMockData(): MockDataState {
     expenses: [],
     suppliers: [],
     products: [],
+    supplierTransactions: [],
     settings: { breadUnitPrice: 10 },
     loading: true,
   });
@@ -44,6 +47,7 @@ export function useMockData(): MockDataState {
         expenses: [...mockDataStore.expenses],
         suppliers: [...mockDataStore.suppliers],
         products: [...mockDataStore.products],
+        supplierTransactions: [...mockDataStore.supplierTransactions],
         settings: { breadUnitPrice: mockDataStore.breadUnitPrice },
         loading: false,
       });

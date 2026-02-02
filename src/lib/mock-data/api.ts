@@ -1,6 +1,6 @@
 'use client';
 import { mockDataStore, saveData, resetToSeedData as resetSeed } from './index';
-import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product } from '@/lib/types';
+import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product, SupplierTransaction } from '@/lib/types';
 import { startOfDay } from 'date-fns';
 
 let nextId = () => Date.now().toString() + Math.random().toString(36).substring(2, 9);
@@ -317,8 +317,79 @@ export const updateSupplier = async (supplierId: string, data: Partial<AddSuppli
 
 export const deleteSupplier = async (supplierId: string) => {
     mockDataStore.suppliers = mockDataStore.suppliers.filter(s => s.id !== supplierId);
+    // Also delete associated transactions
+    mockDataStore.supplierTransactions = mockDataStore.supplierTransactions.filter(t => t.supplierId !== supplierId);
     saveData();
 };
+
+// --- Supplier Transaction Functions ---
+interface AddSupplierTransactionData {
+  supplierId: string;
+  type: 'purchase' | 'payment';
+  amount: number;
+  description: string;
+  date: string; // ISO string
+}
+
+export const addSupplierTransaction = (data: AddSupplierTransactionData) => {
+  const supplier = mockDataStore.suppliers.find(s => s.id === data.supplierId);
+  if (!supplier) {
+    throw new Error("Fournisseur non trouvé.");
+  }
+  
+  const amountChange = data.type === 'purchase' ? data.amount : -data.amount;
+  supplier.balance += amountChange;
+
+  const newTransaction: SupplierTransaction = {
+    ...data,
+    id: nextId(),
+  };
+
+  mockDataStore.supplierTransactions.push(newTransaction);
+  saveData();
+};
+
+interface UpdateSupplierTransactionData {
+  amount: number;
+  description: string;
+  date: string; // ISO string
+}
+
+export const updateSupplierTransaction = (transactionId: string, data: UpdateSupplierTransactionData) => {
+  const transaction = mockDataStore.supplierTransactions.find(t => t.id === transactionId);
+  if (!transaction) return;
+
+  const supplier = mockDataStore.suppliers.find(s => s.id === transaction.supplierId);
+  if (supplier) {
+    // Revert old amount
+    const oldAmountEffect = transaction.type === 'purchase' ? -transaction.amount : transaction.amount;
+    supplier.balance += oldAmountEffect;
+
+    // Apply new amount
+    const newAmountEffect = transaction.type === 'purchase' ? data.amount : -data.amount;
+    supplier.balance += newAmountEffect;
+  }
+  
+  Object.assign(transaction, data);
+  saveData();
+};
+
+export const deleteSupplierTransaction = (transactionId: string) => {
+  const transactionIndex = mockDataStore.supplierTransactions.findIndex(t => t.id === transactionId);
+  if (transactionIndex === -1) return;
+
+  const transaction = mockDataStore.supplierTransactions[transactionIndex];
+  const supplier = mockDataStore.suppliers.find(s => s.id === transaction.supplierId);
+
+  if (supplier) {
+    const amountToRevert = transaction.type === 'purchase' ? -transaction.amount : transaction.amount;
+    supplier.balance += amountToRevert;
+  }
+  
+  mockDataStore.supplierTransactions.splice(transactionIndex, 1);
+  saveData();
+};
+
 
 // --- Product Functions ---
 type AddProductData = Omit<Product, 'id'>;

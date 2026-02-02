@@ -17,6 +17,8 @@ import {
   Wallet,
   TrendingUp,
   TrendingDown,
+  PlusCircle,
+  MinusCircle,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,18 +37,19 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getBalanceVariant } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { AddSupplierDialog } from '@/components/fournisseurs/add-supplier-dialog';
 import { EditSupplierDialog } from '@/components/fournisseurs/edit-supplier-dialog';
 import { DeleteSupplierDialog } from '@/components/fournisseurs/delete-supplier-dialog';
+import { AddSupplierTransactionDialog } from '@/components/fournisseurs/add-supplier-transaction-dialog';
 import { SupplierCsvImportDialog } from '@/components/fournisseurs/csv-import-dialog';
 import { exportSuppliersToCsv } from '@/lib/mock-data/api';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { FournisseursGrid } from '@/components/fournisseurs/fournisseurs-grid';
 
 
-type SortKey = keyof Supplier;
+type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
 
 interface SortConfig {
@@ -58,7 +61,7 @@ export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const { suppliers, loading } = useMockData();
+  const { suppliers, supplierTransactions, loading } = useMockData();
 
   const { totalBalance, suppliersWithDebt, suppliersWithCredit } = useMemo(() => {
     if (!suppliers) {
@@ -79,9 +82,31 @@ export default function FournisseursPage() {
     );
   }, [suppliers]);
 
+  const suppliersWithTotals = useMemo(() => {
+    if (!suppliers || !supplierTransactions) return [];
+
+    const financialsBySupplier = supplierTransactions.reduce((acc, t) => {
+      if (!acc[t.supplierId]) {
+        acc[t.supplierId] = { purchases: 0, payments: 0 };
+      }
+      if (t.type === 'purchase') {
+        acc[t.supplierId].purchases += t.amount;
+      } else {
+        acc[t.supplierId].payments += t.amount;
+      }
+      return acc;
+    }, {} as Record<string, { purchases: number; payments: number }>);
+
+    return suppliers.map((supplier) => ({
+      ...supplier,
+      totalPurchases: financialsBySupplier[supplier.id]?.purchases || 0,
+      totalPayments: financialsBySupplier[supplier.id]?.payments || 0,
+    }));
+  }, [suppliers, supplierTransactions]);
+
   const sortedAndFilteredSuppliers = useMemo(() => {
-    if (!suppliers) return [];
-    let filtered = suppliers.filter(supplier =>
+    if (!suppliersWithTotals) return [];
+    let filtered = suppliersWithTotals.filter(supplier =>
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.contact.toLowerCase().includes(searchTerm.toLowerCase())
@@ -89,9 +114,12 @@ export default function FournisseursPage() {
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+        let aValue = a[sortConfig.key] as any;
+        let bValue = b[sortConfig.key] as any;
         
+        if (aValue === undefined) aValue = 0;
+        if (bValue === undefined) bValue = 0;
+
         if (aValue < bValue) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -103,7 +131,7 @@ export default function FournisseursPage() {
     }
 
     return filtered;
-  }, [searchTerm, sortConfig, suppliers]);
+  }, [searchTerm, sortConfig, suppliersWithTotals]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
@@ -216,6 +244,12 @@ export default function FournisseursPage() {
                               <TableHead className="hidden sm:table-cell">
                                  <Button variant="ghost" onClick={() => requestSort('contact')} className="px-2 py-1 h-auto">Contact{getSortIcon('contact')}</Button>
                               </TableHead>
+                              <TableHead className="hidden lg:table-cell">
+                                <Button variant="ghost" onClick={() => requestSort('totalPurchases')} className="px-2 py-1 h-auto">Total Achats{getSortIcon('totalPurchases')}</Button>
+                              </TableHead>
+                              <TableHead className="hidden lg:table-cell">
+                                <Button variant="ghost" onClick={() => requestSort('totalPayments')} className="px-2 py-1 h-auto">Total Paiements{getSortIcon('totalPayments')}</Button>
+                              </TableHead>
                                <TableHead className="text-right">
                                  <Button variant="ghost" onClick={() => requestSort('balance')} className="px-2 py-1 h-auto justify-end w-full">Solde{getSortIcon('balance')}</Button>
                               </TableHead>
@@ -235,11 +269,30 @@ export default function FournisseursPage() {
                                       <span className="text-xs">{supplier.phone}</span>
                                     </div>
                                   </TableCell>
-                                  <TableCell className={cn("text-right font-mono", supplier.balance > 0 ? 'text-destructive' : 'text-accent')}>
+                                  <TableCell className="hidden lg:table-cell text-muted-foreground font-mono">
+                                    {formatCurrency(supplier.totalPurchases || 0)}
+                                  </TableCell>
+                                  <TableCell className="hidden lg:table-cell text-muted-foreground font-mono">
+                                    {formatCurrency(supplier.totalPayments || 0)}
+                                  </TableCell>
+                                  <TableCell className={cn("text-right font-mono", getBalanceVariant(supplier.balance))}>
                                     {formatCurrency(supplier.balance)}
                                   </TableCell>
                                   <TableCell className="text-right">
                                       <div className="flex items-center justify-end gap-0.5">
+                                          <AddSupplierTransactionDialog
+                                            type="purchase"
+                                            supplierId={supplier.id}
+                                            trigger={<Button variant="ghost" size="icon"><PlusCircle /><span className="sr-only">Enregistrer un Achat</span></Button>}
+                                          />
+                                          {supplier.balance > 0 && (
+                                            <AddSupplierTransactionDialog
+                                                type="payment"
+                                                supplierId={supplier.id}
+                                                defaultAmount={supplier.balance}
+                                                trigger={<Button variant="ghost" size="icon"><MinusCircle className="text-accent" /><span className="sr-only">Enregistrer un Paiement</span></Button>}
+                                            />
+                                          )}
                                           <EditSupplierDialog supplier={supplier} />
                                           <DeleteSupplierDialog supplierId={supplier.id} supplierName={supplier.name} />
                                       </div>
