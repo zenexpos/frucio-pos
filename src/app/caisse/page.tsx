@@ -92,6 +92,14 @@ export default function CaissePage() {
     return customers.find(c => c.id === activeCustomerId);
   }, [activeCustomerId, customers]);
 
+  const hasStockIssues = useMemo(() => {
+    if (!products) return false;
+    return activeCart.some(item => {
+        const upToDateProduct = products.find(p => p.id === item.product.id);
+        return upToDateProduct && item.quantity > upToDateProduct.stock;
+    });
+  }, [activeCart, products]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'F1') {
@@ -215,13 +223,15 @@ export default function CaissePage() {
 
     if (itemIndex > -1) {
         const item = cart[itemIndex];
-        if (quantity > item.product.stock) {
+        const upToDateProduct = products.find(p => p.id === productId);
+        const maxStock = upToDateProduct ? upToDateProduct.stock : item.product.stock;
+
+        if (quantity > maxStock) {
             toast({
               title: 'Stock insuffisant',
-              description: `Le stock disponible pour ${item.product.name} est de ${item.product.stock}.`,
+              description: `Le stock disponible pour ${item.product.name} est de ${maxStock}.`,
               variant: 'destructive',
             });
-            // Do not update if requested quantity is over stock
             return;
         }
 
@@ -372,7 +382,7 @@ export default function CaissePage() {
       )
   }
 
-  const paymentButtonText = "Finaliser la vente";
+  const paymentButtonText = hasStockIssues ? "Stock insuffisant" : "Finaliser la vente";
 
   return (
     <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-8rem)]">
@@ -553,22 +563,32 @@ export default function CaissePage() {
                             Vider
                         </Button>
                     </div>
-                    {activeCart.map(item => (
-                        <div key={item.product.id} className="flex items-center gap-4">
-                            <Image src={getProductImage(item.product).url} alt={item.product.name} width={48} height={48} className="rounded-md" data-ai-hint={getProductImage(item.product).hint} />
-                            <div className="flex-grow">
-                                <p className="font-medium text-sm truncate">{item.product.name}</p>
-                                <p className="text-xs text-muted-foreground">{formatCurrency(item.product.sellingPrice)}</p>
+                    {activeCart.map(item => {
+                        const upToDateProduct = products.find(p => p.id === item.product.id);
+                        const hasStockIssue = upToDateProduct && item.quantity > upToDateProduct.stock;
+
+                        return (
+                            <div key={item.product.id} className={cn("flex items-center gap-4 transition-colors p-2 rounded-lg -m-2", hasStockIssue && "bg-destructive/10")}>
+                                <Image src={getProductImage(item.product).url} alt={item.product.name} width={48} height={48} className="rounded-md" data-ai-hint={getProductImage(item.product).hint} />
+                                <div className="flex-grow">
+                                    <p className="font-medium text-sm truncate">{item.product.name}</p>
+                                    <p className="text-xs text-muted-foreground">{formatCurrency(item.product.sellingPrice)}</p>
+                                    {hasStockIssue && (
+                                        <p className="text-xs text-destructive font-bold">
+                                            Stock insuffisant (dispo: {upToDateProduct?.stock ?? 0})
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
+                                    <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                    <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+                                </div>
+                                <p className="font-semibold text-sm w-16 text-right">{formatCurrency(item.product.sellingPrice * item.quantity)}</p>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.product.id, 0)}><Trash2 className="h-4 w-4"/></Button>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
-                                <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                                <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
-                            </div>
-                            <p className="font-semibold text-sm w-16 text-right">{formatCurrency(item.product.sellingPrice * item.quantity)}</p>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.product.id, 0)}><Trash2 className="h-4 w-4"/></Button>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
           </div>
@@ -613,7 +633,7 @@ export default function CaissePage() {
                 customerId={activeCustomerId}
                 customerName={selectedCustomer?.name || null}
                 onSuccess={handlePaymentSuccess}
-                trigger={<Button className="w-full" size="lg" disabled={activeCart.length === 0}>{paymentButtonText}</Button>}
+                trigger={<Button className="w-full" size="lg" disabled={activeCart.length === 0 || hasStockIssues}>{paymentButtonText}</Button>}
             />
           </div>
         </Card>
