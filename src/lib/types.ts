@@ -21,6 +21,12 @@ export interface Transaction {
   date: string; // ISO Date string
   description: string;
   orderId?: string;
+  saleItems?: {
+      productId: string;
+      quantity: number;
+      unitPrice: number;
+      purchasePrice: number;
+  }[] | null;
 }
 
 export interface BreadOrder {

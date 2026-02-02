@@ -48,6 +48,12 @@ interface AddTransactionData {
   description: string;
   date: string; // ISO string
   orderId?: string;
+  saleItems?: {
+      productId: string;
+      quantity: number;
+      unitPrice: number;
+      purchasePrice: number;
+  }[] | null;
 }
 
 export const addTransaction = (data: AddTransactionData) => {
@@ -62,6 +68,7 @@ export const addTransaction = (data: AddTransactionData) => {
   const newTransaction: Transaction = {
     ...data,
     id: nextId(),
+    saleItems: data.saleItems || null,
   };
 
   mockDataStore.transactions.push(newTransaction);
@@ -244,12 +251,20 @@ export const processSale = async (cartItems: { product: Product, quantity: numbe
 
   // If a customer is associated, create a debt transaction
   if (saleDetails.customerId && saleDetails.total > 0) {
+      const saleItems = cartItems.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          unitPrice: item.product.sellingPrice,
+          purchasePrice: item.product.purchasePrice,
+      }));
+
       addTransaction({
           customerId: saleDetails.customerId,
           type: 'debt',
           amount: saleDetails.total,
           description: "Achat à la caisse",
           date: new Date().toISOString(),
+          saleItems: saleItems,
       });
       // addTransaction calls saveData(), so we don't need another call here.
   } else {

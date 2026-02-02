@@ -10,13 +10,13 @@ export const SEED_CUSTOMERS: Omit<Customer, 'id' | 'totalDebts' | 'totalPayments
 ];
 
 export const SEED_TRANSACTIONS: Omit<Transaction, 'id' | 'customerId'>[] = [
-    { type: 'debt', amount: 3000, date: formatISO(subDays(new Date(), 20)), description: 'Achat de marchandises' },
-    { type: 'payment', amount: 2000, date: formatISO(subDays(new Date(), 18)), description: 'Paiement partiel' },
-    { type: 'debt', amount: 250, date: formatISO(subDays(new Date(), 15)), description: 'Pain et croissants' },
-    { type: 'debt', amount: 1500, date: formatISO(subDays(new Date(), 5)), description: 'Commande spéciale' },
-    { type: 'payment', amount: 1500, date: formatISO(subDays(new Date(), 5)), description: 'Règlement commande' },
-    { type: 'debt', amount: 500, date: formatISO(subDays(new Date(), 1)), description: 'Avance sur commande' },
-    { type: 'payment', amount: 1000, date: formatISO(subDays(new Date(), 10)), description: 'Acompte' },
+    { type: 'debt', amount: 3000, date: formatISO(subDays(new Date(), 20)), description: 'Achat de marchandises', saleItems: null },
+    { type: 'payment', amount: 2000, date: formatISO(subDays(new Date(), 18)), description: 'Paiement partiel', saleItems: null },
+    { type: 'debt', amount: 250, date: formatISO(subDays(new Date(), 15)), description: 'Pain et croissants', saleItems: null },
+    { type: 'debt', amount: 1500, date: formatISO(subDays(new Date(), 5)), description: 'Commande spéciale', saleItems: null },
+    { type: 'payment', amount: 1500, date: formatISO(subDays(new Date(), 5)), description: 'Règlement commande', saleItems: null },
+    { type: 'debt', amount: 500, date: formatISO(subDays(new Date(), 1)), description: 'Avance sur commande', saleItems: null },
+    { type: 'payment', amount: 1000, date: formatISO(subDays(new Date(), 10)), description: 'Acompte', saleItems: null },
 ];
 
 export const SEED_BREAD_ORDERS: Omit<BreadOrder, 'id'>[] = [
