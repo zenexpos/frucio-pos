@@ -103,59 +103,6 @@ export default function ProduitsPage() {
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const clearFiltersButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F1') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (e.altKey && (e.key === 'n' || e.key === 'N')) {
-        e.preventDefault();
-        addProductTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
-        e.preventDefault();
-        categorySelectTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
-        e.preventDefault();
-        supplierSelectTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 't' || e.key === 'T')) {
-        // 't' for sTatus
-        e.preventDefault();
-        stockStatusTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
-        e.preventDefault();
-        if (viewMode === 'grid') {
-          viewModeListButtonRef.current?.click();
-        } else {
-          viewModeGridButtonRef.current?.click();
-        }
-      } else if (e.altKey && (e.key === 'i' || e.key === 'I')) {
-        e.preventDefault();
-        importTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 'e' || e.key === 'E')) {
-        e.preventDefault();
-        exportButtonRef.current?.click();
-      } else if (e.altKey && (e.key === 'x' || e.key === 'X')) {
-        e.preventDefault();
-        clearFiltersButtonRef.current?.click();
-      } else if (e.altKey && e.key === 'ArrowRight') {
-        e.preventDefault();
-        if (currentPage < totalPages) {
-          setCurrentPage((p) => p + 1);
-        }
-      } else if (e.altKey && e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (currentPage > 1) {
-          setCurrentPage((p) => p - 1);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [viewMode, currentPage, totalPages]);
-
   const slugify = (text: string) => {
     return text
       .toString()
@@ -379,6 +326,60 @@ export default function ProduitsPage() {
     return { paginatedProducts: paginated, totalPages: pages };
   }, [sortedAndFilteredProducts, currentPage, itemsPerPage]);
 
+  // Keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        addProductTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        categorySelectTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        supplierSelectTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 't' || e.key === 'T')) {
+        // 't' for sTatus
+        e.preventDefault();
+        stockStatusTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (viewMode === 'grid') {
+          viewModeListButtonRef.current?.click();
+        } else {
+          viewModeGridButtonRef.current?.click();
+        }
+      } else if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        importTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'e' || e.key === 'E')) {
+        e.preventDefault();
+        exportButtonRef.current?.click();
+      } else if (e.altKey && (e.key === 'x' || e.key === 'X')) {
+        e.preventDefault();
+        clearFiltersButtonRef.current?.click();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          setCurrentPage((p) => p + 1);
+        }
+      } else if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentPage > 1) {
+          setCurrentPage((p) => p - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [viewMode, currentPage, totalPages]);
+  
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
      if (checked === true) {
       setSelectedProductIds(prev => [...new Set([...prev, ...paginatedProducts.map(p => p.id)])]);
