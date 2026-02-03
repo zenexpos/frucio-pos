@@ -18,6 +18,10 @@ import {
   Building,
   PlusCircle,
   MinusCircle,
+  ArrowRight,
+  Printer,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -51,7 +55,14 @@ export function FournisseurCard({ supplier }: { supplier: Supplier }) {
             <AvatarFallback>{getInitials(supplier.name)}</AvatarFallback>
           </Avatar>
           <div className="grid gap-1">
-            <CardTitle className="text-lg">{supplier.name}</CardTitle>
+            <CardTitle className="text-lg">
+              <Link
+                href={`/fournisseurs/${supplier.id}`}
+                className="hover:underline"
+              >
+                {supplier.name}
+              </Link>
+            </CardTitle>
             <CardDescription className="flex items-center gap-2">
               Solde:{' '}
               <span
@@ -72,13 +83,26 @@ export function FournisseurCard({ supplier }: { supplier: Supplier }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-             <DropdownMenuItem asChild>
-              <Link href={`/fournisseurs/${supplier.id}`}>Voir les détails</Link>
+            <DropdownMenuItem asChild>
+              <Link href={`/fournisseurs/${supplier.id}`}>
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Voir les détails
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/fournisseurs/${supplier.id}?print=true`}
+                target="_blank"
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimer le relevé
+              </Link>
             </DropdownMenuItem>
             <EditSupplierDialog
               supplier={supplier}
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Pencil className="mr-2 h-4 w-4" />
                   Modifier
                 </DropdownMenuItem>
               }
@@ -91,6 +115,7 @@ export function FournisseurCard({ supplier }: { supplier: Supplier }) {
                   onSelect={(e) => e.preventDefault()}
                   className="text-destructive focus:text-destructive focus:bg-destructive/10"
                 >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Supprimer
                 </DropdownMenuItem>
               }
@@ -106,10 +131,12 @@ export function FournisseurCard({ supplier }: { supplier: Supplier }) {
                 </DropdownMenuItem>
               }
             />
-             <AddSupplierTransactionDialog
+            <AddSupplierTransactionDialog
               type="payment"
               supplierId={supplier.id}
-              defaultAmount={supplier.balance > 0 ? supplier.balance : undefined}
+              defaultAmount={
+                supplier.balance > 0 ? supplier.balance : undefined
+              }
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <MinusCircle className="mr-2 h-4 w-4" />
@@ -123,9 +150,9 @@ export function FournisseurCard({ supplier }: { supplier: Supplier }) {
       <CardContent>
         <div className="space-y-2 text-sm text-muted-foreground border-t pt-4">
           {supplier.category && (
-             <div className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                <span>{supplier.category}</span>
+            <div className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              <span>{supplier.category}</span>
             </div>
           )}
           {supplier.phone && (
