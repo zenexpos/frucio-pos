@@ -98,7 +98,7 @@ export function TransactionsView({
           </div>
         )}
       </CardContent>
-      <CardFooter className="hidden print:flex justify-end pt-8">
+       <CardFooter className="hidden print:flex justify-end pt-8">
         <div className="text-right">
             <p className="text-muted-foreground">Solde Final</p>
             <p className={`text-2xl font-bold ${getBalanceColorClassName(customerBalance)}`}>{formatCurrency(customerBalance)}</p>
