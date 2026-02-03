@@ -545,7 +545,7 @@ export default function CaissePage() {
                 </div>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger ref={categoryTriggerRef} className="w-full md:w-[200px]">
-                    <SelectValue placeholder="Catégories" />
+                    <SelectValue placeholder="Catégories (Alt+C)" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
@@ -674,7 +674,10 @@ export default function CaissePage() {
                               );
                             })}
                           </TabsList>
-                          <Button ref={newTabTriggerRef} size="icon" variant="ghost" onClick={addNewTab}><Plus /></Button>
+                          <Button ref={newTabTriggerRef} size="sm" variant="ghost" onClick={addNewTab} className="h-10 px-2.5">
+                              <Plus />
+                              <kbd className="ml-1.5 rounded bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">F8</kbd>
+                          </Button>
                         </div>
                       </Tabs>
                   </div>
@@ -720,8 +723,9 @@ export default function CaissePage() {
                                 />
                                 <AddCustomerDialog
                                     trigger={
-                                        <Button ref={addCustomerTriggerRef} variant="outline" size="icon" className="flex-shrink-0">
+                                        <Button ref={addCustomerTriggerRef} variant="outline" size="sm" className="h-10 px-2.5">
                                             <UserPlus className="h-4 w-4" />
+                                            <kbd className="ml-1.5 rounded bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">Alt+N</kbd>
                                         </Button>
                                     }
                                     onCustomerAdded={(newCustomer) => {
@@ -771,6 +775,7 @@ export default function CaissePage() {
                           >
                               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                               Vider
+                              <kbd className="ml-2 rounded bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">F9</kbd>
                           </Button>
                       </div>
                       {activeCart.map(item => {
@@ -839,7 +844,7 @@ export default function CaissePage() {
                               onApplyDiscount={(discountValue) => updateActiveCartState({ discount: discountValue })}
                               trigger={
                                   <Button ref={discountTriggerRef} variant="link" size="sm" className="h-auto p-0" disabled={subtotal <= 0}>
-                                      Ajouter
+                                      Ajouter <kbd className="ml-2 rounded bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">F6</kbd>
                                   </Button>
                               }
                           />
@@ -861,7 +866,12 @@ export default function CaissePage() {
                   customerId={activeCustomerId}
                   customerName={selectedCustomer?.name || null}
                   onSuccess={handlePaymentSuccess}
-                  trigger={<Button ref={paymentTriggerRef} className="w-full" size="lg" disabled={activeCart.length === 0 || hasCartIssues}>{paymentButtonText}</Button>}
+                  trigger={
+                    <Button ref={paymentTriggerRef} className="w-full flex justify-between items-center" size="lg" disabled={activeCart.length === 0 || hasCartIssues}>
+                        <span>{paymentButtonText}</span>
+                        <kbd className="rounded bg-black/10 px-2 py-1 font-mono text-sm">F10</kbd>
+                    </Button>
+                  }
               />
             </div>
           </Card>

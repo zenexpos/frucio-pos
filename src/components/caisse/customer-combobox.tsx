@@ -58,7 +58,7 @@ export const CustomerCombobox = React.forwardRef<
         >
           {selectedCustomer
             ? selectedCustomer.name
-            : 'Associer à un client...'}
+            : 'Associer un client (F4)'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
