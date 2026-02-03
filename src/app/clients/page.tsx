@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { CustomersGrid } from '@/components/customers/customers-grid';
 import { CustomersTable } from '@/components/customers/customers-table';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn, getBalanceColorClassName } from '@/lib/utils';
 import { CsvImportDialog } from '@/components/customers/csv-import-dialog';
 import { exportCustomersToCsv } from '@/lib/mock-data/api';
 import {
@@ -74,25 +74,27 @@ export default function ClientsPage() {
   const recentCustomers = useMemo(() => {
     if (!rawTransactions || !customers) return [];
 
-    const sortedTransactions = [...rawTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
+    const sortedTransactions = [...rawTransactions].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
     const recentCustomerIds = new Set<string>();
-    
+
     for (const t of sortedTransactions) {
       if (t.customerId) {
         recentCustomerIds.add(t.customerId);
       }
-      if (recentCustomerIds.size >= 5) { // Get last 5 unique customers
+      if (recentCustomerIds.size >= 5) {
+        // Get last 5 unique customers
         break;
       }
     }
 
-    const customerMap = new Map(customers.map(c => [c.id, c]));
-    
-    return Array.from(recentCustomerIds)
-        .map(id => customerMap.get(id))
-        .filter((c): c is Customer => !!c);
+    const customerMap = new Map(customers.map((c) => [c.id, c]));
 
+    return Array.from(recentCustomerIds)
+      .map((id) => customerMap.get(id))
+      .filter((c): c is Customer => !!c);
   }, [rawTransactions, customers]);
 
   const {
@@ -161,6 +163,13 @@ export default function ClientsPage() {
     }));
   }, [customers, rawTransactions]);
 
+  const selectedCustomersBalance = useMemo(() => {
+    if (selectedCustomerIds.length === 0) return 0;
+    return customers
+      .filter((c) => selectedCustomerIds.includes(c.id))
+      .reduce((sum, c) => sum + c.balance, 0);
+  }, [selectedCustomerIds, customers]);
+
   const handleSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -168,7 +177,7 @@ export default function ClientsPage() {
     }
     setSortConfig({ key, direction });
   };
-  
+
   const handleSortChange = (value: string) => {
     const [key, direction] = value.split(':');
     setSortConfig({ key: key as SortKey, direction: direction as SortDirection });
@@ -178,7 +187,9 @@ export default function ClientsPage() {
     let filtered = customersWithTotals.filter(
       (customer) =>
         (customer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (customer.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.phone || '')
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         (customer.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -226,9 +237,12 @@ export default function ClientsPage() {
     return { paginatedCustomers: paginated, totalPages: pages };
   }, [sortedAndFilteredCustomers, currentPage, itemsPerPage]);
 
-  const startItem = sortedAndFilteredCustomers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const startItem =
+    sortedAndFilteredCustomers.length > 0
+      ? (currentPage - 1) * itemsPerPage + 1
+      : 0;
   const endItem = startItem + paginatedCustomers.length - 1;
-  
+
   const areFiltersActive = searchTerm !== '' || balanceFilter !== 'all';
 
   const handleClearFilters = () => {
@@ -243,7 +257,9 @@ export default function ClientsPage() {
       ]);
     } else {
       const currentPageIds = new Set(paginatedCustomers.map((p) => p.id));
-      setSelectedCustomerIds((prev) => prev.filter((id) => !currentPageIds.has(id)));
+      setSelectedCustomerIds((prev) =>
+        prev.filter((id) => !currentPageIds.has(id))
+      );
     }
   };
 
@@ -316,20 +332,16 @@ export default function ClientsPage() {
           isActive={balanceFilter === 'credit'}
         />
       </div>
-      
-       {recentCustomers.length > 0 && (
+
+      {recentCustomers.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Clients Récents</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {recentCustomers.map(customer => (
-                <Button 
-                  key={customer.id} 
-                  variant="outline" 
-                  asChild
-                >
+              {recentCustomers.map((customer) => (
+                <Button key={customer.id} variant="outline" asChild>
                   <Link href={`/clients/${customer.id}`}>
                     {customer.name}
                   </Link>
@@ -363,7 +375,7 @@ export default function ClientsPage() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                 <Select
+                <Select
                   value={`${sortConfig.key}:${sortConfig.direction}`}
                   onValueChange={handleSortChange}
                   disabled={!hasCustomers}
@@ -372,13 +384,23 @@ export default function ClientsPage() {
                     <SelectValue placeholder="Trier par..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="createdAt:descending">Plus récent</SelectItem>
-                    <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
+                    <SelectItem value="createdAt:descending">
+                      Plus récent
+                    </SelectItem>
+                    <SelectItem value="createdAt:ascending">
+                      Plus ancien
+                    </SelectItem>
                     <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
                     <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
-                    <SelectItem value="balance:descending">Solde (décroissant)</SelectItem>
-                    <SelectItem value="balance:ascending">Solde (croissant)</SelectItem>
-                    <SelectItem value="totalDebts:descending">Total dépensé</SelectItem>
+                    <SelectItem value="balance:descending">
+                      Solde (décroissant)
+                    </SelectItem>
+                    <SelectItem value="balance:ascending">
+                      Solde (croissant)
+                    </SelectItem>
+                    <SelectItem value="totalDebts:descending">
+                      Total dépensé
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="flex items-center gap-1 border rounded-md p-1">
@@ -412,10 +434,23 @@ export default function ClientsPage() {
               </div>
             </div>
             {selectedCustomerIds.length > 0 && (
-              <div className="p-3 bg-muted rounded-md flex items-center justify-between flex-wrap gap-2">
-                <p className="text-sm font-medium">
-                  {selectedCustomerIds.length} client(s) sélectionné(s)
-                </p>
+              <div className="p-3 bg-muted rounded-md flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="text-sm font-medium">
+                    {selectedCustomerIds.length} client(s) sélectionné(s)
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Solde total de la sélection :{' '}
+                    <span
+                      className={cn(
+                        'font-semibold font-mono',
+                        getBalanceColorClassName(selectedCustomersBalance)
+                      )}
+                    >
+                      {formatCurrency(selectedCustomersBalance)}
+                    </span>
+                  </p>
+                </div>
                 <div className="flex items-center gap-2">
                   <BulkDeleteCustomersDialog
                     customerIds={selectedCustomerIds}
@@ -465,7 +500,8 @@ export default function ClientsPage() {
         {totalPages > 1 && (
           <CardFooter className="flex items-center justify-between pt-4">
             <div className="text-sm text-muted-foreground">
-              Affichage de {startItem} à {endItem} sur {sortedAndFilteredCustomers.length} clients
+              Affichage de {startItem} à {endItem} sur{' '}
+              {sortedAndFilteredCustomers.length} clients
             </div>
             <div className="flex items-center gap-2">
               <Button
