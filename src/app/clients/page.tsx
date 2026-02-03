@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Customer } from '@/lib/types';
 import CustomersLoading from './loading';
@@ -28,9 +28,11 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CardFooter
 } from '@/components/ui/card';
+import { BulkDeleteCustomersDialog } from '@/components/customers/bulk-delete-customer-dialog';
 
-type SortKey = keyof Customer;
+type SortKey = keyof Customer | 'totalDebts' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
 
 interface SortConfig {
@@ -38,6 +40,8 @@ interface SortConfig {
   direction: SortDirection;
 }
 type BalanceFilter = 'all' | 'debt' | 'credit';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function ClientsPage() {
   const { customers, transactions: rawTransactions, loading } = useMockData();
@@ -48,6 +52,15 @@ export default function ClientsPage() {
     key: 'createdAt',
     direction: 'descending',
   });
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Reset selection and page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setSelectedCustomerIds([]);
+  }, [searchTerm, balanceFilter, viewMode]);
+
 
   const { totalCustomers, totalBalance, customersInDebt, customersWithCredit } =
     useMemo(() => {
@@ -140,13 +153,45 @@ export default function ClientsPage() {
     return filtered;
   }, [customersWithTotals, searchTerm, sortConfig, balanceFilter]);
   
+  const { paginatedCustomers, totalPages } = useMemo(() => {
+    const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
+    const total = sortedAndFilteredCustomers.length;
+    const pages = Math.ceil(total / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginated = sortedAndFilteredCustomers.slice(start, end);
+    return { paginatedCustomers: paginated, totalPages: pages };
+  }, [sortedAndFilteredCustomers, currentPage, viewMode]);
+
+  
   const areFiltersActive = searchTerm !== '' || balanceFilter !== 'all';
 
   const handleClearFilters = () => {
     setSearchTerm('');
     setBalanceFilter('all');
   };
+  
+  const handleSelectAll = (checked: boolean | 'indeterminate') => {
+     if (checked === true) {
+      setSelectedCustomerIds(prev => [...new Set([...prev, ...paginatedCustomers.map(p => p.id)])]);
+    } else {
+      const currentPageIds = new Set(paginatedCustomers.map(p => p.id));
+      setSelectedCustomerIds(prev => prev.filter(id => !currentPageIds.has(id)));
+    }
+  };
 
+  const handleSelectCustomer = (
+    customerId: string,
+    checked: boolean | 'indeterminate'
+  ) => {
+    setSelectedCustomerIds((prev) => {
+      if (checked === true) {
+        return [...prev, customerId];
+      } else {
+        return prev.filter((id) => id !== customerId);
+      }
+    });
+  };
 
   if (loading) {
     return <CustomersLoading />;
@@ -252,17 +297,37 @@ export default function ClientsPage() {
                 <AddCustomerDialog />
               </div>
             </div>
+             {selectedCustomerIds.length > 0 && (
+                <div className="p-3 bg-muted rounded-md flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-sm font-medium">
+                    {selectedCustomerIds.length} client(s) sélectionné(s)
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <BulkDeleteCustomersDialog
+                      customerIds={selectedCustomerIds}
+                      onSuccess={() => setSelectedCustomerIds([])}
+                    />
+                  </div>
+                </div>
+              )}
           </div>
         </CardHeader>
         <CardContent>
           {hasResults ? (
             viewMode === 'grid' ? (
-              <CustomersGrid customers={sortedAndFilteredCustomers} />
+              <CustomersGrid 
+                customers={paginatedCustomers}
+                selectedCustomerIds={selectedCustomerIds}
+                onSelectionChange={handleSelectCustomer} 
+              />
             ) : (
               <CustomersTable
-                customers={sortedAndFilteredCustomers}
+                customers={paginatedCustomers}
                 onSort={handleSort}
                 sortConfig={sortConfig}
+                selectedCustomerIds={selectedCustomerIds}
+                onSelectAll={handleSelectAll}
+                onSelectCustomer={handleSelectCustomer}
               />
             )
           ) : (
@@ -283,6 +348,31 @@ export default function ClientsPage() {
             </div>
           )}
         </CardContent>
+        {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between pt-4">
+                <div className="text-sm text-muted-foreground">
+                    Page {currentPage} sur {totalPages}
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    >
+                    Précédent
+                    </Button>
+                    <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    >
+                    Suivant
+                    </Button>
+                </div>
+            </CardFooter>
+        )}
       </Card>
     </div>
   );

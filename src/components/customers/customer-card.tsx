@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
+import { formatCurrency, getBalanceColorClassName, cn } from '@/lib/utils';
 import {
   MoreVertical,
   Mail,
@@ -31,8 +31,17 @@ import {
 import { EditCustomerDialog } from './edit-customer-dialog';
 import { DeleteCustomerDialog } from './delete-customer-dialog';
 import { AddTransactionDialog } from '../transactions/add-transaction-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
-export function CustomerCard({ customer }: { customer: Customer }) {
+export function CustomerCard({ 
+  customer,
+  isSelected,
+  onSelectionChange,
+}: { 
+  customer: Customer;
+  isSelected: boolean;
+  onSelectionChange: (checked: boolean | 'indeterminate') => void;
+}) {
   const getInitials = (name: string) => {
     if (!name) return '?';
     return name
@@ -45,14 +54,22 @@ export function CustomerCard({ customer }: { customer: Customer }) {
   };
 
   return (
-    <Card>
+    <Card className={cn('transition-all', isSelected && 'ring-2 ring-primary')}>
       <CardHeader className="flex flex-row items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-grow">
+          <Checkbox 
+            checked={isSelected}
+            onCheckedChange={onSelectionChange}
+            className="mt-1"
+            aria-label={`Select customer ${customer.name}`}
+          />
           <Avatar>
             <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
           </Avatar>
-          <div className="grid gap-1">
-            <CardTitle className="text-lg">{customer.name}</CardTitle>
+          <div className="grid gap-1 flex-grow">
+            <CardTitle className="text-lg">
+               <Link href={`/clients/${customer.id}`} className="hover:underline">{customer.name}</Link>
+            </CardTitle>
             <CardDescription className="flex items-center gap-2">
               Solde:{' '}
               <span
@@ -68,7 +85,7 @@ export function CustomerCard({ customer }: { customer: Customer }) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   PlusCircle,
   MinusCircle,
@@ -31,12 +32,18 @@ export function CustomersTable({
   customers,
   onSort,
   sortConfig,
+  selectedCustomerIds,
+  onSelectAll,
+  onSelectCustomer,
 }: {
   customers: Customer[];
-  onSort: (key: keyof Customer) => void;
-  sortConfig: { key: keyof Customer; direction: 'ascending' | 'descending' };
+  onSort: (key: keyof Customer | 'totalDebts' | 'totalPayments') => void;
+  sortConfig: { key: keyof Customer | 'totalDebts' | 'totalPayments'; direction: 'ascending' | 'descending' };
+  selectedCustomerIds: string[];
+  onSelectAll: (checked: boolean | 'indeterminate') => void;
+  onSelectCustomer: (customerId: string, checked: boolean | 'indeterminate') => void;
 }) {
-  const getSortIcon = (key: keyof Customer) => {
+  const getSortIcon = (key: keyof Customer | 'totalDebts' | 'totalPayments') => {
     if (sortConfig.key !== key) {
       return <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
     }
@@ -47,12 +54,21 @@ export function CustomersTable({
   };
 
   const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
+  const isAllOnPageSelected = customers.length > 0 && customers.every(c => selectedCustomerIds.includes(c.id));
+  const isSomeOnPageSelected = customers.some(c => selectedCustomerIds.includes(c.id)) && !isAllOnPageSelected;
 
   return (
     <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
+             <TableHead className="p-2 w-10">
+              <Checkbox
+                checked={isAllOnPageSelected ? true : isSomeOnPageSelected ? 'indeterminate' : false}
+                onCheckedChange={onSelectAll}
+                aria-label="Select all customers on this page"
+              />
+            </TableHead>
             <TableHead>
               <Button
                 variant="ghost"
@@ -120,7 +136,19 @@ export function CustomersTable({
               customer.settlementDay.toLowerCase().includes(todayName);
 
             return (
-              <TableRow key={customer.id}>
+              <TableRow 
+                key={customer.id}
+                data-state={selectedCustomerIds.includes(customer.id) && 'selected'}
+              >
+                 <TableCell className="p-4">
+                  <Checkbox
+                    checked={selectedCustomerIds.includes(customer.id)}
+                    onCheckedChange={(checked) =>
+                      onSelectCustomer(customer.id, checked)
+                    }
+                    aria-label={`Select customer ${customer.name}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">
                   <Link href={`/clients/${customer.id}`} className="hover:underline">{customer.name}</Link>
                 </TableCell>
