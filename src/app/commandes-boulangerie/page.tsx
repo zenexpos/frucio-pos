@@ -88,6 +88,8 @@ interface SortConfig {
 type TodayStatusFilter = 'all' | 'unpaid' | 'undelivered';
 type PastStatusFilter = 'all' | 'paid' | 'unpaid' | 'delivered' | 'undelivered';
 
+const PAST_ORDERS_PER_PAGE = 10;
+
 export default function OrdersPage() {
   const { breadOrders: orders, loading } = useMockData();
   const { toast } = useToast();
@@ -100,6 +102,7 @@ export default function OrdersPage() {
   const [todayStatusFilter, setTodayStatusFilter] = useState<TodayStatusFilter>('all');
   const [pastSearchTerm, setPastSearchTerm] = useState('');
   const [pastStatusFilter, setPastStatusFilter] = useState<PastStatusFilter>('all');
+  const [pastOrdersCurrentPage, setPastOrdersCurrentPage] = useState(1);
 
 
   // Refs for keyboard shortcuts
@@ -110,40 +113,11 @@ export default function OrdersPage() {
   const dateFilterTriggerRef = useRef<HTMLButtonElement>(null);
   const sortSelectTriggerRef = useRef<HTMLButtonElement>(null);
 
+  // Reset page and selection when filters change
   useEffect(() => {
     setSelectedOrderIds([]);
-  }, [viewMode]);
-
-  // Keyboard shortcut handler
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
-        e.preventDefault();
-        addOrderTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
-        e.preventDefault();
-        if (viewMode === 'grid') {
-          viewModeListButtonRef.current?.click();
-        } else {
-          viewModeGridButtonRef.current?.click();
-        }
-      } else if (e.altKey && (e.key === 'r' || e.key === 'R')) {
-        e.preventDefault();
-        resetOrdersTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
-        e.preventDefault();
-        dateFilterTriggerRef.current?.click();
-      } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
-        e.preventDefault();
-        sortSelectTriggerRef.current?.click();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [viewMode]);
+    setPastOrdersCurrentPage(1);
+  }, [viewMode, date, sortConfig, todaySearchTerm, todayStatusFilter, pastSearchTerm, pastStatusFilter]);
 
   const getOrderStatusScore = (order: BreadOrder) => {
     // Status scoring: Pinned > Unpaid/Undelivered > Paid/Undelivered > Unpaid/Delivered > Paid/Delivered
@@ -239,6 +213,56 @@ export default function OrdersPage() {
     return { todayOrders: todayFiltered, pastOrders: past };
   }, [orders, date, sortConfig, todaySearchTerm, todayStatusFilter, pastSearchTerm, pastStatusFilter]);
   
+  const { paginatedPastOrders, pastOrdersTotalPages } = useMemo(() => {
+    const total = pastOrders.length;
+    const pages = Math.ceil(total / PAST_ORDERS_PER_PAGE);
+    const start = (pastOrdersCurrentPage - 1) * PAST_ORDERS_PER_PAGE;
+    const end = start + PAST_ORDERS_PER_PAGE;
+    const paginated = pastOrders.slice(start, end);
+    return { paginatedPastOrders: paginated, pastOrdersTotalPages: pages };
+  }, [pastOrders, pastOrdersCurrentPage]);
+
+  // Keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        addOrderTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (viewMode === 'grid') {
+          viewModeListButtonRef.current?.click();
+        } else {
+          viewModeGridButtonRef.current?.click();
+        }
+      } else if (e.altKey && (e.key === 'r' || e.key === 'R')) {
+        e.preventDefault();
+        resetOrdersTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        dateFilterTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        sortSelectTriggerRef.current?.click();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (pastOrdersCurrentPage < pastOrdersTotalPages) {
+          setPastOrdersCurrentPage((p) => p + 1);
+        }
+      } else if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (pastOrdersCurrentPage > 1) {
+          setPastOrdersCurrentPage((p) => p - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [viewMode, pastOrdersCurrentPage, pastOrdersTotalPages]);
+
   const handleSortChange = (value: string) => {
     const [key, direction] = value.split(':');
     setSortConfig({ key: key as SortKey, direction: direction as 'ascending' | 'descending' });
@@ -310,6 +334,9 @@ export default function OrdersPage() {
       });
     }
   };
+
+  const pastOrdersStartItem = pastOrders.length > 0 ? (pastOrdersCurrentPage - 1) * PAST_ORDERS_PER_PAGE + 1 : 0;
+  const pastOrdersEndItem = pastOrdersStartItem + paginatedPastOrders.length - 1;
 
   if (loading) {
     return <OrdersLoading />;
@@ -690,10 +717,38 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             <OrdersTable
-              orders={pastOrders}
+              orders={paginatedPastOrders}
               noOrdersMessage="Aucune commande trouvée pour la période ou les filtres sélectionnés."
             />
           </CardContent>
+          {pastOrdersTotalPages > 1 && (
+            <CardFooter className="flex items-center justify-between pt-4">
+              <div className="text-sm text-muted-foreground">
+                Affichage de {pastOrdersStartItem} à {pastOrdersEndItem} sur{' '}
+                {pastOrders.length} commandes
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPastOrdersCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={pastOrdersCurrentPage === 1}
+                >
+                  Précédent
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setPastOrdersCurrentPage((p) => Math.min(pastOrdersTotalPages, p + 1))
+                  }
+                  disabled={pastOrdersCurrentPage === pastOrdersTotalPages}
+                >
+                  Suivant
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       )}
     </div>
