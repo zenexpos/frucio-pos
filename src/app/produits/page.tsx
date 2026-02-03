@@ -18,6 +18,7 @@ import {
   PackageX,
   Truck,
   Tags,
+  PackageCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -131,35 +132,44 @@ export default function ProduitsPage() {
     return ['all', ...Array.from(new Set(allCategories))];
   }, [products]);
 
-  const { lowStockCount, outOfStockCount, totalValue, totalRetailValue } =
-    useMemo(() => {
-      if (!products)
-        return {
-          lowStockCount: 0,
-          outOfStockCount: 0,
-          totalValue: 0,
-          totalRetailValue: 0,
-        };
+  const {
+    lowStockCount,
+    outOfStockCount,
+    okStockCount,
+    totalValue,
+    totalRetailValue,
+  } = useMemo(() => {
+    if (!products)
+      return {
+        lowStockCount: 0,
+        outOfStockCount: 0,
+        okStockCount: 0,
+        totalValue: 0,
+        totalRetailValue: 0,
+      };
 
-      return products.reduce(
-        (acc, p) => {
-          if (p.stock <= 0) {
-            acc.outOfStockCount++;
-          } else if (p.stock <= p.minStock) {
-            acc.lowStockCount++;
-          }
-          acc.totalValue += p.purchasePrice * p.stock;
-          acc.totalRetailValue += p.sellingPrice * p.stock;
-          return acc;
-        },
-        {
-          lowStockCount: 0,
-          outOfStockCount: 0,
-          totalValue: 0,
-          totalRetailValue: 0,
+    return products.reduce(
+      (acc, p) => {
+        if (p.stock <= 0) {
+          acc.outOfStockCount++;
+        } else if (p.stock <= p.minStock) {
+          acc.lowStockCount++;
+        } else {
+          acc.okStockCount++;
         }
-      );
-    }, [products]);
+        acc.totalValue += p.purchasePrice * p.stock;
+        acc.totalRetailValue += p.sellingPrice * p.stock;
+        return acc;
+      },
+      {
+        lowStockCount: 0,
+        outOfStockCount: 0,
+        okStockCount: 0,
+        totalValue: 0,
+        totalRetailValue: 0,
+      }
+    );
+  }, [products]);
 
   const sortedAndFilteredProducts = useMemo(() => {
     if (!productsWithSupplier) return [];
@@ -369,36 +379,50 @@ export default function ProduitsPage() {
         </div>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         <StatCard
-          title="Valeur d'Achat"
-          value={formatCurrency(totalValue)}
-          description="Valeur totale au prix d'achat"
-          icon={Archive}
-        />
-        <StatCard
-          title="Valeur de Vente"
-          value={formatCurrency(totalRetailValue)}
-          description="Valeur totale au prix de vente"
-          icon={Tags}
-        />
-        <StatCard
-          title="Produits"
+          title="Tous les produits"
           value={products.length}
-          description="Total des produits uniques"
+          description="Cliquez pour tout voir"
           icon={Package}
+          onClick={() => setStockStatus('all')}
+          isActive={stockStatus === 'all'}
+        />
+        <StatCard
+          title="En Stock"
+          value={okStockCount}
+          description="Stock au dessus du minimum"
+          icon={PackageCheck}
+          onClick={() => setStockStatus('ok')}
+          isActive={stockStatus === 'ok'}
         />
         <StatCard
           title="Stock faible"
           value={lowStockCount}
           description="Produits en dessous du seuil"
           icon={PackageWarning}
+          onClick={() => setStockStatus('low')}
+          isActive={stockStatus === 'low'}
         />
         <StatCard
           title="Rupture de stock"
           value={outOfStockCount}
           description="Produits avec un stock de 0"
           icon={PackageX}
+          onClick={() => setStockStatus('out')}
+          isActive={stockStatus === 'out'}
+        />
+        <StatCard
+          title="Valeur d'Achat"
+          value={formatCurrency(totalValue)}
+          description="Valeur totale à l'achat"
+          icon={Archive}
+        />
+        <StatCard
+          title="Valeur de Vente"
+          value={formatCurrency(totalRetailValue)}
+          description="Valeur totale à la vente"
+          icon={Tags}
         />
       </div>
 
