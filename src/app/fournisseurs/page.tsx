@@ -17,6 +17,10 @@ import {
   ListX,
   WalletCards,
   HandCoins,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Printer,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -43,6 +47,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type SortKey = keyof Supplier;
 type SortDirection = 'ascending' | 'descending';
@@ -250,7 +261,11 @@ export default function FournisseursPage() {
                       <TableBody>
                           {sortedAndFilteredSuppliers.map((supplier) => (
                               <TableRow key={supplier.id}>
-                                  <TableCell className="font-medium">{supplier.name}</TableCell>
+                                  <TableCell className="font-medium">
+                                    <Link href={`/fournisseurs/${supplier.id}`} className="hover:underline">
+                                      {supplier.name}
+                                    </Link>
+                                  </TableCell>
                                   <TableCell className="text-muted-foreground">{supplier.phone}</TableCell>
                                   <TableCell>
                                       <Badge variant="outline">{supplier.category}</Badge>
@@ -260,28 +275,71 @@ export default function FournisseursPage() {
                                       {formatCurrency(supplier.balance)}
                                   </TableCell>
                                   <TableCell className="text-right">
-                                      <div className="flex items-center justify-end gap-0.5">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <MoreVertical className="h-4 w-4" />
+                                          <span className="sr-only">Ouvrir le menu</span>
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem asChild>
+                                          <Link href={`/fournisseurs/${supplier.id}`}>
+                                            <ArrowRight />
+                                            Voir les détails
+                                          </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                          <Link href={`/fournisseurs/${supplier.id}?print=true`} target="_blank">
+                                            <Printer />
+                                            Imprimer le relevé
+                                          </Link>
+                                        </DropdownMenuItem>
+                                        <EditSupplierDialog
+                                          supplier={supplier}
+                                          trigger={
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                              <Pencil />
+                                              Modifier
+                                            </DropdownMenuItem>
+                                          }
+                                        />
+                                        <DeleteSupplierDialog
+                                          supplierId={supplier.id}
+                                          supplierName={supplier.name}
+                                          trigger={
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                              <Trash2 />
+                                              Supprimer
+                                            </DropdownMenuItem>
+                                          }
+                                        />
+                                        <DropdownMenuSeparator />
+                                        <AddSupplierTransactionDialog
+                                          type="purchase"
+                                          supplierId={supplier.id}
+                                          trigger={
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                              <PlusCircle />
+                                              Enregistrer un Achat
+                                            </DropdownMenuItem>
+                                          }
+                                        />
+                                        {supplier.balance > 0 && (
                                           <AddSupplierTransactionDialog
-                                              type="purchase"
-                                              supplierId={supplier.id}
-                                              trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><PlusCircle /><span className="sr-only">Enregistrer un Achat</span></Button>}
+                                            type="payment"
+                                            supplierId={supplier.id}
+                                            defaultAmount={supplier.balance}
+                                            trigger={
+                                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <MinusCircle />
+                                                Enregistrer un Paiement
+                                              </DropdownMenuItem>
+                                            }
                                           />
-                                          {supplier.balance > 0 && (
-                                              <AddSupplierTransactionDialog
-                                                  type="payment"
-                                                  supplierId={supplier.id}
-                                                  defaultAmount={supplier.balance}
-                                                  trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><MinusCircle className="text-accent" /><span className="sr-only">Enregistrer un Paiement</span></Button>}
-                                              />
-                                          )}
-                                          <Button variant="ghost" size="icon" asChild className="h-8 w-8">
-                                              <Link href={`/fournisseurs/${supplier.id}`}>
-                                                  <ArrowRight />
-                                              </Link>
-                                          </Button>
-                                          <EditSupplierDialog supplier={supplier} />
-                                          <DeleteSupplierDialog supplierId={supplier.id} supplierName={supplier.name} />
-                                      </div>
+                                        )}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </TableCell>
                               </TableRow>
                           ))}
