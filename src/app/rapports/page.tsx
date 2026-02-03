@@ -62,15 +62,13 @@ export default function RapportsPage() {
   });
 
   const {
-    filteredTransactions,
-    filteredExpenses,
-    filteredNewCustomers,
     stats,
     salesOverTime,
     salesByCategory,
     topProducts,
     topProductsBySales,
     salesByCustomer,
+    expensesByCategory,
   } = useMemo(() => {
     const from = date?.from ? startOfDay(date.from) : new Date(0);
     const to = date?.to ? endOfDay(date.to) : new Date();
@@ -118,8 +116,6 @@ export default function RapportsPage() {
           }
         });
       } else {
-        // Estimate profit for transactions without sale items (e.g., old data, bread orders)
-        // Assuming a generic 50% profit margin for these
         totalCostOfGoods += t.amount * 0.5;
       }
     });
@@ -162,19 +158,29 @@ export default function RapportsPage() {
         acc[name] += t.amount;
         return acc;
     }, {} as {[key: string]: number});
-    const salesByCustomerData = Object.entries(_salesByCustomer).map(([name, value]) => ({ name, value }));
+    const salesByCustomerData = Object.entries(_salesByCustomer)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+      
+    const _expensesByCategory = fe.reduce((acc, expense) => {
+        if (!acc[expense.category]) {
+            acc[expense.category] = 0;
+        }
+        acc[expense.category] += expense.amount;
+        return acc;
+    }, {} as Record<string, number>);
+    const expensesByCategoryData = Object.entries(_expensesByCategory).map(([name, value]) => ({ name, value }));
 
 
     return {
-      filteredTransactions: ft,
-      filteredExpenses: fe,
-      filteredNewCustomers: fnc,
       stats: _stats,
       salesOverTime: _salesOverTime,
       salesByCategory: _salesByCategory,
       topProducts: _topProducts,
       topProductsBySales: _topProductsBySales,
       salesByCustomer: salesByCustomerData,
+      expensesByCategory: expensesByCategoryData,
     };
   }, [date, transactions, expenses, customers, products]);
 
@@ -247,11 +253,14 @@ export default function RapportsPage() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
-
+      
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Top 5 Produits par Chiffre d'Affaires</CardTitle>
+             <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-6 w-6" />
+                Top 5 Produits par Chiffre d'Affaires
+             </CardTitle>
              <CardDescription>Les produits qui ont généré le plus de revenus</CardDescription>
           </CardHeader>
           <CardContent className="h-80">
@@ -265,12 +274,39 @@ export default function RapportsPage() {
                     formatter={(value: number) => [formatCurrency(value), "Chiffre d'affaires"]}
                     labelFormatter={(label) => <span className="font-semibold">{label}</span>}
                  />
-                 <Bar dataKey="sales" name="Chiffre d'affaires" fill="hsl(var(--primary))" background={{ fill: 'hsl(var(--muted))' }} />
+                 <Bar dataKey="sales" name="Chiffre d'affaires" fill="hsl(var(--chart-1))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-6 w-6" />
+                  Top 5 Produits par Quantité
+                </CardTitle>
+                <CardDescription>Les produits les plus vendus en unités</CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topProducts} layout="vertical" margin={{ top: 5, right: 20, left: 50, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false}/>
+                        <XAxis type="number" allowDecimals={false} />
+                        <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12 }}/>
+                        <Tooltip 
+                            contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} 
+                            formatter={(value: number) => [value, "Unités vendues"]}
+                            labelFormatter={(label) => <span className="font-semibold">{label}</span>}
+                        />
+                        <Bar dataKey="quantity" name="Quantité" fill="hsl(var(--chart-2))" />
+                    </BarChart>
+                </ResponsiveContainer>
+            </CardContent>
+        </Card>
+      </div>
+
+       <div className="grid gap-6 md:grid-cols-2">
+        <Card>
             <CardHeader>
                 <CardTitle>Ventes par Catégorie</CardTitle>
             </CardHeader>
@@ -288,45 +324,50 @@ export default function RapportsPage() {
                 </ResponsiveContainer>
             </CardContent>
         </Card>
-      </div>
-
-       <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Meilleures Ventes (par quantité)</CardTitle>
-            <CardDescription>Top 5 des produits par unités vendues</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topProducts.map(p => (
-                <div key={p.name} className="flex justify-between items-center text-sm">
-                  <span>{p.name}</span>
-                  <span className="font-semibold">{p.quantity}</span>
-                </div>
-              ))}
-              {topProducts.length === 0 && <p className="text-muted-foreground text-center">Aucune vente de produit enregistrée pour cette période.</p>}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-3">
+        <Card>
             <CardHeader>
-                <CardTitle>Ventes par Client</CardTitle>
+                <CardTitle>Dépenses par Catégorie</CardTitle>
             </CardHeader>
             <CardContent className="h-80">
-                 <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                        <Pie data={salesByCustomer} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} label>
-                             {salesByCustomer.map((entry, index) => (
+                        <Pie data={expensesByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                             {expensesByCategory.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} formatter={(value) => formatCurrency(Number(value))}/>
-                        <Legend wrapperStyle={{overflow: "auto", maxHeight: 200}}/>
+                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} formatter={(value) => formatCurrency(Number(value))} />
+                        <Legend />
                     </PieChart>
                 </ResponsiveContainer>
             </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-6 w-6" />
+            Top 10 des Clients par Chiffre d'Affaires
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="h-96">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesByCustomer} layout="vertical" margin={{ top: 5, right: 20, left: 80, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false}/>
+                    <XAxis type="number" tickFormatter={(value) => formatCurrency(value as number)} />
+                    <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12 }}/>
+                    <Tooltip 
+                        contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} 
+                        formatter={(value: number) => [formatCurrency(value), "Chiffre d'affaires"]}
+                        labelFormatter={(label) => <span className="font-semibold">{label}</span>}
+                    />
+                    <Bar dataKey="value" name="Chiffre d'affaires" fill="hsl(var(--chart-4))" />
+                </BarChart>
+            </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
