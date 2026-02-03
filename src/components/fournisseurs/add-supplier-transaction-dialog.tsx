@@ -2,7 +2,7 @@ import { AddSupplierTransactionForm } from './add-supplier-transaction-form';
 import type { SupplierTransactionType } from '@/lib/types';
 import { FormDialog } from '@/components/forms/form-dialog';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MinusCircle } from 'lucide-react';
+import { Plus, MinusCircle } from 'lucide-react';
 
 export function AddSupplierTransactionDialog({
   type,
@@ -24,7 +24,7 @@ export function AddSupplierTransactionDialog({
     ? 'Enregistrez un nouvel achat auprès du fournisseur. Cela augmentera votre dette envers lui.'
     : 'Enregistrez un paiement effectué au fournisseur. Cela diminuera votre dette.';
   const buttonText = isPurchase ? 'Nouvel Achat' : 'Nouveau Paiement';
-  const Icon = isPurchase ? PlusCircle : MinusCircle;
+  const Icon = isPurchase ? Plus : MinusCircle;
 
   const variant = isPurchase ? 'outline' : 'default';
 

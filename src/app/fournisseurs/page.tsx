@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Supplier } from '@/lib/types';
 import FournisseursLoading from './loading';
@@ -9,7 +9,7 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronsUpDown,
-  PlusCircle,
+  Plus,
   MinusCircle,
   ArrowRight,
   Truck,
@@ -25,6 +25,7 @@ import {
   List,
   Upload,
   Download,
+  X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, getBalanceVariant, getBalanceColorClassName } from '@/lib/utils';
+import {
+  formatCurrency,
+  getBalanceVariant,
+  getBalanceColorClassName,
+} from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { AddSupplierDialog } from '@/components/fournisseurs/add-supplier-dialog';
 import { EditSupplierDialog } from '@/components/fournisseurs/edit-supplier-dialog';
@@ -65,6 +70,7 @@ import { SupplierCsvImportDialog } from '@/components/fournisseurs/csv-import-di
 import { exportSuppliersToCsv } from '@/lib/mock-data/api';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BulkDeleteSuppliersDialog } from '@/components/fournisseurs/bulk-delete-supplier-dialog';
+import { SupplierShortcutsDialog } from '@/components/fournisseurs/shortcuts-dialog';
 
 type SortKey = keyof Supplier;
 type SortDirection = 'ascending' | 'descending';
@@ -80,11 +86,22 @@ const ITEMS_PER_PAGE_LIST = 10;
 export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'toPay' | 'inCredit'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'toPay' | 'inCredit'>(
+    'all'
+  );
   const { suppliers, supplierTransactions, loading } = useMockData();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSupplierIds, setSelectedSupplierIds] = useState<string[]>([]);
+
+  // Refs for keyboard shortcuts
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const addSupplierTriggerRef = useRef<HTMLButtonElement>(null);
+  const viewModeListButtonRef = useRef<HTMLButtonElement>(null);
+  const viewModeGridButtonRef = useRef<HTMLButtonElement>(null);
+  const importTriggerRef = useRef<HTMLButtonElement>(null);
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const clearFiltersButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
     totalSuppliers,
@@ -140,7 +157,8 @@ export default function FournisseursPage() {
       if (t.supplierId) {
         recentSupplierIds.add(t.supplierId);
       }
-      if (recentSupplierIds.size >= 5) { // Get last 5 unique suppliers
+      if (recentSupplierIds.size >= 5) {
+        // Get last 5 unique suppliers
         break;
       }
     }
@@ -154,10 +172,11 @@ export default function FournisseursPage() {
 
   const sortedAndFilteredSuppliers = useMemo(() => {
     if (!suppliers) return [];
-    let filtered = suppliers.filter(supplier =>
-      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (supplier.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (supplier.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+    let filtered = suppliers.filter(
+      (supplier) =>
+        supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (supplier.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (supplier.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (activeFilter === 'toPay') {
@@ -170,12 +189,14 @@ export default function FournisseursPage() {
       filtered.sort((a, b) => {
         let aValue = a[sortConfig.key as keyof Supplier] as any;
         let bValue = b[sortConfig.key as keyof Supplier] as any;
-        
+
         if (aValue === undefined || aValue === null) aValue = '';
         if (bValue === undefined || bValue === null) bValue = '';
-        
+
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+          return sortConfig.direction === 'ascending'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
         }
 
         if (aValue < bValue) {
@@ -190,14 +211,10 @@ export default function FournisseursPage() {
 
     return filtered;
   }, [searchTerm, sortConfig, suppliers, activeFilter]);
+
+  const itemsPerPage =
+    viewMode === 'grid' ? ITEMS_PER_PAGE_GRID : ITEMS_PER_PAGE_LIST;
   
-  useEffect(() => {
-    setCurrentPage(1);
-    setSelectedSupplierIds([]);
-  }, [searchTerm, activeFilter, viewMode, sortConfig]);
-
-  const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE_GRID : ITEMS_PER_PAGE_LIST;
-
   const { paginatedSuppliers, totalPages } = useMemo(() => {
     const total = sortedAndFilteredSuppliers.length;
     const pages = Math.ceil(total / itemsPerPage);
@@ -207,9 +224,71 @@ export default function FournisseursPage() {
     return { paginatedSuppliers: paginated, totalPages: pages };
   }, [sortedAndFilteredSuppliers, currentPage, itemsPerPage]);
 
+  // Keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        addSupplierTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (viewMode === 'grid') {
+          viewModeListButtonRef.current?.click();
+        } else {
+          viewModeGridButtonRef.current?.click();
+        }
+      } else if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        importTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'e' || e.key === 'E')) {
+        e.preventDefault();
+        exportButtonRef.current?.click();
+      } else if (e.altKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        setActiveFilter('all');
+      } else if (e.altKey && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        setActiveFilter('toPay');
+      } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        setActiveFilter('inCredit');
+      } else if (e.altKey && (e.key === 'x' || e.key === 'X')) {
+        e.preventDefault();
+        clearFiltersButtonRef.current?.click();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          setCurrentPage((p) => p + 1);
+        }
+      } else if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentPage > 1) {
+          setCurrentPage((p) => p - 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [viewMode, currentPage, totalPages]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+    setSelectedSupplierIds([]);
+  }, [searchTerm, activeFilter, viewMode, sortConfig]);
+
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === 'ascending'
+    ) {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
@@ -217,14 +296,16 @@ export default function FournisseursPage() {
 
   const getSortIcon = (key: SortKey) => {
     if (!sortConfig || sortConfig.key !== key) {
-      return <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
+      return (
+        <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+      );
     }
     if (sortConfig.direction === 'ascending') {
       return <ArrowUp className="ml-2 h-4 w-4" />;
     }
     return <ArrowDown className="ml-2 h-4 w-4" />;
   };
-  
+
   const getInitials = (name: string) => {
     if (!name) return '?';
     return name
@@ -234,6 +315,13 @@ export default function FournisseursPage() {
       .slice(0, 2)
       .join('')
       .toUpperCase();
+  };
+  
+  const areFiltersActive = searchTerm !== '' || activeFilter !== 'all';
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setActiveFilter('all');
   };
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
@@ -262,11 +350,15 @@ export default function FournisseursPage() {
     });
   };
 
-  const isAllOnPageSelected = paginatedSuppliers.length > 0 && paginatedSuppliers.every(p => selectedSupplierIds.includes(p.id));
-  const isSomeOnPageSelected = paginatedSuppliers.some(p => selectedSupplierIds.includes(p.id)) && !isAllOnPageSelected;
+  const isAllOnPageSelected =
+    paginatedSuppliers.length > 0 &&
+    paginatedSuppliers.every((p) => selectedSupplierIds.includes(p.id));
+  const isSomeOnPageSelected =
+    paginatedSuppliers.some((p) => selectedSupplierIds.includes(p.id)) &&
+    !isAllOnPageSelected;
 
   if (loading) {
-      return <FournisseursLoading />;
+    return <FournisseursLoading />;
   }
 
   const hasSuppliers = suppliers.length > 0;
@@ -277,12 +369,11 @@ export default function FournisseursPage() {
       : 0;
   const endItem = startItem + paginatedSuppliers.length - 1;
 
-
   return (
     <div className="space-y-6">
-       <header>
+      <header>
         <h1 className="text-3xl font-bold tracking-tight">
-            Gestion des Fournisseurs
+          Gestion des Fournisseurs
         </h1>
         <p className="text-muted-foreground">
           Affichez, recherchez et gérez tous vos fournisseurs.
@@ -314,7 +405,7 @@ export default function FournisseursPage() {
           onClick={() => setActiveFilter('inCredit')}
           isActive={activeFilter === 'inCredit'}
         />
-         <StatCard
+        <StatCard
           title="Dette Totale"
           value={formatCurrency(totalDebtToSuppliers)}
           description="Argent dû aux fournisseurs"
@@ -338,11 +429,18 @@ export default function FournisseursPage() {
               {recentSuppliers.map((supplier) => (
                 <div key={supplier.id} className="flex items-center">
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback>{getInitials(supplier.name)}</AvatarFallback>
+                    <AvatarFallback>
+                      {getInitials(supplier.name)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="ml-4 flex-grow">
                     <p className="font-semibold text-sm">{supplier.name}</p>
-                    <p className={cn("text-xs font-mono", getBalanceColorClassName(supplier.balance))}>
+                    <p
+                      className={cn(
+                        'text-xs font-mono',
+                        getBalanceColorClassName(supplier.balance)
+                      )}
+                    >
                       {formatCurrency(supplier.balance)}
                     </p>
                   </div>
@@ -360,52 +458,78 @@ export default function FournisseursPage() {
 
       <Card>
         <CardHeader>
-           <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="relative w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                 <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Rechercher des fournisseurs..." className="pl-8 w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} disabled={!hasSuppliers}/>
+                  <Input
+                    ref={searchInputRef}
+                    placeholder="Rechercher... (F1)"
+                    className="pl-8 w-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    disabled={!hasSuppliers}
+                  />
+                </div>
+                 {areFiltersActive && (
+                  <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
+                    <X className="mr-2 h-4 w-4" /> Effacer
+                  </Button>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 border rounded-md p-1">
-                    <Button
-                      variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      onClick={() => setViewMode('list')}
-                      className="h-8 w-8"
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                      size="icon"
-                      onClick={() => setViewMode('grid')}
-                      className="h-8 w-8"
-                    >
-                      <LayoutGrid className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <SupplierCsvImportDialog trigger={
-                      <Button variant="outline">
-                          <Upload className="mr-2 h-4 w-4" /> Importer
-                      </Button>
-                  } />
+                 <SupplierShortcutsDialog />
+                <div className="flex items-center gap-1 border rounded-md p-1">
                   <Button
-                    variant="outline"
-                    onClick={exportSuppliersToCsv}
-                    disabled={!hasSuppliers}
+                    ref={viewModeListButtonRef}
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('list')}
+                    className="h-8 w-8"
                   >
-                    <Download className="mr-2 h-4 w-4" />
-                    Exporter
+                    <List className="h-4 w-4" />
                   </Button>
-                  <AddSupplierDialog />
+                  <Button
+                     ref={viewModeGridButtonRef}
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('grid')}
+                    className="h-8 w-8"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+                <SupplierCsvImportDialog
+                  trigger={
+                    <Button ref={importTriggerRef} variant="outline">
+                      <Upload className="mr-2 h-4 w-4" /> Importer
+                    </Button>
+                  }
+                />
+                <Button
+                  ref={exportButtonRef}
+                  variant="outline"
+                  onClick={exportSuppliersToCsv}
+                  disabled={!hasSuppliers}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exporter
+                </Button>
+                <AddSupplierDialog
+                  trigger={
+                    <Button ref={addSupplierTriggerRef} className="w-full sm:w-auto">
+                      <Plus className="mr-2 h-4 w-4" /> Ajouter un fournisseur
+                    </Button>
+                  }
+                />
               </div>
             </div>
             {selectedSupplierIds.length > 0 && (
               <div className="p-3 bg-muted rounded-md flex items-center justify-between flex-wrap gap-4">
-                 <p className="text-sm font-medium">
-                    {selectedSupplierIds.length} fournisseur(s) sélectionné(s)
-                  </p>
+                <p className="text-sm font-medium">
+                  {selectedSupplierIds.length} fournisseur(s) sélectionné(s)
+                </p>
                 <div className="flex items-center gap-2">
                   <BulkDeleteSuppliersDialog
                     supplierIds={selectedSupplierIds}
@@ -414,154 +538,228 @@ export default function FournisseursPage() {
                 </div>
               </div>
             )}
-           </div>
+          </div>
         </CardHeader>
         <CardContent>
-            {hasResults ? (
-               viewMode === 'grid' ? (
-                  <FournisseursGrid 
-                    suppliers={paginatedSuppliers}
-                    selectedSupplierIds={selectedSupplierIds}
-                    onSelectionChange={handleSelectSupplier}
-                  />
-              ) : (
-              <div className="overflow-hidden rounded-lg border">
-                  <Table>
-                      <TableHeader>
-                          <TableRow>
-                              <TableHead className="p-2 w-10">
-                                <Checkbox
-                                  checked={isAllOnPageSelected ? true : isSomeOnPageSelected ? 'indeterminate' : false}
-                                  onCheckedChange={handleSelectAll}
-                                />
-                              </TableHead>
-                              <TableHead>
-                                  <Button variant="ghost" onClick={() => requestSort('name')} className="px-2 py-1 h-auto">Nom{getSortIcon('name')}</Button>
-                              </TableHead>
-                              <TableHead>
-                                  <Button variant="ghost" onClick={() => requestSort('phone')} className="px-2 py-1 h-auto">Téléphone{getSortIcon('phone')}</Button>
-                              </TableHead>
-                              <TableHead>
-                                  <Button variant="ghost" onClick={() => requestSort('category')} className="px-2 py-1 h-auto">Catégorie{getSortIcon('category')}</Button>
-                              </TableHead>
-                              <TableHead>
-                                  <Button variant="ghost" onClick={() => requestSort('visitDay')} className="px-2 py-1 h-auto">Jours de visite{getSortIcon('visitDay')}</Button>
-                              </TableHead>
-                              <TableHead className="text-right">
-                                  <Button variant="ghost" onClick={() => requestSort('balance')} className="px-2 py-1 h-auto justify-end w-full">Solde{getSortIcon('balance')}</Button>
-                              </TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {paginatedSuppliers.map((supplier) => (
-                              <TableRow key={supplier.id} data-state={selectedSupplierIds.includes(supplier.id) && 'selected'}>
-                                  <TableCell className="p-4">
-                                    <Checkbox
-                                      checked={selectedSupplierIds.includes(supplier.id)}
-                                      onCheckedChange={(checked) =>
-                                        handleSelectSupplier(supplier.id, checked)
-                                      }
-                                    />
-                                  </TableCell>
-                                  <TableCell className="font-medium">
-                                    <Link href={`/fournisseurs/${supplier.id}`} className="hover:underline">
-                                      {supplier.name}
-                                    </Link>
-                                  </TableCell>
-                                  <TableCell className="text-muted-foreground">{supplier.phone}</TableCell>
-                                  <TableCell>
-                                      <Badge variant="outline">{supplier.category}</Badge>
-                                  </TableCell>
-                                  <TableCell className="text-muted-foreground">{supplier.visitDay || '-'}</TableCell>
-                                  <TableCell className={cn("text-right font-mono", getBalanceVariant(supplier.balance))}>
-                                      {formatCurrency(supplier.balance)}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                          <MoreVertical className="h-4 w-4" />
-                                          <span className="sr-only">Ouvrir le menu</span>
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem asChild>
-                                          <Link href={`/fournisseurs/${supplier.id}`}>
-                                            <ArrowRight />
-                                            Voir les détails
-                                          </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                          <Link href={`/fournisseurs/${supplier.id}?print=true`} target="_blank">
-                                            <Printer />
-                                            Imprimer le relevé
-                                          </Link>
-                                        </DropdownMenuItem>
-                                        <EditSupplierDialog
-                                          supplier={supplier}
-                                          trigger={
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                              <Pencil />
-                                              Modifier
-                                            </DropdownMenuItem>
-                                          }
-                                        />
-                                        <DeleteSupplierDialog
-                                          supplierId={supplier.id}
-                                          supplierName={supplier.name}
-                                          trigger={
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                              <Trash2 />
-                                              Supprimer
-                                            </DropdownMenuItem>
-                                          }
-                                        />
-                                        <DropdownMenuSeparator />
-                                        <AddSupplierTransactionDialog
-                                          type="purchase"
-                                          supplierId={supplier.id}
-                                          trigger={
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                              <PlusCircle />
-                                              Enregistrer un Achat
-                                            </DropdownMenuItem>
-                                          }
-                                        />
-                                        {supplier.balance > 0 && (
-                                          <AddSupplierTransactionDialog
-                                            type="payment"
-                                            supplierId={supplier.id}
-                                            defaultAmount={supplier.balance}
-                                            trigger={
-                                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <MinusCircle />
-                                                Enregistrer un Paiement
-                                              </DropdownMenuItem>
-                                            }
-                                          />
-                                        )}
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </TableCell>
-                              </TableRow>
-                          ))}
-                      </TableBody>
-                  </Table>
-              </div>
-              )
+          {hasResults ? (
+            viewMode === 'grid' ? (
+              <FournisseursGrid
+                suppliers={paginatedSuppliers}
+                selectedSupplierIds={selectedSupplierIds}
+                onSelectionChange={handleSelectSupplier}
+              />
             ) : (
-                <div className="text-center py-16 border-2 border-dashed rounded-lg">
-                  <h3 className="text-xl font-semibold">
-                    {hasSuppliers ? 'Aucun fournisseur trouvé' : 'Aucun fournisseur pour le moment'}
-                  </h3>
-                  <p className="text-muted-foreground mt-2">
-                    {hasSuppliers ? 'Essayez un autre terme de recherche.' : 'Cliquez sur "Ajouter un fournisseur" pour commencer.'}
-                  </p>
+              <div className="overflow-hidden rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="p-2 w-10">
+                        <Checkbox
+                          checked={
+                            isAllOnPageSelected
+                              ? true
+                              : isSomeOnPageSelected
+                              ? 'indeterminate'
+                              : false
+                          }
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={() => requestSort('name')}
+                          className="px-2 py-1 h-auto"
+                        >
+                          Nom{getSortIcon('name')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={() => requestSort('phone')}
+                          className="px-2 py-1 h-auto"
+                        >
+                          Téléphone{getSortIcon('phone')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={() => requestSort('category')}
+                          className="px-2 py-1 h-auto"
+                        >
+                          Catégorie{getSortIcon('category')}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={() => requestSort('visitDay')}
+                          className="px-2 py-1 h-auto"
+                        >
+                          Jours de visite{getSortIcon('visitDay')}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <Button
+                          variant="ghost"
+                          onClick={() => requestSort('balance')}
+                          className="px-2 py-1 h-auto justify-end w-full"
+                        >
+                          Solde{getSortIcon('balance')}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedSuppliers.map((supplier) => (
+                      <TableRow
+                        key={supplier.id}
+                        data-state={
+                          selectedSupplierIds.includes(supplier.id) &&
+                          'selected'
+                        }
+                      >
+                        <TableCell className="p-4">
+                          <Checkbox
+                            checked={selectedSupplierIds.includes(supplier.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectSupplier(supplier.id, checked)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <Link
+                            href={`/fournisseurs/${supplier.id}`}
+                            className="hover:underline"
+                          >
+                            {supplier.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {supplier.phone}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{supplier.category}</Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {supplier.visitDay || '-'}
+                        </TableCell>
+                        <TableCell
+                          className={cn(
+                            'text-right font-mono',
+                            getBalanceVariant(supplier.balance)
+                          )}
+                        >
+                          {formatCurrency(supplier.balance)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Ouvrir le menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/fournisseurs/${supplier.id}`}>
+                                  <ArrowRight />
+                                  Voir les détails
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  href={`/fournisseurs/${supplier.id}?print=true`}
+                                  target="_blank"
+                                >
+                                  <Printer />
+                                  Imprimer le relevé
+                                </Link>
+                              </DropdownMenuItem>
+                              <EditSupplierDialog
+                                supplier={supplier}
+                                trigger={
+                                  <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    <Pencil />
+                                    Modifier
+                                  </DropdownMenuItem>
+                                }
+                              />
+                              <DeleteSupplierDialog
+                                supplierId={supplier.id}
+                                supplierName={supplier.name}
+                                trigger={
+                                  <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                  >
+                                    <Trash2 />
+                                    Supprimer
+                                  </DropdownMenuItem>
+                                }
+                              />
+                              <DropdownMenuSeparator />
+                              <AddSupplierTransactionDialog
+                                type="purchase"
+                                supplierId={supplier.id}
+                                trigger={
+                                  <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    <Plus />
+                                    Enregistrer un Achat
+                                  </DropdownMenuItem>
+                                }
+                              />
+                              {supplier.balance > 0 && (
+                                <AddSupplierTransactionDialog
+                                  type="payment"
+                                  supplierId={supplier.id}
+                                  defaultAmount={supplier.balance}
+                                  trigger={
+                                    <DropdownMenuItem
+                                      onSelect={(e) => e.preventDefault()}
+                                    >
+                                      <MinusCircle />
+                                      Enregistrer un Paiement
+                                    </DropdownMenuItem>
+                                  }
+                                />
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            )}
+            )
+          ) : (
+            <div className="text-center py-16 border-2 border-dashed rounded-lg">
+              <h3 className="text-xl font-semibold">
+                {hasSuppliers
+                  ? 'Aucun fournisseur trouvé'
+                  : 'Aucun fournisseur pour le moment'}
+              </h3>
+              <p className="text-muted-foreground mt-2">
+                {hasSuppliers
+                  ? 'Essayez un autre terme de recherche.'
+                  : 'Cliquez sur "Ajouter un fournisseur" pour commencer.'}
+              </p>
+            </div>
+          )}
         </CardContent>
-         {totalPages > 1 && (
+        {totalPages > 1 && (
           <CardFooter className="flex items-center justify-between pt-4">
             <div className="text-sm text-muted-foreground">
               Affichage de {startItem} à {endItem} sur{' '}
