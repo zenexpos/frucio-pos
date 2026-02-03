@@ -1,7 +1,7 @@
 'use client';
 import { mockDataStore, saveData, resetToSeedData as resetSeed } from './index';
 import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product, SupplierTransaction, CompanyInfo } from '@/lib/types';
-import { startOfDay, format } from 'date-fns';
+import { startOfDay, format, isSameDay } from 'date-fns';
 import { formatCurrency } from '../utils';
 
 let nextId = () => Date.now().toString() + Math.random().toString(36).substring(2, 9);
@@ -756,4 +756,53 @@ export const reconcileDailyOrders = async () => {
      return { didSync: true, message: 'Vérification terminée. Les soldes ont été mis à jour.' };
   }
   return { didSync: false, message: 'Aucune modification nécessaire.' };
+};
+
+export const recreatePinnedOrders = async () => {
+    const today = startOfDay(new Date());
+    const lastRecreationDateStr = localStorage.getItem('lastPinnedOrderRecreationDate');
+    const lastRecreationDate = lastRecreationDateStr ? startOfDay(new Date(lastRecreationDateStr)) : null;
+
+    // Don't run if it has already run today
+    if (lastRecreationDate && isSameDay(today, lastRecreationDate)) {
+        return { didRecreate: false, count: 0 };
+    }
+
+    const pinnedOrders = mockDataStore.breadOrders.filter(o => o.isPinned);
+    let recreatedCount = 0;
+
+    if (pinnedOrders.length === 0) {
+        localStorage.setItem('lastPinnedOrderRecreationDate', today.toISOString());
+        return { didRecreate: false, count: 0 };
+    }
+
+    const newOrders: Promise<any>[] = [];
+
+    pinnedOrders.forEach(order => {
+        const alreadyExistsToday = mockDataStore.breadOrders.some(
+            o => isSameDay(startOfDay(new Date(o.createdAt)), today) && 
+                 o.name === order.name && 
+                 o.customerId === order.customerId
+        );
+
+        if (!alreadyExistsToday) {
+            const newOrderData = {
+                name: order.name,
+                quantity: order.quantity,
+                unitPrice: order.unitPrice,
+                totalAmount: order.totalAmount,
+                customerId: order.customerId,
+                customerName: order.customerName,
+            };
+            
+            newOrders.push(addBreadOrder(newOrderData));
+            recreatedCount++;
+        }
+    });
+
+    await Promise.all(newOrders);
+
+    localStorage.setItem('lastPinnedOrderRecreationDate', today.toISOString());
+    
+    return { didRecreate: recreatedCount > 0, count: recreatedCount };
 };
