@@ -41,6 +41,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { CustomerCombobox } from '@/components/caisse/customer-combobox';
 import { Receipt, type ReceiptData } from '@/components/caisse/receipt';
+import { SettleDebtDialog } from '@/components/caisse/settle-debt-dialog';
 
 
 const productImages = imageData.caisse;
@@ -626,6 +627,17 @@ export default function CaissePage() {
                                     {formatCurrency(selectedCustomer.balance)}
                                 </p>
                                 <p className="text-xs text-muted-foreground">Solde actuel du client</p>
+                                {selectedCustomer.balance > 0 && activeCart.length === 0 && (
+                                    <SettleDebtDialog
+                                        customerId={selectedCustomer.id}
+                                        customerName={selectedCustomer.name}
+                                        customerBalance={selectedCustomer.balance}
+                                        onSuccess={() => { /* Data refreshes automatically */ }}
+                                        trigger={
+                                            <Button variant="link" className="mt-2 h-auto p-0 text-base">Régler le solde</Button>
+                                        }
+                                    />
+                                )}
                             </div>
                           </div>
                       ) : (
