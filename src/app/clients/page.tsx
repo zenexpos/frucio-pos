@@ -18,6 +18,7 @@ import {
   Download,
   X,
   ArrowRight,
+  CalendarCheck2,
 } from 'lucide-react';
 import {
   Select,
@@ -43,6 +44,8 @@ import {
 import { BulkDeleteCustomersDialog } from '@/components/customers/bulk-delete-customer-dialog';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 type SortKey = keyof Customer | 'totalDebts' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
@@ -51,7 +54,7 @@ interface SortConfig {
   key: SortKey;
   direction: SortDirection;
 }
-type BalanceFilter = 'all' | 'debt' | 'credit';
+type ActiveFilter = 'all' | 'debt' | 'credit' | 'dueToday';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -59,7 +62,7 @@ export default function ClientsPage() {
   const { customers, transactions: rawTransactions, loading } = useMockData();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [balanceFilter, setBalanceFilter] = useState<BalanceFilter>('all');
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'createdAt',
     direction: 'descending',
@@ -71,7 +74,7 @@ export default function ClientsPage() {
   useEffect(() => {
     setCurrentPage(1);
     setSelectedCustomerIds([]);
-  }, [searchTerm, balanceFilter, viewMode]);
+  }, [searchTerm, activeFilter, viewMode]);
 
   const getInitials = (name: string) => {
     if (!name) return '?';
@@ -116,6 +119,7 @@ export default function ClientsPage() {
     totalCreditAmount,
     customersInDebt,
     customersWithCredit,
+    dueTodayCount,
   } = useMemo(() => {
     if (!customers) {
       return {
@@ -124,6 +128,7 @@ export default function ClientsPage() {
         totalCreditAmount: 0,
         customersInDebt: 0,
         customersWithCredit: 0,
+        dueTodayCount: 0,
       };
     }
 
@@ -131,6 +136,9 @@ export default function ClientsPage() {
     let credit = 0;
     let debtors = 0;
     let creditors = 0;
+
+    const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
+    let dueToday = 0;
 
     for (const c of customers) {
       if (c.balance > 0) {
@@ -140,6 +148,9 @@ export default function ClientsPage() {
         credit += c.balance;
         creditors++;
       }
+      if (c.settlementDay?.toLowerCase().includes(todayName)) {
+        dueToday++;
+      }
     }
 
     return {
@@ -148,6 +159,7 @@ export default function ClientsPage() {
       totalCreditAmount: Math.abs(credit),
       customersInDebt: debtors,
       customersWithCredit: creditors,
+      dueTodayCount: dueToday,
     };
   }, [customers]);
 
@@ -206,10 +218,15 @@ export default function ClientsPage() {
         (customer.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (balanceFilter === 'debt') {
+    if (activeFilter === 'debt') {
       filtered = filtered.filter((c) => c.balance > 0);
-    } else if (balanceFilter === 'credit') {
+    } else if (activeFilter === 'credit') {
       filtered = filtered.filter((c) => c.balance < 0);
+    } else if (activeFilter === 'dueToday') {
+      const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
+      filtered = filtered.filter(
+        (c) => c.settlementDay && c.settlementDay.toLowerCase().includes(todayName)
+      );
     }
 
     filtered.sort((a, b) => {
@@ -237,7 +254,7 @@ export default function ClientsPage() {
     });
 
     return filtered;
-  }, [customersWithTotals, searchTerm, sortConfig, balanceFilter]);
+  }, [customersWithTotals, searchTerm, sortConfig, activeFilter]);
 
   const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
 
@@ -256,11 +273,11 @@ export default function ClientsPage() {
       : 0;
   const endItem = startItem + paginatedCustomers.length - 1;
 
-  const areFiltersActive = searchTerm !== '' || balanceFilter !== 'all';
+  const areFiltersActive = searchTerm !== '' || activeFilter !== 'all';
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setBalanceFilter('all');
+    setActiveFilter('all');
   };
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
@@ -307,14 +324,38 @@ export default function ClientsPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard
           title="Total Clients"
           value={totalCustomers}
           description="Tous les clients enregistrés"
           icon={Users}
-          onClick={() => setBalanceFilter('all')}
-          isActive={balanceFilter === 'all'}
+          onClick={() => setActiveFilter('all')}
+          isActive={activeFilter === 'all'}
+        />
+        <StatCard
+          title="Clients en Dette"
+          value={customersInDebt}
+          description="Clients avec un solde positif"
+          icon={UserX}
+          onClick={() => setActiveFilter('debt')}
+          isActive={activeFilter === 'debt'}
+        />
+        <StatCard
+          title="Clients avec Crédit"
+          value={customersWithCredit}
+          description="Clients avec un solde négatif"
+          icon={UserCheck}
+          onClick={() => setActiveFilter('credit')}
+          isActive={activeFilter === 'credit'}
+        />
+        <StatCard
+          title="Dû Aujourd'hui"
+          value={dueTodayCount}
+          description="Clients à régler aujourd'hui"
+          icon={CalendarCheck2}
+          onClick={() => setActiveFilter('dueToday')}
+          isActive={activeFilter === 'dueToday'}
         />
         <StatCard
           title="Total des Dettes"
@@ -327,22 +368,6 @@ export default function ClientsPage() {
           value={formatCurrency(totalCreditAmount)}
           description="Argent que vous devez aux clients"
           icon={HandCoins}
-        />
-        <StatCard
-          title="Clients en Dette"
-          value={customersInDebt}
-          description="Clients avec un solde positif"
-          icon={UserX}
-          onClick={() => setBalanceFilter('debt')}
-          isActive={balanceFilter === 'debt'}
-        />
-        <StatCard
-          title="Clients avec Crédit"
-          value={customersWithCredit}
-          description="Clients avec un solde négatif"
-          icon={UserCheck}
-          onClick={() => setBalanceFilter('credit')}
-          isActive={balanceFilter === 'credit'}
         />
       </div>
 
