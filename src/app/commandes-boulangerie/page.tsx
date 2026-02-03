@@ -295,6 +295,7 @@ export default function OrdersPage() {
             <TableHead>Date</TableHead>
             <TableHead>Nom</TableHead>
             <TableHead>Quantité</TableHead>
+            <TableHead>Montant</TableHead>
             <TableHead>Statut</TableHead>
             <TableHead>Reçu</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -322,6 +323,7 @@ export default function OrdersPage() {
                 <TableCell className="text-muted-foreground">
                   {order.quantity}
                 </TableCell>
+                <TableCell className="font-semibold">{formatCurrency(order.totalAmount)}</TableCell>
                 <TableCell>
                   <Badge variant={order.isPaid ? 'success' : 'destructive'}>
                     {order.isPaid ? 'Payé' : 'Non Payé'}
@@ -400,7 +402,7 @@ export default function OrdersPage() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={isToday ? 7 : 6} className="h-24 text-center">
+              <TableCell colSpan={isToday ? 8 : 7} className="h-24 text-center">
                 {noOrdersMessage}
               </TableCell>
             </TableRow>

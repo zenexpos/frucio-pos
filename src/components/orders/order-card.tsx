@@ -8,7 +8,7 @@ import { MoreVertical, RefreshCw, Star, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { EditOrderDialog } from './edit-order-dialog';
 import { DeleteOrderDialog } from './delete-order-dialog';
 import { Switch } from '@/components/ui/switch';
@@ -113,9 +113,14 @@ export function OrderCard({
                   <span>{order.customerName}</span>
                 </Link>
               )}
-              <div className="flex items-center gap-2 text-primary font-bold">
-                <span className="text-xl">{order.quantity}</span>
-                <RefreshCw className="h-4 w-4" />
+              <div className="flex items-end justify-between">
+                <div className="flex items-center gap-2 text-primary font-bold">
+                    <span className="text-xl">{order.quantity}</span>
+                    <RefreshCw className="h-4 w-4" />
+                </div>
+                <div className="font-bold text-lg text-foreground">
+                    {formatCurrency(order.totalAmount)}
+                </div>
               </div>
             </div>
             <DropdownMenu>
