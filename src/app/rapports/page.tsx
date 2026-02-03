@@ -56,6 +56,7 @@ import {
   CalendarIcon,
   BadgeDollarSign,
   Printer,
+  FileX,
 } from 'lucide-react';
 
 const COLORS = [
@@ -65,6 +66,14 @@ const COLORS = [
   'hsl(var(--chart-4))',
   'hsl(var(--chart-5))',
 ];
+
+const NoDataMessage = ({ message }: { message: string }) => (
+  <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+    <FileX className="h-8 w-8" />
+    <p>{message}</p>
+  </div>
+);
+
 
 export default function RapportsPage() {
   const { transactions, expenses, customers, products, loading } = useMockData();
@@ -286,6 +295,7 @@ export default function RapportsPage() {
             title="Ventes Totales"
             value={formatCurrency(stats.totalSales)}
             icon={ShoppingCart}
+            description={`${stats.salesCount} vente(s)`}
           />
           <StatCard
             title="Marge Brute (Produits)"
@@ -309,7 +319,7 @@ export default function RapportsPage() {
             value={`+${stats.newCustomersCount}`}
             icon={Users}
           />
-          <StatCard
+           <StatCard
             title="Ventes"
             value={`+${stats.salesCount}`}
             description="Nombre total de transactions de vente"
@@ -322,30 +332,34 @@ export default function RapportsPage() {
             <CardTitle>Ventes au fil du temps</CardTitle>
           </CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={salesOverTime}
-                margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="Ventes"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {salesOverTime.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={salesOverTime}
+                  margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="Ventes"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+                <NoDataMessage message="Aucune donnée de vente pour cette période." />
+            )}
           </CardContent>
         </Card>
 
@@ -361,11 +375,194 @@ export default function RapportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
+              {topProductsBySales.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={topProductsBySales}
+                    layout="vertical"
+                    margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis
+                      type="number"
+                      tickFormatter={(value) => formatCurrency(value as number)}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={100}
+                      tick={{ fontSize: 12 }}
+                      />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                      }}
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Chiffre d'affaires",
+                      ]}
+                      labelFormatter={(label) => (
+                        <span className="font-semibold">{label}</span>
+                      )}
+                    />
+                    <Bar
+                      dataKey="sales"
+                      name="Chiffre d'affaires"
+                      fill="hsl(var(--chart-1))"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <NoDataMessage message="Aucun produit vendu dans cette période." />
+              )}
+            </CardContent>
+          </Card>
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-6 w-6" />
+                Top 5 Produits par Quantité
+              </CardTitle>
+              <CardDescription>
+                Les produits les plus vendus en unités
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              {topProducts.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={topProducts}
+                    layout="vertical"
+                    margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                      }}
+                      formatter={(value: number) => [value, 'Unités vendues']}
+                      labelFormatter={(label) => (
+                        <span className="font-semibold">{label}</span>
+                      )}
+                    />
+                    <Bar
+                      dataKey="quantity"
+                      name="Quantité"
+                      fill="hsl(var(--chart-2))"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <NoDataMessage message="Aucun produit vendu dans cette période." />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ventes par Catégorie</CardTitle>
+            </CardHeader>
+            <CardContent className="h-80">
+              {salesByCategory.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={salesByCategory}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label
+                    >
+                      {salesByCategory.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                      }}
+                      formatter={(value) => formatCurrency(Number(value))}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <NoDataMessage message="Aucune vente par catégorie à afficher." />
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Dépenses par Catégorie</CardTitle>
+            </CardHeader>
+            <CardContent className="h-80">
+              {expensesByCategory.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={expensesByCategory}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label
+                    >
+                      {expensesByCategory.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                      }}
+                      formatter={(value) => formatCurrency(Number(value))}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <NoDataMessage message="Aucune dépense à afficher pour cette période." />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-6 w-6" />
+              Top 10 des Clients par Chiffre d'Affaires
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="h-96">
+            {salesByCustomer.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={topProductsBySales}
+                  data={salesByCustomer}
                   layout="vertical"
-                  margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
+                  margin={{ top: 5, right: 20, left: 80, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis
@@ -392,178 +589,15 @@ export default function RapportsPage() {
                     )}
                   />
                   <Bar
-                    dataKey="sales"
+                    dataKey="value"
                     name="Chiffre d'affaires"
-                    fill="hsl(var(--chart-1))"
+                    fill="hsl(var(--chart-4))"
                   />
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-6 w-6" />
-                Top 5 Produits par Quantité
-              </CardTitle>
-              <CardDescription>
-                Les produits les plus vendus en unités
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topProducts}
-                  layout="vertical"
-                  margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={100}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                    }}
-                    formatter={(value: number) => [value, 'Unités vendues']}
-                    labelFormatter={(label) => (
-                      <span className="font-semibold">{label}</span>
-                    )}
-                  />
-                  <Bar
-                    dataKey="quantity"
-                    name="Quantité"
-                    fill="hsl(var(--chart-2))"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Ventes par Catégorie</CardTitle>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={salesByCategory}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label
-                  >
-                    {salesByCategory.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                    }}
-                    formatter={(value) => formatCurrency(Number(value))}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Dépenses par Catégorie</CardTitle>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={expensesByCategory}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label
-                  >
-                    {expensesByCategory.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                    }}
-                    formatter={(value) => formatCurrency(Number(value))}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-6 w-6" />
-              Top 10 des Clients par Chiffre d'Affaires
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-96">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={salesByCustomer}
-                layout="vertical"
-                margin={{ top: 5, right: 20, left: 80, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis
-                  type="number"
-                  tickFormatter={(value) => formatCurrency(value as number)}
-                />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  width={100}
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    border: '1px solid hsl(var(--border))',
-                  }}
-                  formatter={(value: number) => [
-                    formatCurrency(value),
-                    "Chiffre d'affaires",
-                  ]}
-                  labelFormatter={(label) => (
-                    <span className="font-semibold">{label}</span>
-                  )}
-                />
-                <Bar
-                  dataKey="value"
-                  name="Chiffre d'affaires"
-                  fill="hsl(var(--chart-4))"
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            ) : (
+                <NoDataMessage message="Aucune vente client à afficher pour cette période." />
+            )}
           </CardContent>
         </Card>
       </div>
