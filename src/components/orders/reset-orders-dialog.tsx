@@ -17,7 +17,7 @@ import { RotateCcw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { resetBreadOrders } from '@/lib/mock-data/api';
 
-export function ResetOrdersDialog() {
+export function ResetOrdersDialog({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
@@ -43,13 +43,17 @@ export function ResetOrdersDialog() {
     }
   };
 
+  const defaultTrigger = (
+    <Button id="reset-orders-btn" variant="outline">
+      <RotateCcw />
+      Réinitialiser
+    </Button>
+  );
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button id="reset-orders-btn" variant="outline">
-          <RotateCcw />
-          Réinitialiser
-        </Button>
+        {trigger || defaultTrigger}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

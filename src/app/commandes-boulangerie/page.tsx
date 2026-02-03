@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { BreadOrder } from '@/lib/types';
 import { AddOrderDialog } from '@/components/orders/add-order-dialog';
@@ -19,6 +19,8 @@ import {
   Wallet,
   LayoutGrid,
   List,
+  RotateCcw,
+  PlusCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -70,6 +72,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { OrderShortcutsDialog } from '@/components/orders/shortcuts-dialog';
 
 type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice' | 'customerId' | 'customerName'>;
 
@@ -86,8 +89,47 @@ export default function OrdersPage() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'descending' });
 
+  // Refs for keyboard shortcuts
+  const addOrderTriggerRef = useRef<HTMLButtonElement>(null);
+  const resetOrdersTriggerRef = useRef<HTMLButtonElement>(null);
+  const viewModeListButtonRef = useRef<HTMLButtonElement>(null);
+  const viewModeGridButtonRef = useRef<HTMLButtonElement>(null);
+  const dateFilterTriggerRef = useRef<HTMLButtonElement>(null);
+  const sortSelectTriggerRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     setSelectedOrderIds([]);
+  }, [viewMode]);
+
+  // Keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        addOrderTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        if (viewMode === 'grid') {
+          viewModeListButtonRef.current?.click();
+        } else {
+          viewModeGridButtonRef.current?.click();
+        }
+      } else if (e.altKey && (e.key === 'r' || e.key === 'R')) {
+        e.preventDefault();
+        resetOrdersTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        dateFilterTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        sortSelectTriggerRef.current?.click();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [viewMode]);
 
   const getOrderStatusScore = (order: BreadOrder) => {
@@ -375,8 +417,17 @@ export default function OrdersPage() {
           Commandes Boulangerie
         </h1>
         <div className="flex items-center gap-2">
-            <ResetOrdersDialog />
-            <AddOrderDialog />
+            <OrderShortcutsDialog />
+            <ResetOrdersDialog trigger={
+              <Button ref={resetOrdersTriggerRef} variant="outline">
+                <RotateCcw /> Réinitialiser
+              </Button>
+            } />
+            <AddOrderDialog trigger={
+              <Button ref={addOrderTriggerRef}>
+                <PlusCircle /> Ajouter une commande
+              </Button>
+            } />
         </div>
       </header>
 
@@ -418,6 +469,7 @@ export default function OrdersPage() {
               </div>
               <div className="flex items-center gap-1 border rounded-md p-1">
                 <Button
+                    ref={viewModeListButtonRef}
                     variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                     size="icon"
                     onClick={() => setViewMode('list')}
@@ -426,6 +478,7 @@ export default function OrdersPage() {
                     <List className="h-4 w-4" />
                 </Button>
                 <Button
+                    ref={viewModeGridButtonRef}
                     variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                     size="icon"
                     onClick={() => setViewMode('grid')}
@@ -488,7 +541,7 @@ export default function OrdersPage() {
                 value={`${sortConfig.key}:${sortConfig.direction}`}
                 onValueChange={handleSortChange}
               >
-                <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectTrigger ref={sortSelectTriggerRef} className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Trier par..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -505,6 +558,7 @@ export default function OrdersPage() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={dateFilterTriggerRef}
                     id="date"
                     variant={'outline'}
                     className={cn(
