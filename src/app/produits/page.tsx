@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { AdjustStockDialog } from '@/components/produits/adjust-stock-dialog';
 
 
 type SortKey = keyof Product | 'margin' | 'supplierName';
@@ -392,6 +393,7 @@ export default function ProduitsPage() {
                                         <TableCell className={cn("text-right font-mono p-4 hidden md:table-cell", margin < 0 ? 'text-destructive' : 'text-accent' )}>{formatCurrency(margin)}</TableCell>
                                         <TableCell className="text-right p-4">
                                             <div className="flex items-center justify-end gap-0.5">
+                                                <AdjustStockDialog product={product} />
                                                 <EditProductDialog product={product} />
                                                 <DeleteProductDialog productId={product.id} productName={product.name} />
                                             </div>

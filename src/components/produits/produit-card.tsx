@@ -21,8 +21,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { AdjustStockDialog } from './adjust-stock-dialog';
 
 const slugify = (text: string) => {
     return text
@@ -91,6 +93,15 @@ export function ProduitCard({ product }: { product: Product & { supplierName?: s
                     </DropdownMenuItem>
                   }
                 />
+                <AdjustStockDialog
+                  product={product}
+                  trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Ajuster le stock
+                    </DropdownMenuItem>
+                  }
+                />
+                <DropdownMenuSeparator />
                 <DeleteProductDialog
                   productId={product.id}
                   productName={product.name}

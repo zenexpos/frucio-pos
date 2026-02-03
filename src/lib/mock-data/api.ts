@@ -451,6 +451,20 @@ export const deleteProduct = async (productId: string) => {
     saveData();
 };
 
+export const adjustStock = async (productId: string, quantityChange: number) => {
+    const product = mockDataStore.products.find(p => p.id === productId);
+    if (product) {
+        const newStock = product.stock + quantityChange;
+        if (newStock < 0) {
+            throw new Error("La nouvelle quantité de stock ne peut pas être négative.");
+        }
+        product.stock = newStock;
+        saveData();
+    } else {
+        throw new Error("Produit non trouvé.");
+    }
+};
+
 
 // --- Settings Functions ---
 export const updateBreadUnitPrice = (price: number) => {
