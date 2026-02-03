@@ -39,6 +39,13 @@ import { ProductCsvImportDialog } from '@/components/produits/csv-import-dialog'
 import { exportProductsToCsv } from '@/lib/mock-data/api';
 import { ProduitsGrid } from '@/components/produits/produits-grid';
 import { StatCard } from '@/components/dashboard/stat-card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 
 type SortKey = keyof Product | 'margin';
@@ -49,17 +56,28 @@ interface SortConfig {
   direction: SortDirection;
 }
 
+type StockStatusFilter = 'all' | 'ok' | 'low' | 'out';
+
 export default function ProduitsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const { products, settings, loading } = useMockData();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [stockStatus, setStockStatus] = useState<StockStatusFilter>('all');
 
   useEffect(() => {
     if (!loading && settings.productPageViewMode) {
       setViewMode(settings.productPageViewMode);
     }
   }, [loading, settings.productPageViewMode]);
+
+  const categories = useMemo(() => {
+    if (!products) return [];
+    const allCategories = products.map(p => p.category);
+    return ['all', ...Array.from(new Set(allCategories))];
+  }, [products]);
+
 
   const { lowStockCount, outOfStockCount, totalValue } = useMemo(() => {
     if (!products) return { lowStockCount: 0, outOfStockCount: 0, totalValue: 0 };
@@ -77,11 +95,30 @@ export default function ProduitsPage() {
 
   const sortedAndFilteredProducts = useMemo(() => {
     if (!products) return [];
-    let filtered = products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.barcode || '').includes(searchTerm)
-    );
+    let filtered = products.filter(product => {
+      const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.barcode || '').includes(searchTerm);
+
+      const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
+
+      let stockMatch = true;
+      switch (stockStatus) {
+        case 'ok':
+          stockMatch = product.stock > product.minStock;
+          break;
+        case 'low':
+          stockMatch = product.stock > 0 && product.stock <= product.minStock;
+          break;
+        case 'out':
+          stockMatch = product.stock <= 0;
+          break;
+        default:
+          stockMatch = true;
+      }
+
+      return searchMatch && categoryMatch && stockMatch;
+    });
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
@@ -111,7 +148,7 @@ export default function ProduitsPage() {
 
 
     return filtered;
-  }, [searchTerm, sortConfig, products]);
+  }, [searchTerm, sortConfig, products, selectedCategory, stockStatus]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
@@ -192,10 +229,31 @@ export default function ProduitsPage() {
 
       <Card>
         <CardHeader>
-             <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="relative flex-grow w-full sm:w-auto">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Rechercher des produits..." className="pl-8 w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} disabled={!hasProducts}/>
+             <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <div className="relative flex-grow w-full">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Rechercher des produits..." className="pl-8 w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} disabled={!hasProducts}/>
+                    </div>
+                     <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={!hasProducts}>
+                        <SelectTrigger className="w-full sm:w-[200px]">
+                            <SelectValue placeholder="Toutes les catégories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.map(cat => <SelectItem key={cat} value={cat}>{cat === 'all' ? 'Toutes les catégories' : cat}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                     <Select value={stockStatus} onValueChange={(value) => setStockStatus(value as StockStatusFilter)} disabled={!hasProducts}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="État du stock" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tout le stock</SelectItem>
+                            <SelectItem value="ok">En Stock</SelectItem>
+                            <SelectItem value="low">Stock Faible</SelectItem>
+                            <SelectItem value="out">Rupture de Stock</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-end">
                     <div className="flex items-center gap-1 border rounded-md p-1">
@@ -220,7 +278,7 @@ export default function ProduitsPage() {
             {!hasResults ? (
                 <div className="text-center py-16">
                     <h3 className="text-xl font-semibold">Aucun produit trouvé</h3>
-                    <p className="text-muted-foreground mt-2">Essayez un autre terme de recherche.</p>
+                    <p className="text-muted-foreground mt-2">Essayez un autre terme de recherche ou modifiez vos filtres.</p>
                 </div>
             ) : viewMode === 'list' ? (
                 <div className="overflow-hidden rounded-lg border">
@@ -246,8 +304,8 @@ export default function ProduitsPage() {
                         <TableBody>
                             {sortedAndFilteredProducts.map((product) => {
                                 const margin = product.sellingPrice - product.purchasePrice;
-                                const isLowStock = product.stock <= product.minStock;
-                                const isOutOfStock = product.stock === 0;
+                                const isLowStock = product.stock > 0 && product.stock <= product.minStock;
+                                const isOutOfStock = product.stock <= 0;
                                 return (
                                     <TableRow key={product.id} className={cn( isOutOfStock ? 'bg-destructive/10 hover:bg-destructive/20' : isLowStock ? 'bg-amber-500/10 hover:bg-amber-500/20' : '')}>
                                         <TableCell className="font-medium p-4">{product.name}</TableCell>
