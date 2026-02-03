@@ -27,32 +27,30 @@ interface CustomerComboboxProps {
   className?: string;
 }
 
-export function CustomerCombobox({
-  customers,
-  selectedCustomerId,
-  onSelectCustomer,
-  className,
-}: CustomerComboboxProps) {
+export const CustomerCombobox = React.forwardRef<
+  HTMLButtonElement,
+  CustomerComboboxProps
+>(({ customers, selectedCustomerId, onSelectCustomer, className }, ref) => {
   const [open, setOpen] = React.useState(false);
 
-  const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 
   const handleSelect = (currentValue: string) => {
     const customerId = currentValue === 'none' ? null : currentValue;
     onSelectCustomer(customerId);
     setOpen(false);
   };
-  
-  // Add a "None" option for cash sales
+
   const customerOptions = [
     { id: 'none', name: 'Aucun (Vente au comptant)' },
-    ...customers
+    ...customers,
   ];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          ref={ref}
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -79,7 +77,9 @@ export function CustomerCombobox({
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      selectedCustomerId === customer.id ? 'opacity-100' : 'opacity-0'
+                      selectedCustomerId === customer.id
+                        ? 'opacity-100'
+                        : 'opacity-0'
                     )}
                   />
                   {customer.name}
@@ -91,4 +91,6 @@ export function CustomerCombobox({
       </PopoverContent>
     </Popover>
   );
-}
+});
+
+CustomerCombobox.displayName = 'CustomerCombobox';

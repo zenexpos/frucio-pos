@@ -88,6 +88,10 @@ export default function CaissePage() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
+  const customerComboboxTriggerRef = useRef<HTMLButtonElement>(null);
+  const deselectCustomerTriggerRef = useRef<HTMLButtonElement>(null);
+  const discountTriggerRef = useRef<HTMLButtonElement>(null);
+  const paymentTriggerRef = useRef<HTMLButtonElement>(null);
   
   const productMap = useMemo(() => new Map(products.map(p => [p.id, p])), [products]);
   
@@ -183,6 +187,19 @@ export default function CaissePage() {
         } else if (e.key === 'F2') {
             e.preventDefault();
             barcodeInputRef.current?.focus();
+        } else if (e.key === 'F4') {
+            e.preventDefault();
+            if (selectedCustomer) {
+                deselectCustomerTriggerRef.current?.click();
+            } else {
+                customerComboboxTriggerRef.current?.click();
+            }
+        } else if (e.key === 'F6') {
+            e.preventDefault();
+            discountTriggerRef.current?.click();
+        } else if (e.key === 'F10') {
+            e.preventDefault();
+            paymentTriggerRef.current?.click();
         }
     };
 
@@ -190,7 +207,7 @@ export default function CaissePage() {
     return () => {
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [selectedCustomer]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -634,7 +651,7 @@ export default function CaissePage() {
                                     <User className="h-5 w-5 text-muted-foreground mt-1" />
                                     <p className="font-semibold">{selectedCustomer.name}</p>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => updateActiveCartState({ customerId: null })}>
+                                <Button ref={deselectCustomerTriggerRef} variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => updateActiveCartState({ customerId: null })}>
                                     <X className="h-4 w-4"/>
                                 </Button>
                             </div>
@@ -660,6 +677,7 @@ export default function CaissePage() {
                         <div>
                             <div className="flex items-center gap-2">
                                 <CustomerCombobox
+                                    ref={customerComboboxTriggerRef}
                                     customers={customers}
                                     selectedCustomerId={activeCustomerId}
                                     onSelectCustomer={(id) => updateActiveCartState({ customerId: id })}
@@ -784,7 +802,7 @@ export default function CaissePage() {
                               subtotal={subtotal}
                               onApplyDiscount={(discountValue) => updateActiveCartState({ discount: discountValue })}
                               trigger={
-                                  <Button variant="link" size="sm" className="h-auto p-0" disabled={subtotal <= 0}>
+                                  <Button ref={discountTriggerRef} variant="link" size="sm" className="h-auto p-0" disabled={subtotal <= 0}>
                                       Ajouter
                                   </Button>
                               }
@@ -807,7 +825,7 @@ export default function CaissePage() {
                   customerId={activeCustomerId}
                   customerName={selectedCustomer?.name || null}
                   onSuccess={handlePaymentSuccess}
-                  trigger={<Button className="w-full" size="lg" disabled={activeCart.length === 0 || hasCartIssues}>{paymentButtonText}</Button>}
+                  trigger={<Button ref={paymentTriggerRef} className="w-full" size="lg" disabled={activeCart.length === 0 || hasCartIssues}>{paymentButtonText}</Button>}
               />
             </div>
           </Card>
