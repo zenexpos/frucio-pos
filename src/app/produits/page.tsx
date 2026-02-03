@@ -22,6 +22,7 @@ import {
   Copy,
   Unarchive,
   Wallet,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -358,6 +359,15 @@ export default function ProduitsPage() {
     }
     return <ArrowDown className="ml-2 h-4 w-4" />;
   };
+  
+  const areFiltersActive = searchTerm !== '' || selectedCategory !== 'all' || selectedSupplier !== 'all' || stockStatus !== 'all';
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedSupplier('all');
+    setStockStatus('all');
+  };
 
   const headers: {
     key: SortKey;
@@ -558,40 +568,50 @@ export default function ProduitsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-end">
-              <div className="flex items-center gap-1 border rounded-md p-1">
-                <Button
-                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => handleViewModeChange('list')}
-                  className="h-8 w-8"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                  size="icon"
-                  onClick={() => handleViewModeChange('grid')}
-                  className="h-8 w-8"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-              </div>
-              <ProductCsvImportDialog
-                trigger={
-                  <Button variant="outline">
-                    <Upload className="mr-2 h-4 w-4" /> Importer
+            <div className="flex items-center gap-2 flex-wrap justify-between">
+              <div>
+                {areFiltersActive && (
+                  <Button variant="ghost" onClick={handleClearFilters}>
+                    <X />
+                    Effacer les filtres
                   </Button>
-                }
-              />
-              <Button
-                variant="outline"
-                onClick={exportProductsToCsv}
-                disabled={!hasProducts}
-              >
-                <Download className="mr-2 h-4 w-4" /> Exporter
-              </Button>
-              <AddProductDialog />
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1 border rounded-md p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => handleViewModeChange('list')}
+                    className="h-8 w-8"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => handleViewModeChange('grid')}
+                    className="h-8 w-8"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+                <ProductCsvImportDialog
+                  trigger={
+                    <Button variant="outline">
+                      <Upload className="mr-2 h-4 w-4" /> Importer
+                    </Button>
+                  }
+                />
+                <Button
+                  variant="outline"
+                  onClick={exportProductsToCsv}
+                  disabled={!hasProducts}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Exporter
+                </Button>
+                <AddProductDialog />
+              </div>
             </div>
           </div>
         </CardHeader>
