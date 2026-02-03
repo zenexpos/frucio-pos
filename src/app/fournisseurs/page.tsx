@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Supplier } from '@/lib/types';
 import FournisseursLoading from './loading';
@@ -21,6 +21,8 @@ import {
   Pencil,
   Trash2,
   Printer,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -46,6 +48,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -54,6 +57,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { FournisseursGrid } from '@/components/fournisseurs/fournisseurs-grid';
 
 type SortKey = keyof Supplier;
 type SortDirection = 'ascending' | 'descending';
@@ -63,11 +67,16 @@ interface SortConfig {
   direction: SortDirection;
 }
 
+const ITEMS_PER_PAGE_GRID = 12;
+const ITEMS_PER_PAGE_LIST = 10;
+
 export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'toPay' | 'inCredit'>('all');
   const { suppliers, loading } = useMockData();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const {
     totalSuppliers,
@@ -148,6 +157,21 @@ export default function FournisseursPage() {
 
     return filtered;
   }, [searchTerm, sortConfig, suppliers, activeFilter]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeFilter, viewMode, sortConfig]);
+
+  const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE_GRID : ITEMS_PER_PAGE_LIST;
+
+  const { paginatedSuppliers, totalPages } = useMemo(() => {
+    const total = sortedAndFilteredSuppliers.length;
+    const pages = Math.ceil(total / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginated = sortedAndFilteredSuppliers.slice(start, end);
+    return { paginatedSuppliers: paginated, totalPages: pages };
+  }, [sortedAndFilteredSuppliers, currentPage, itemsPerPage]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
@@ -173,6 +197,12 @@ export default function FournisseursPage() {
 
   const hasSuppliers = suppliers.length > 0;
   const hasResults = sortedAndFilteredSuppliers.length > 0;
+  const startItem =
+    sortedAndFilteredSuppliers.length > 0
+      ? (currentPage - 1) * itemsPerPage + 1
+      : 0;
+  const endItem = startItem + paginatedSuppliers.length - 1;
+
 
   return (
     <div className="space-y-6">
@@ -231,11 +261,34 @@ export default function FournisseursPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Rechercher des fournisseurs..." className="pl-8 w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} disabled={!hasSuppliers}/>
             </div>
-            <AddSupplierDialog />
+            <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 border rounded-md p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('list')}
+                    className="h-8 w-8"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('grid')}
+                    className="h-8 w-8"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+                <AddSupplierDialog />
+            </div>
            </div>
         </CardHeader>
         <CardContent>
             {hasResults ? (
+               viewMode === 'grid' ? (
+                  <FournisseursGrid suppliers={paginatedSuppliers} />
+              ) : (
               <div className="overflow-hidden rounded-lg border">
                   <Table>
                       <TableHeader>
@@ -259,7 +312,7 @@ export default function FournisseursPage() {
                           </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {sortedAndFilteredSuppliers.map((supplier) => (
+                          {paginatedSuppliers.map((supplier) => (
                               <TableRow key={supplier.id}>
                                   <TableCell className="font-medium">
                                     <Link href={`/fournisseurs/${supplier.id}`} className="hover:underline">
@@ -346,6 +399,7 @@ export default function FournisseursPage() {
                       </TableBody>
                   </Table>
               </div>
+              )
             ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-lg">
                   <h3 className="text-xl font-semibold">
@@ -357,6 +411,34 @@ export default function FournisseursPage() {
               </div>
             )}
         </CardContent>
+         {totalPages > 1 && (
+          <CardFooter className="flex items-center justify-between pt-4">
+            <div className="text-sm text-muted-foreground">
+              Affichage de {startItem} à {endItem} sur{' '}
+              {sortedAndFilteredSuppliers.length} fournisseurs
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+              >
+                Suivant
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );
