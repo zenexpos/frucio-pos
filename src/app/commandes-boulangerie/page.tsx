@@ -21,6 +21,7 @@ import {
   List,
   RotateCcw,
   PlusCircle,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,6 +74,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { OrderShortcutsDialog } from '@/components/orders/shortcuts-dialog';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice' | 'customerId' | 'customerName'>;
 
@@ -81,6 +85,9 @@ interface SortConfig {
   direction: 'ascending' | 'descending';
 }
 
+type TodayStatusFilter = 'all' | 'unpaid' | 'undelivered';
+type PastStatusFilter = 'all' | 'paid' | 'unpaid' | 'delivered' | 'undelivered';
+
 export default function OrdersPage() {
   const { breadOrders: orders, loading } = useMockData();
   const { toast } = useToast();
@@ -88,6 +95,12 @@ export default function OrdersPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'descending' });
+
+  const [todaySearchTerm, setTodaySearchTerm] = useState('');
+  const [todayStatusFilter, setTodayStatusFilter] = useState<TodayStatusFilter>('all');
+  const [pastSearchTerm, setPastSearchTerm] = useState('');
+  const [pastStatusFilter, setPastStatusFilter] = useState<PastStatusFilter>('all');
+
 
   // Refs for keyboard shortcuts
   const addOrderTriggerRef = useRef<HTMLButtonElement>(null);
@@ -147,9 +160,23 @@ export default function OrdersPage() {
 
     const todayStart = startOfDay(new Date());
 
-    const today = [...orders]
-      .filter((o) => !isBefore(new Date(o.createdAt), todayStart))
-      .sort((a, b) => {
+    const todayRaw = orders.filter((o) => !isBefore(new Date(o.createdAt), todayStart));
+    
+    let todayFiltered = todayRaw.filter(o => {
+        const searchMatch =
+            o.name.toLowerCase().includes(todaySearchTerm.toLowerCase()) ||
+            (o.customerName || '').toLowerCase().includes(todaySearchTerm.toLowerCase());
+        
+        if (!searchMatch) return false;
+
+        switch (todayStatusFilter) {
+            case 'unpaid': return !o.isPaid;
+            case 'undelivered': return !o.isDelivered;
+            default: return true;
+        }
+    });
+
+    todayFiltered.sort((a, b) => {
         const scoreA = getOrderStatusScore(a);
         const scoreB = getOrderStatusScore(b);
         if (scoreA !== scoreB) {
@@ -158,9 +185,24 @@ export default function OrdersPage() {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
 
-    let past = orders.filter((o) =>
-      isBefore(new Date(o.createdAt), todayStart)
-    );
+    let past = orders.filter((o) => isBefore(new Date(o.createdAt), todayStart));
+    
+    past = past.filter(o => {
+        const searchMatch =
+            o.name.toLowerCase().includes(pastSearchTerm.toLowerCase()) ||
+            (o.customerName || '').toLowerCase().includes(pastSearchTerm.toLowerCase());
+        
+        if (!searchMatch) return false;
+
+        switch (pastStatusFilter) {
+            case 'paid': return o.isPaid;
+            case 'unpaid': return !o.isPaid;
+            case 'delivered': return o.isDelivered;
+            case 'undelivered': return !o.isDelivered;
+            default: return true;
+        }
+    });
+
 
     if (date?.from) {
       const interval = {
@@ -194,8 +236,8 @@ export default function OrdersPage() {
       return 0;
     });
 
-    return { todayOrders: today, pastOrders: past };
-  }, [orders, date, sortConfig]);
+    return { todayOrders: todayFiltered, pastOrders: past };
+  }, [orders, date, sortConfig, todaySearchTerm, todayStatusFilter, pastSearchTerm, pastStatusFilter]);
   
   const handleSortChange = (value: string) => {
     const [key, direction] = value.split(':');
@@ -228,15 +270,18 @@ export default function OrdersPage() {
 
   const totalPainsRequis = useMemo(() => {
     if (!todayOrders) return 0;
-    return todayOrders.reduce((sum, o) => sum + o.quantity, 0);
-  }, [todayOrders]);
+    const allTodayOrders = orders.filter(o => !isBefore(new Date(o.createdAt), startOfDay(new Date())));
+    return allTodayOrders.reduce((sum, o) => sum + o.quantity, 0);
+  }, [orders]);
 
   const { unpaidTodayCount, totalUnpaidAmount } =
     useMemo(() => {
       if (!orders)
         return { unpaidTodayCount: 0, totalUnpaidAmount: 0 };
+      
+      const allTodayOrders = orders.filter(o => !isBefore(new Date(o.createdAt), startOfDay(new Date())));
 
-      const unpaidToday = todayOrders.filter((o) => !o.isPaid).length;
+      const unpaidToday = allTodayOrders.filter((o) => !o.isPaid).length;
       const totalUnpaid = orders
         .filter((o) => !o.isPaid)
         .reduce((sum, o) => sum + o.totalAmount, 0);
@@ -245,7 +290,7 @@ export default function OrdersPage() {
         unpaidTodayCount: unpaidToday,
         totalUnpaidAmount: totalUnpaid,
       };
-    }, [orders, todayOrders]);
+    }, [orders]);
 
   const handleToggle = async (
     order: BreadOrder,
@@ -442,7 +487,7 @@ export default function OrdersPage() {
         />
         <StatCard
           title="Commandes du Jour"
-          value={todayOrders.length}
+          value={orders.filter(o => !isBefore(new Date(o.createdAt), startOfDay(new Date()))).length}
           description="Nombre de commandes aujourd'hui"
           icon={ClipboardCheck}
         />
@@ -469,27 +514,45 @@ export default function OrdersPage() {
                   Gérez les commandes de pain et de pâtisseries du jour ici.
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-1 border rounded-md p-1">
-                <Button
-                    ref={viewModeListButtonRef}
-                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                    size="icon"
-                    onClick={() => setViewMode('list')}
-                    className="h-8 w-8"
-                >
-                    <List className="h-4 w-4" />
-                </Button>
-                <Button
-                    ref={viewModeGridButtonRef}
-                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                    size="icon"
-                    onClick={() => setViewMode('grid')}
-                    className="h-8 w-8"
-                >
-                    <LayoutGrid className="h-4 w-4" />
-                </Button>
+              <div className="flex w-full sm:w-auto items-center gap-2">
+                <div className="relative flex-grow sm:flex-grow-0">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Rechercher..." 
+                        className="pl-8 sm:w-[200px]"
+                        value={todaySearchTerm}
+                        onChange={(e) => setTodaySearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center gap-1 border rounded-md p-1">
+                  <Button
+                      ref={viewModeListButtonRef}
+                      variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewMode('list')}
+                      className="h-8 w-8"
+                  >
+                      <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                      ref={viewModeGridButtonRef}
+                      variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewMode('grid')}
+                      className="h-8 w-8"
+                  >
+                      <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
             </div>
           </div>
+           <Tabs value={todayStatusFilter} onValueChange={v => setTodayStatusFilter(v as TodayStatusFilter)} className="pt-4">
+            <TabsList>
+              <TabsTrigger value="all">Toutes</TabsTrigger>
+              <TabsTrigger value="unpaid">Non Payées</TabsTrigger>
+              <TabsTrigger value="undelivered">Non Livrées</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </CardHeader>
         <CardContent>
             {selectedOrderIds.length > 0 && (
@@ -514,13 +577,13 @@ export default function OrdersPage() {
                 ) : (
                   <OrdersTable
                     orders={todayOrders}
-                    noOrdersMessage="Aucune commande pour aujourd'hui."
+                    noOrdersMessage={todaySearchTerm || todayStatusFilter !== 'all' ? "Aucune commande ne correspond à vos filtres." : "Aucune commande pour aujourd'hui."}
                     isToday
                   />
                 )
             ) : (
                  <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
-                    <p>Aucune commande pour aujourd'hui.</p>
+                    <p>{todaySearchTerm || todayStatusFilter !== 'all' ? "Aucune commande ne correspond à vos filtres." : "Aucune commande pour aujourd'hui."}</p>
                 </div>
             )}
         </CardContent>
@@ -531,81 +594,104 @@ export default function OrdersPage() {
 
       {orders.length > 0 && (
         <Card>
-          <CardHeader className="flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardHeader className="flex-col items-start gap-4">
             <div>
               <CardTitle>Commandes des jours précédents</CardTitle>
               <CardDescription>
                 Historique des commandes passées.
               </CardDescription>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-              <Select
-                value={`${sortConfig.key}:${sortConfig.direction}`}
-                onValueChange={handleSortChange}
-              >
-                <SelectTrigger ref={sortSelectTriggerRef} className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="Trier par..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="createdAt:descending">Plus récent</SelectItem>
-                  <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
-                  <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
-                  <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
-                  <SelectItem value="quantity:descending">Quantité (décroissant)</SelectItem>
-                  <SelectItem value="quantity:ascending">Quantité (croissant)</SelectItem>
-                  <SelectItem value="totalAmount:descending">Montant (décroissant)</SelectItem>
-                  <SelectItem value="totalAmount:ascending">Montant (croissant)</SelectItem>
-                </SelectContent>
-              </Select>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    ref={dateFilterTriggerRef}
-                    id="date"
-                    variant={'outline'}
-                    className={cn(
-                      'w-full sm:w-[280px] justify-start text-left font-normal',
-                      !date && 'text-muted-foreground'
+            <div className="pt-2 w-full flex flex-col sm:flex-row items-center gap-2 flex-wrap">
+                <div className="relative flex-grow w-full sm:w-auto">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Rechercher une commande passée..." 
+                        className="pl-8"
+                        value={pastSearchTerm}
+                        onChange={(e) => setPastSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex w-full sm:w-auto items-center gap-2 justify-end">
+                    <Select value={pastStatusFilter} onValueChange={(v) => setPastStatusFilter(v as PastStatusFilter)}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filtrer par statut..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous les statuts</SelectItem>
+                        <SelectItem value="paid">Payé</SelectItem>
+                        <SelectItem value="unpaid">Non Payé</SelectItem>
+                        <SelectItem value="delivered">Livré</SelectItem>
+                        <SelectItem value="undelivered">Non Livré</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={`${sortConfig.key}:${sortConfig.direction}`}
+                      onValueChange={handleSortChange}
+                    >
+                      <SelectTrigger ref={sortSelectTriggerRef} className="w-full sm:w-[200px]">
+                        <SelectValue placeholder="Trier par..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="createdAt:descending">Plus récent</SelectItem>
+                        <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
+                        <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
+                        <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
+                        <SelectItem value="quantity:descending">Quantité (décroissant)</SelectItem>
+                        <SelectItem value="quantity:ascending">Quantité (croissant)</SelectItem>
+                        <SelectItem value="totalAmount:descending">Montant (décroissant)</SelectItem>
+                        <SelectItem value="totalAmount:ascending">Montant (croissant)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          ref={dateFilterTriggerRef}
+                          id="date"
+                          variant={'outline'}
+                          className={cn(
+                            'w-full sm:w-[280px] justify-start text-left font-normal',
+                            !date && 'text-muted-foreground'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date?.from ? (
+                            date.to ? (
+                              <>
+                                {format(date.from, 'dd MMM yyyy', { locale: fr })} -{' '}
+                                {format(date.to, 'dd MMM yyyy', { locale: fr })}
+                              </>
+                            ) : (
+                              format(date.from, 'dd MMM yyyy', { locale: fr })
+                            )
+                          ) : (
+                            <span>Filtrer par date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={date?.from}
+                          selected={date}
+                          onSelect={setDate}
+                          numberOfMonths={2}
+                          locale={fr}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    {date && (
+                      <Button variant="ghost" onClick={() => setDate(undefined)}>
+                        <X className="mr-2 h-4 w-4" /> Effacer
+                      </Button>
                     )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date?.from ? (
-                      date.to ? (
-                        <>
-                          {format(date.from, 'dd MMM yyyy', { locale: fr })} -{' '}
-                          {format(date.to, 'dd MMM yyyy', { locale: fr })}
-                        </>
-                      ) : (
-                        format(date.from, 'dd MMM yyyy', { locale: fr })
-                      )
-                    ) : (
-                      <span>Filtrer par date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={setDate}
-                    numberOfMonths={2}
-                    locale={fr}
-                  />
-                </PopoverContent>
-              </Popover>
-              {date && (
-                <Button variant="ghost" onClick={() => setDate(undefined)}>
-                  <X className="mr-2 h-4 w-4" /> Effacer
-                </Button>
-              )}
+                </div>
             </div>
           </CardHeader>
           <CardContent>
             <OrdersTable
               orders={pastOrders}
-              noOrdersMessage="Aucune commande trouvée pour la période sélectionnée."
+              noOrdersMessage="Aucune commande trouvée pour la période ou les filtres sélectionnés."
             />
           </CardContent>
         </Card>
