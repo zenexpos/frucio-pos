@@ -27,6 +27,7 @@ const shortcuts = [
   { group: 'Filtres et Tri', key: 'Alt + D', description: 'Filtrer les clients en dette' },
   { group: 'Filtres et Tri', key: 'Alt + C', description: 'Filtrer les clients avec crédit' },
   { group: 'Filtres et Tri', key: 'Alt + J', description: "Filtrer les clients dûs aujourd'hui" },
+  { group: 'Filtres et Tri', key: 'Alt + X', description: 'Effacer les filtres' },
   { group: 'Actions', key: 'Alt + N', description: 'Ajouter un nouveau client' },
   { group: 'Actions', key: 'Alt + I', description: "Importer des clients (CSV)" },
   { group: 'Actions', key: 'Alt + E', description: "Exporter les clients (CSV)" },

@@ -25,6 +25,7 @@ const shortcuts = [
   { group: 'Filtres', key: 'Alt + C', description: 'Ouvrir la sélection de catégorie' },
   { group: 'Filtres', key: 'Alt + S', description: 'Ouvrir la sélection de fournisseur' },
   { group: 'Filtres', key: 'Alt + T', description: "Ouvrir la sélection de l'état du stock" },
+  { group: 'Filtres', key: 'Alt + X', description: 'Effacer les filtres' },
   { group: 'Actions', key: 'Alt + N', description: 'Ajouter un nouveau produit' },
   { group: 'Actions', key: 'Alt + I', description: "Importer des produits (CSV)" },
   { group: 'Actions', key: 'Alt + E', description: "Exporter les produits (CSV)" },

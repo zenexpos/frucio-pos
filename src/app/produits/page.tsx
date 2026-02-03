@@ -101,6 +101,7 @@ export default function ProduitsPage() {
   const viewModeGridButtonRef = useRef<HTMLButtonElement>(null);
   const importTriggerRef = useRef<HTMLButtonElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const clearFiltersButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -133,6 +134,9 @@ export default function ProduitsPage() {
       } else if (e.altKey && (e.key === 'e' || e.key === 'E')) {
         e.preventDefault();
         exportButtonRef.current?.click();
+      } else if (e.altKey && (e.key === 'x' || e.key === 'X')) {
+        e.preventDefault();
+        clearFiltersButtonRef.current?.click();
       } else if (e.altKey && e.key === 'ArrowRight') {
         e.preventDefault();
         if (currentPage < totalPages) {
@@ -191,7 +195,7 @@ export default function ProduitsPage() {
   useEffect(() => {
     setCurrentPage(1);
     setSelectedProductIds([]);
-  }, [searchTerm, selectedCategory, selectedSupplier, stockStatus, viewMode]);
+  }, [searchTerm, selectedCategory, selectedSupplier, stockStatus, viewMode, sortConfig]);
 
   const handleViewModeChange = async (mode: 'list' | 'grid') => {
     if (viewMode === mode) return;
@@ -364,14 +368,16 @@ export default function ProduitsPage() {
     stockStatus,
   ]);
 
+  const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
+
   const { paginatedProducts, totalPages } = useMemo(() => {
     const total = sortedAndFilteredProducts.length;
-    const pages = Math.ceil(total / ITEMS_PER_PAGE);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pages = Math.ceil(total / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const paginated = sortedAndFilteredProducts.slice(start, end);
     return { paginatedProducts: paginated, totalPages: pages };
-  }, [sortedAndFilteredProducts, currentPage]);
+  }, [sortedAndFilteredProducts, currentPage, itemsPerPage]);
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
      if (checked === true) {
@@ -634,7 +640,7 @@ export default function ProduitsPage() {
             <div className="flex items-center gap-2 flex-wrap justify-between">
               <div>
                 {areFiltersActive && (
-                  <Button variant="ghost" onClick={handleClearFilters}>
+                  <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
                     <X />
                     Effacer les filtres
                   </Button>

@@ -81,6 +81,7 @@ export default function ClientsPage() {
   const viewModeGridButtonRef = useRef<HTMLButtonElement>(null);
   const importTriggerRef = useRef<HTMLButtonElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const clearFiltersButtonRef = useRef<HTMLButtonElement>(null);
 
   // Keyboard shortcut handler
   useEffect(() => {
@@ -119,6 +120,9 @@ export default function ClientsPage() {
       } else if (e.altKey && (e.key === 'j' || e.key === 'J')) {
         e.preventDefault();
         setActiveFilter('dueToday');
+      } else if (e.altKey && (e.key === 'x' || e.key === 'X')) {
+        e.preventDefault();
+        clearFiltersButtonRef.current?.click();
       } else if (e.altKey && e.key === 'ArrowRight') {
         e.preventDefault();
         if (currentPage < totalPages) {
@@ -138,11 +142,70 @@ export default function ClientsPage() {
     };
   }, [viewMode, currentPage, totalPages]);
 
+  const sortedAndFilteredCustomers = useMemo(() => {
+    let filtered = customersWithTotals.filter(
+      (customer) =>
+        (customer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.phone || '')
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (customer.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (activeFilter === 'debt') {
+      filtered = filtered.filter((c) => c.balance > 0);
+    } else if (activeFilter === 'credit') {
+      filtered = filtered.filter((c) => c.balance < 0);
+    } else if (activeFilter === 'dueToday') {
+      const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
+      filtered = filtered.filter(
+        (c) => c.settlementDay && c.settlementDay.toLowerCase().includes(todayName)
+      );
+    }
+
+    filtered.sort((a, b) => {
+      const aValue = a[sortConfig.key as keyof typeof a] as any;
+      const bValue = b[sortConfig.key as keyof typeof b] as any;
+
+      if (aValue === undefined || aValue === null)
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      if (bValue === undefined || bValue === null)
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'ascending'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return filtered;
+  }, [customersWithTotals, searchTerm, sortConfig, activeFilter]);
+  
+  const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
+  
+  const { paginatedCustomers, totalPages } = useMemo(() => {
+    const total = sortedAndFilteredCustomers.length;
+    const pages = Math.ceil(total / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginated = sortedAndFilteredCustomers.slice(start, end);
+    return { paginatedCustomers: paginated, totalPages: pages };
+  }, [sortedAndFilteredCustomers, currentPage, itemsPerPage]);
+
   // Reset selection and page when filters change
   useEffect(() => {
     setCurrentPage(1);
     setSelectedCustomerIds([]);
-  }, [searchTerm, activeFilter, viewMode]);
+  }, [searchTerm, activeFilter, viewMode, sortConfig]);
 
   const getInitials = (name: string) => {
     if (!name) return '?';
@@ -275,65 +338,6 @@ export default function ClientsPage() {
     const [key, direction] = value.split(':');
     setSortConfig({ key: key as SortKey, direction: direction as SortDirection });
   };
-
-  const sortedAndFilteredCustomers = useMemo(() => {
-    let filtered = customersWithTotals.filter(
-      (customer) =>
-        (customer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (customer.phone || '')
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (customer.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (activeFilter === 'debt') {
-      filtered = filtered.filter((c) => c.balance > 0);
-    } else if (activeFilter === 'credit') {
-      filtered = filtered.filter((c) => c.balance < 0);
-    } else if (activeFilter === 'dueToday') {
-      const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
-      filtered = filtered.filter(
-        (c) => c.settlementDay && c.settlementDay.toLowerCase().includes(todayName)
-      );
-    }
-
-    filtered.sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof typeof a] as any;
-      const bValue = b[sortConfig.key as keyof typeof b] as any;
-
-      if (aValue === undefined || aValue === null)
-        return sortConfig.direction === 'ascending' ? -1 : 1;
-      if (bValue === undefined || bValue === null)
-        return sortConfig.direction === 'ascending' ? 1 : -1;
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortConfig.direction === 'ascending'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      if (aValue < bValue) {
-        return sortConfig.direction === 'ascending' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'ascending' ? 1 : -1;
-      }
-      return 0;
-    });
-
-    return filtered;
-  }, [customersWithTotals, searchTerm, sortConfig, activeFilter]);
-
-  const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
-
-  const { paginatedCustomers, totalPages } = useMemo(() => {
-    const total = sortedAndFilteredCustomers.length;
-    const pages = Math.ceil(total / itemsPerPage);
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const paginated = sortedAndFilteredCustomers.slice(start, end);
-    return { paginatedCustomers: paginated, totalPages: pages };
-  }, [sortedAndFilteredCustomers, currentPage, itemsPerPage]);
 
   const startItem =
     sortedAndFilteredCustomers.length > 0
@@ -487,7 +491,7 @@ export default function ClientsPage() {
                   />
                 </div>
                 {areFiltersActive && (
-                  <Button variant="ghost" onClick={handleClearFilters}>
+                  <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
                     <X className="mr-2 h-4 w-4" /> Effacer
                   </Button>
                 )}
