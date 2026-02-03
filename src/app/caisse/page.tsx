@@ -42,6 +42,7 @@ import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { CustomerCombobox } from '@/components/caisse/customer-combobox';
 import { Receipt, type ReceiptData } from '@/components/caisse/receipt';
 import { SettleDebtDialog } from '@/components/caisse/settle-debt-dialog';
+import { AddProductDialog } from '@/components/produits/add-product-dialog';
 
 
 const productImages = imageData.caisse;
@@ -82,6 +83,8 @@ export default function CaissePage() {
   const [selectedCategory, setSelectedCategory] = useState('Toutes');
   const [barcode, setBarcode] = useState('');
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [addProductDialogOpen, setAddProductDialogOpen] = useState(false);
+  const [barcodeForNewProduct, setBarcodeForNewProduct] = useState('');
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -362,17 +365,19 @@ export default function CaissePage() {
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
         e.preventDefault();
-        if (!barcode.trim()) return;
+        const scannedBarcode = barcode.trim();
+        if (!scannedBarcode) return;
 
-        const product = products.find(p => p.barcode === barcode.trim());
+        const product = products.find(p => p.barcode === scannedBarcode);
         if (product) {
             addToCart(product);
             setBarcode(''); // Clear input after adding
         } else {
+            setBarcodeForNewProduct(scannedBarcode);
+            setAddProductDialogOpen(true);
             toast({
                 title: 'Produit non trouvé',
-                description: `Aucun produit ne correspond au code-barres "${barcode}".`,
-                variant: 'destructive',
+                description: `Le code-barres "${scannedBarcode}" n'est pas dans la base. Veuillez l'ajouter.`,
             });
         }
     }
@@ -798,6 +803,23 @@ export default function CaissePage() {
         </div>
       </div>
       <Receipt receiptData={receiptData} />
+      <AddProductDialog 
+        open={addProductDialogOpen}
+        onOpenChange={(isOpen) => {
+            setAddProductDialogOpen(isOpen);
+            if (!isOpen) {
+                setBarcode('');
+                setBarcodeForNewProduct('');
+                barcodeInputRef.current?.focus();
+            }
+        }}
+        defaultBarcode={barcodeForNewProduct}
+        onSuccess={(newProduct: Product) => {
+            if (newProduct) {
+                addToCart(newProduct);
+            }
+        }}
+      />
     </>
   );
 }

@@ -9,6 +9,7 @@ import { useFormSubmission } from '@/hooks/use-form-submission';
 import { addProduct } from '@/lib/mock-data/api';
 import { useMockData } from '@/hooks/use-mock-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Product } from '@/lib/types';
 
 const productSchema = z.object({
   name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
@@ -20,7 +21,7 @@ const productSchema = z.object({
   minStock: z.coerce.number().int({ message: 'Le stock min. doit être un nombre entier.' }).min(0),
 });
 
-export function AddProductForm({ onSuccess }: { onSuccess?: () => void }) {
+export function AddProductForm({ onSuccess, defaultBarcode }: { onSuccess?: (newProduct: Product) => void; defaultBarcode?: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const { suppliers } = useMockData();
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
@@ -33,8 +34,8 @@ export function AddProductForm({ onSuccess }: { onSuccess?: () => void }) {
       successMessage: 'Produit ajouté avec succès.',
       errorMessage: "Une erreur est survenue lors de l'ajout du produit.",
     },
-    onSubmit: async (data) => {
-      await addProduct({
+    onSubmit: (data) => {
+      return addProduct({
         ...data,
         barcode: data.barcode || '',
         supplierId: selectedSupplierId,
@@ -70,7 +71,7 @@ export function AddProductForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
        <div className="space-y-2">
         <Label htmlFor="barcode">Code-barres</Label>
-        <Input id="barcode" name="barcode" placeholder="Ex: 1234567890123" />
+        <Input id="barcode" name="barcode" placeholder="Ex: 1234567890123" defaultValue={defaultBarcode || ''} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

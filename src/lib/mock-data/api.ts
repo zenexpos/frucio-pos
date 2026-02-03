@@ -428,13 +428,14 @@ export const deleteSupplierTransaction = (transactionId: string) => {
 // --- Product Functions ---
 type AddProductData = Omit<Product, 'id'>;
 
-export const addProduct = async (data: AddProductData) => {
+export const addProduct = async (data: AddProductData): Promise<Product> => {
     const newProduct: Product = {
         ...data,
         id: nextId(),
     };
     mockDataStore.products.push(newProduct);
     saveData();
+    return newProduct;
 };
 
 export const updateProduct = async (productId: string, data: Partial<AddProductData>) => {

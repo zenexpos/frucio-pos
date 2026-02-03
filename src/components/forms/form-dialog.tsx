@@ -11,11 +11,13 @@ import {
 } from '@/components/ui/dialog';
 
 interface FormDialogProps {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   title: string;
   description: string;
   form: React.ReactElement;
   onFormSuccess?: (result: any) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function FormDialog({
@@ -23,20 +25,29 @@ export function FormDialog({
   title,
   description,
   form,
-  onFormSuccess
+  onFormSuccess,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: FormDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isControlled = controlledOpen !== undefined && controlledOnOpenChange !== undefined;
+  
+  const open = isControlled ? controlledOpen : internalOpen;
+  const onOpenChange = isControlled ? controlledOnOpenChange : setInternalOpen;
 
   const handleSuccess = (result: any) => {
-    setOpen(false);
-    onFormSuccess?.(result);
+    onOpenChange(false);
+    if(onFormSuccess) {
+      onFormSuccess(result);
+    }
   };
   
   const formWithOnSuccess = cloneElement(form as React.ReactElement<{ onSuccess?: (result: any) => void }>, { onSuccess: handleSuccess });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
