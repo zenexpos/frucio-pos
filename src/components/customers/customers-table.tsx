@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import type { Customer } from '@/lib/types';
 import { formatCurrency, getBalanceVariant, cn } from '@/lib/utils';
@@ -20,10 +22,19 @@ import {
   CalendarCheck2,
   Pencil,
   Trash2,
+  MoreVertical,
+  ArrowRight,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { AddTransactionDialog } from '@/components/transactions/add-transaction-dialog';
 import { EditCustomerDialog } from './edit-customer-dialog';
 import { DeleteCustomerDialog } from './delete-customer-dialog';
@@ -38,14 +49,24 @@ export function CustomersTable({
 }: {
   customers: Customer[];
   onSort: (key: keyof Customer | 'totalDebts' | 'totalPayments') => void;
-  sortConfig: { key: keyof Customer | 'totalDebts' | 'totalPayments'; direction: 'ascending' | 'descending' };
+  sortConfig: {
+    key: keyof Customer | 'totalDebts' | 'totalPayments';
+    direction: 'ascending' | 'descending';
+  };
   selectedCustomerIds: string[];
   onSelectAll: (checked: boolean | 'indeterminate') => void;
-  onSelectCustomer: (customerId: string, checked: boolean | 'indeterminate') => void;
+  onSelectCustomer: (
+    customerId: string,
+    checked: boolean | 'indeterminate'
+  ) => void;
 }) {
-  const getSortIcon = (key: keyof Customer | 'totalDebts' | 'totalPayments') => {
+  const getSortIcon = (
+    key: keyof Customer | 'totalDebts' | 'totalPayments'
+  ) => {
     if (sortConfig.key !== key) {
-      return <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />;
+      return (
+        <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+      );
     }
     if (sortConfig.direction === 'ascending') {
       return <ArrowUp className="ml-2 h-4 w-4" />;
@@ -54,17 +75,27 @@ export function CustomersTable({
   };
 
   const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
-  const isAllOnPageSelected = customers.length > 0 && customers.every(c => selectedCustomerIds.includes(c.id));
-  const isSomeOnPageSelected = customers.some(c => selectedCustomerIds.includes(c.id)) && !isAllOnPageSelected;
+  const isAllOnPageSelected =
+    customers.length > 0 &&
+    customers.every((c) => selectedCustomerIds.includes(c.id));
+  const isSomeOnPageSelected =
+    customers.some((c) => selectedCustomerIds.includes(c.id)) &&
+    !isAllOnPageSelected;
 
   return (
     <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-             <TableHead className="p-2 w-10">
+            <TableHead className="p-2 w-10">
               <Checkbox
-                checked={isAllOnPageSelected ? true : isSomeOnPageSelected ? 'indeterminate' : false}
+                checked={
+                  isAllOnPageSelected
+                    ? true
+                    : isSomeOnPageSelected
+                    ? 'indeterminate'
+                    : false
+                }
                 onCheckedChange={onSelectAll}
                 aria-label="Select all customers on this page"
               />
@@ -136,11 +167,11 @@ export function CustomersTable({
               customer.settlementDay.toLowerCase().includes(todayName);
 
             return (
-              <TableRow 
+              <TableRow
                 key={customer.id}
                 data-state={selectedCustomerIds.includes(customer.id) && 'selected'}
               >
-                 <TableCell className="p-4">
+                <TableCell className="p-4">
                   <Checkbox
                     checked={selectedCustomerIds.includes(customer.id)}
                     onCheckedChange={(checked) =>
@@ -150,10 +181,19 @@ export function CustomersTable({
                   />
                 </TableCell>
                 <TableCell className="font-medium">
-                  <Link href={`/clients/${customer.id}`} className="hover:underline">{customer.name}</Link>
+                  <Link
+                    href={`/clients/${customer.id}`}
+                    className="hover:underline"
+                  >
+                    {customer.name}
+                  </Link>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell text-muted-foreground">{customer.email}</TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">{customer.phone}</TableCell>
+                <TableCell className="hidden sm:table-cell text-muted-foreground">
+                  {customer.email}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground">
+                  {customer.phone}
+                </TableCell>
                 <TableCell className="hidden lg:table-cell text-muted-foreground">
                   <div
                     className={cn(
@@ -178,53 +218,75 @@ export function CustomersTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-0.5">
-                    <AddTransactionDialog
-                      type="debt"
-                      customerId={customer.id}
-                      trigger={
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <PlusCircle />
-                          <span className="sr-only">Ajouter une dette</span>
-                        </Button>
-                      }
-                    />
-                    {customer.balance > 0 && (
-                      <AddTransactionDialog
-                        type="payment"
-                        customerId={customer.id}
-                        defaultAmount={customer.balance}
-                        defaultDescription="Règlement du solde"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Ouvrir le menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/clients/${customer.id}`}>
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          Voir les détails
+                        </Link>
+                      </DropdownMenuItem>
+                      <EditCustomerDialog
+                        customer={customer}
                         trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MinusCircle className="text-accent" />
-                            <span className="sr-only">
-                              Ajouter un paiement
-                            </span>
-                          </Button>
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
                         }
                       />
-                    )}
-                    <EditCustomerDialog 
-                      customer={customer}
-                      trigger={
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Pencil />
-                          <span className="sr-only">Modifier le client</span>
-                        </Button>
-                      }
-                    />
-                    <DeleteCustomerDialog
-                      customerId={customer.id}
-                      customerName={customer.name}
-                       trigger={
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Trash2 className="text-destructive" />
-                          <span className="sr-only">Supprimer le client</span>
-                        </Button>
-                      }
-                    />
-                  </div>
+                      <DeleteCustomerDialog
+                        customerId={customer.id}
+                        customerName={customer.name}
+                        trigger={
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        }
+                      />
+                      <DropdownMenuSeparator />
+                      <AddTransactionDialog
+                        type="debt"
+                        customerId={customer.id}
+                        trigger={
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Ajouter une dette
+                          </DropdownMenuItem>
+                        }
+                      />
+                      {customer.balance > 0 && (
+                        <AddTransactionDialog
+                          type="payment"
+                          customerId={customer.id}
+                          defaultAmount={customer.balance}
+                          defaultDescription="Règlement du solde"
+                          trigger={
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              <MinusCircle className="mr-2 h-4 w-4" />
+                              Ajouter un paiement
+                            </DropdownMenuItem>
+                          }
+                        />
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );
