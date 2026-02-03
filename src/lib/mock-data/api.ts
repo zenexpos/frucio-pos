@@ -217,17 +217,25 @@ export const deleteBreadOrder = async (orderId: string) => {
 export const resetBreadOrders = async () => {
     const todayStart = startOfDay(new Date());
 
-    const pastOrders = mockDataStore.breadOrders.filter(o => isBefore(new Date(o.createdAt), todayStart));
-    
-    const todaysPinnedOrdersToReset = mockDataStore.breadOrders
-        .filter(o => !isBefore(new Date(o.createdAt), todayStart) && o.isPinned)
-        .map(order => ({
-            ...order,
-            isPaid: false,
-            isDelivered: false,
-        }));
+    // Filter out today's non-pinned orders
+    const ordersToKeep = mockDataStore.breadOrders.filter(o => 
+        isBefore(new Date(o.createdAt), todayStart) || 
+        (isSameDay(new Date(o.createdAt), todayStart) && o.isPinned)
+    );
 
-    mockDataStore.breadOrders = [...pastOrders, ...todaysPinnedOrdersToReset];
+    // Reset today's pinned orders
+    const updatedOrders = ordersToKeep.map(order => {
+        if (isSameDay(new Date(order.createdAt), todayStart) && order.isPinned) {
+            return {
+                ...order,
+                isPaid: false,
+                isDelivered: false,
+            };
+        }
+        return order;
+    });
+
+    mockDataStore.breadOrders = updatedOrders;
     saveData();
 };
 
@@ -696,6 +704,48 @@ export const exportTransactionsToCsv = (transactions: (Transaction & { customerN
     link.click();
     document.body.removeChild(link);
 };
+
+export const exportBreadOrdersToCsv = (orders: BreadOrder[]) => {
+    if (orders.length === 0) {
+        return;
+    }
+    const headers = ['id', 'createdAt', 'name', 'customerName', 'quantity', 'unitPrice', 'totalAmount', 'isPaid', 'isDelivered', 'isPinned'];
+    const csvRows = [
+        headers.join(',')
+    ];
+
+    for (const order of orders) {
+        const values = headers.map(header => {
+            let val: any;
+            if (header === 'createdAt') {
+                val = format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm:ss');
+            } else {
+                val = (order as any)[header];
+            }
+            
+            if (val === null || val === undefined) {
+                val = '';
+            }
+            const stringVal = String(val);
+            if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
+                return `"${stringVal.replace(/"/g, '""')}"`;
+            }
+            return stringVal;
+        });
+        csvRows.push(values.join(','));
+    }
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'commandes-boulangerie-export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
 
 export const resetAllData = () => {
     resetSeed();

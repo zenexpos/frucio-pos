@@ -22,6 +22,7 @@ import {
   RotateCcw,
   PlusCircle,
   Search,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,7 +51,7 @@ import {
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { updateBreadOrder } from '@/lib/mock-data/api';
+import { updateBreadOrder, exportBreadOrdersToCsv } from '@/lib/mock-data/api';
 import { cn, formatCurrency } from '@/lib/utils';
 import { EditOrderDialog } from '@/components/orders/edit-order-dialog';
 import { DeleteOrderDialog } from '@/components/orders/delete-order-dialog';
@@ -337,6 +338,30 @@ export default function OrdersPage() {
 
   const pastOrdersStartItem = pastOrders.length > 0 ? (pastOrdersCurrentPage - 1) * PAST_ORDERS_PER_PAGE + 1 : 0;
   const pastOrdersEndItem = pastOrdersStartItem + paginatedPastOrders.length - 1;
+
+  const handleExport = () => {
+    try {
+      if (pastOrders.length === 0) {
+        toast({
+          title: 'Aucune donnée à exporter',
+          description: "Il n'y a aucune commande passée dans la période sélectionnée.",
+          variant: 'destructive',
+        });
+        return;
+      }
+      exportBreadOrdersToCsv(pastOrders);
+      toast({
+        title: 'Exportation réussie',
+        description: 'Le fichier CSV des commandes est en cours de téléchargement.',
+      });
+    } catch (e) {
+      toast({
+        title: 'Erreur',
+        description: "Impossible d'exporter les commandes.",
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (loading) {
     return <OrdersLoading />;
@@ -638,7 +663,7 @@ export default function OrdersPage() {
                         onChange={(e) => setPastSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex w-full sm:w-auto items-center gap-2 justify-end">
+                <div className="flex w-full sm:w-auto items-center gap-2 justify-end flex-wrap">
                     <Select value={pastStatusFilter} onValueChange={(v) => setPastStatusFilter(v as PastStatusFilter)}>
                       <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filtrer par statut..." />
@@ -707,6 +732,14 @@ export default function OrdersPage() {
                         />
                       </PopoverContent>
                     </Popover>
+                    <Button
+                        variant="outline"
+                        onClick={handleExport}
+                        disabled={pastOrders.length === 0}
+                    >
+                        <Download className="mr-2 h-4 w-4" />
+                        Exporter
+                    </Button>
                     {date && (
                       <Button variant="ghost" onClick={() => setDate(undefined)}>
                         <X className="mr-2 h-4 w-4" /> Effacer
