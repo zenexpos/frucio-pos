@@ -13,6 +13,10 @@ import {
   Circle,
   Calendar as CalendarIcon,
   X,
+  Package,
+  ClipboardCheck,
+  ClipboardX,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,7 +46,7 @@ import {
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { EditOrderDialog } from '@/components/orders/edit-order-dialog';
 import { DeleteOrderDialog } from '@/components/orders/delete-order-dialog';
 import { type DateRange } from 'react-day-picker';
@@ -52,6 +56,7 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { StatCard } from '@/components/dashboard/stat-card';
 
 export default function OrdersPage() {
   const { breadOrders: orders, loading } = useMockData();
@@ -106,6 +111,22 @@ export default function OrdersPage() {
     if (!todayOrders) return 0;
     return todayOrders.reduce((sum, o) => sum + o.quantity, 0);
   }, [todayOrders]);
+
+  const { unpaidTodayCount, totalUnpaidAmount } =
+    useMemo(() => {
+      if (!orders)
+        return { unpaidTodayCount: 0, totalUnpaidAmount: 0 };
+
+      const unpaidToday = todayOrders.filter((o) => !o.isPaid).length;
+      const totalUnpaid = orders
+        .filter((o) => !o.isPaid)
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+
+      return {
+        unpaidTodayCount: unpaidToday,
+        totalUnpaidAmount: totalUnpaid,
+      };
+    }, [orders, todayOrders]);
 
   const handleToggle = async (
     order: BreadOrder,
@@ -258,6 +279,33 @@ export default function OrdersPage() {
         </h1>
         <AddOrderDialog />
       </header>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Pains Requis (Auj.)"
+          value={totalPainsRequis}
+          description="Quantité totale pour aujourd'hui"
+          icon={Package}
+        />
+        <StatCard
+          title="Commandes du Jour"
+          value={todayOrders.length}
+          description="Nombre de commandes aujourd'hui"
+          icon={ClipboardCheck}
+        />
+        <StatCard
+          title="Non Payées (Auj.)"
+          value={unpaidTodayCount}
+          description="Commandes du jour non réglées"
+          icon={ClipboardX}
+        />
+        <StatCard
+          title="Montant Total Non Payé"
+          value={formatCurrency(totalUnpaidAmount)}
+          description="Toutes les commandes non réglées"
+          icon={Wallet}
+        />
+      </div>
 
       <Card>
         <CardHeader>
