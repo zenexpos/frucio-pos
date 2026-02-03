@@ -5,7 +5,15 @@ import { useMockData } from '@/hooks/use-mock-data';
 import type { BreadOrder } from '@/lib/types';
 import { AddOrderDialog } from '@/components/orders/add-order-dialog';
 import OrdersLoading from './loading';
-import { Star, Check, Pencil, Trash2, Circle } from 'lucide-react';
+import {
+  Star,
+  Check,
+  Pencil,
+  Trash2,
+  Circle,
+  Calendar as CalendarIcon,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,17 +32,31 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { format, startOfDay, isBefore } from 'date-fns';
+import {
+  format,
+  startOfDay,
+  isBefore,
+  isWithinInterval,
+  endOfDay,
+} from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { cn } from '@/lib/utils';
 import { EditOrderDialog } from '@/components/orders/edit-order-dialog';
 import { DeleteOrderDialog } from '@/components/orders/delete-order-dialog';
+import { type DateRange } from 'react-day-picker';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 export default function OrdersPage() {
   const { breadOrders: orders, loading } = useMockData();
   const { toast } = useToast();
+  const [date, setDate] = useState<DateRange | undefined>();
 
   const getOrderStatusScore = (order: BreadOrder) => {
     // Status scoring: Pinned > Unpaid/Undelivered > Paid/Undelivered > Unpaid/Delivered > Paid/Delivered
@@ -63,12 +85,22 @@ export default function OrdersPage() {
     const today = allOrders.filter(
       (o) => !isBefore(new Date(o.createdAt), todayStart)
     );
-    const past = allOrders.filter((o) =>
+    let past = allOrders.filter((o) =>
       isBefore(new Date(o.createdAt), todayStart)
     );
 
+    if (date?.from) {
+      const interval = {
+        start: startOfDay(date.from),
+        end: date.to ? endOfDay(date.to) : endOfDay(date.from),
+      };
+      past = past.filter((o) =>
+        isWithinInterval(new Date(o.createdAt), interval)
+      );
+    }
+
     return { todayOrders: today, pastOrders: past };
-  }, [orders]);
+  }, [orders, date]);
 
   const totalPainsRequis = useMemo(() => {
     if (!todayOrders) return 0;
@@ -98,7 +130,13 @@ export default function OrdersPage() {
     return <OrdersLoading />;
   }
 
-  const OrdersTable = ({ orders: tableOrders }: { orders: BreadOrder[] }) => (
+  const OrdersTable = ({
+    orders: tableOrders,
+    noOrdersMessage,
+  }: {
+    orders: BreadOrder[];
+    noOrdersMessage: string;
+  }) => (
     <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
@@ -203,7 +241,7 @@ export default function OrdersPage() {
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
-                Aucune commande pour le moment.
+                {noOrdersMessage}
               </TableCell>
             </TableRow>
           )}
@@ -229,21 +267,75 @@ export default function OrdersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <OrdersTable orders={todayOrders} />
+          <OrdersTable
+            orders={todayOrders}
+            noOrdersMessage="Aucune commande pour aujourd'hui."
+          />
         </CardContent>
         <CardFooter className="justify-end pt-4 font-semibold">
           Total Pains Requis: {totalPainsRequis}
         </CardFooter>
       </Card>
 
-      {pastOrders.length > 0 && (
+      {orders.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Commandes des jours précédents</CardTitle>
-            <CardDescription>Historique des commandes passées.</CardDescription>
+          <CardHeader className="flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Commandes des jours précédents</CardTitle>
+              <CardDescription>
+                Historique des commandes passées.
+              </CardDescription>
+            </div>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={'outline'}
+                    className={cn(
+                      'w-full sm:w-[280px] justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, 'dd MMM yyyy', { locale: fr })} -{' '}
+                          {format(date.to, 'dd MMM yyyy', { locale: fr })}
+                        </>
+                      ) : (
+                        format(date.from, 'dd MMM yyyy', { locale: fr })
+                      )
+                    ) : (
+                      <span>Filtrer par date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                    locale={fr}
+                  />
+                </PopoverContent>
+              </Popover>
+              {date && (
+                <Button variant="ghost" onClick={() => setDate(undefined)}>
+                  <X className="mr-2 h-4 w-4" /> Effacer
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            <OrdersTable orders={pastOrders} />
+            <OrdersTable
+              orders={pastOrders}
+              noOrdersMessage="Aucune commande trouvée pour la période sélectionnée."
+            />
           </CardContent>
         </Card>
       )}
