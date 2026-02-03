@@ -24,6 +24,7 @@ import {
   Trash2,
   MoreVertical,
   ArrowRight,
+  Printer,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -230,6 +231,12 @@ export function CustomersTable({
                         <Link href={`/clients/${customer.id}`}>
                           <ArrowRight className="mr-2 h-4 w-4" />
                           Voir les détails
+                        </Link>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                        <Link href={`/clients/${customer.id}?print=true`} target="_blank">
+                          <Printer className="mr-2 h-4 w-4" />
+                          Imprimer le relevé
                         </Link>
                       </DropdownMenuItem>
                       <EditCustomerDialog

@@ -22,6 +22,8 @@ import {
   MinusCircle,
   WalletCards,
   CalendarCheck2,
+  Printer,
+  ArrowRight,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -101,12 +103,22 @@ export function CustomerCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/clients/${customer.id}`}>Voir les détails</Link>
+              <Link href={`/clients/${customer.id}`}>
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Voir les détails
+              </Link>
+            </DropdownMenuItem>
+             <DropdownMenuItem asChild>
+              <Link href={`/clients/${customer.id}?print=true`} target="_blank">
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimer le relevé
+              </Link>
             </DropdownMenuItem>
             <EditCustomerDialog
               customer={customer}
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Pencil className="mr-2 h-4 w-4" />
                   Modifier
                 </DropdownMenuItem>
               }
@@ -119,6 +131,7 @@ export function CustomerCard({
                   onSelect={(e) => e.preventDefault()}
                   className="text-destructive focus:text-destructive focus:bg-destructive/10"
                 >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Supprimer
                 </DropdownMenuItem>
               }
@@ -129,6 +142,7 @@ export function CustomerCard({
               customerId={customer.id}
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                   <PlusCircle className="mr-2 h-4 w-4" />
                   Ajouter une dette
                 </DropdownMenuItem>
               }
@@ -142,6 +156,7 @@ export function CustomerCard({
               }
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <MinusCircle className="mr-2 h-4 w-4" />
                   Ajouter un paiement
                 </DropdownMenuItem>
               }

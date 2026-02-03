@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useParams, notFound, useRouter } from 'next/navigation';
+import { useMemo, useEffect } from 'react';
+import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Customer, Transaction } from '@/lib/types';
 import Link from 'next/link';
@@ -16,9 +16,19 @@ import { BalanceHistoryChart } from '@/components/customers/balance-history-char
 export default function CustomerDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
   
   const { customers, transactions, loading } = useMockData();
+
+  useEffect(() => {
+    const shouldPrint = searchParams.get('print');
+    if (shouldPrint === 'true') {
+      // Delay allows page to render before print dialog appears
+      const timeoutId = setTimeout(() => window.print(), 500); 
+      return () => clearTimeout(timeoutId);
+    }
+  }, [searchParams]);
 
   const customer = useMemo(() => {
     return customers.find(c => c.id === id);
