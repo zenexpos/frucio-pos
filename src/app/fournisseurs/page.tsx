@@ -23,6 +23,8 @@ import {
   Printer,
   LayoutGrid,
   List,
+  Upload,
+  Download,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -59,6 +61,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { FournisseursGrid } from '@/components/fournisseurs/fournisseurs-grid';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { SupplierCsvImportDialog } from '@/components/fournisseurs/csv-import-dialog';
+import { exportSuppliersToCsv } from '@/lib/mock-data/api';
 
 type SortKey = keyof Supplier;
 type SortDirection = 'ascending' | 'descending';
@@ -347,6 +351,19 @@ export default function FournisseursPage() {
                     <LayoutGrid className="h-4 w-4" />
                   </Button>
                 </div>
+                <SupplierCsvImportDialog trigger={
+                    <Button variant="outline">
+                        <Upload className="mr-2 h-4 w-4" /> Importer
+                    </Button>
+                } />
+                <Button
+                  variant="outline"
+                  onClick={exportSuppliersToCsv}
+                  disabled={!hasSuppliers}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Exporter
+                </Button>
                 <AddSupplierDialog />
             </div>
            </div>
