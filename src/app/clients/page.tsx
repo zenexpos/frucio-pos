@@ -17,6 +17,13 @@ import {
   Download,
   X,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { CustomersGrid } from '@/components/customers/customers-grid';
 import { CustomersTable } from '@/components/customers/customers-table';
@@ -28,7 +35,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardFooter
+  CardFooter,
 } from '@/components/ui/card';
 import { BulkDeleteCustomersDialog } from '@/components/customers/bulk-delete-customer-dialog';
 
@@ -54,13 +61,12 @@ export default function ClientsPage() {
   });
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Reset selection and page when filters change
   useEffect(() => {
     setCurrentPage(1);
     setSelectedCustomerIds([]);
   }, [searchTerm, balanceFilter, viewMode]);
-
 
   const { totalCustomers, totalBalance, customersInDebt, customersWithCredit } =
     useMemo(() => {
@@ -111,6 +117,11 @@ export default function ClientsPage() {
     }
     setSortConfig({ key, direction });
   };
+  
+  const handleSortChange = (value: string) => {
+    const [key, direction] = value.split(':');
+    setSortConfig({ key: key as SortKey, direction: direction as SortDirection });
+  };
 
   const sortedAndFilteredCustomers = useMemo(() => {
     let filtered = customersWithTotals.filter(
@@ -152,7 +163,7 @@ export default function ClientsPage() {
 
     return filtered;
   }, [customersWithTotals, searchTerm, sortConfig, balanceFilter]);
-  
+
   const { paginatedCustomers, totalPages } = useMemo(() => {
     const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
     const total = sortedAndFilteredCustomers.length;
@@ -163,20 +174,21 @@ export default function ClientsPage() {
     return { paginatedCustomers: paginated, totalPages: pages };
   }, [sortedAndFilteredCustomers, currentPage, viewMode]);
 
-  
   const areFiltersActive = searchTerm !== '' || balanceFilter !== 'all';
 
   const handleClearFilters = () => {
     setSearchTerm('');
     setBalanceFilter('all');
   };
-  
+
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
-     if (checked === true) {
-      setSelectedCustomerIds(prev => [...new Set([...prev, ...paginatedCustomers.map(p => p.id)])]);
+    if (checked === true) {
+      setSelectedCustomerIds((prev) => [
+        ...new Set([...prev, ...paginatedCustomers.map((p) => p.id)]),
+      ]);
     } else {
-      const currentPageIds = new Set(paginatedCustomers.map(p => p.id));
-      setSelectedCustomerIds(prev => prev.filter(id => !currentPageIds.has(id)));
+      const currentPageIds = new Set(paginatedCustomers.map((p) => p.id));
+      setSelectedCustomerIds((prev) => prev.filter((id) => !currentPageIds.has(id)));
     }
   };
 
@@ -249,24 +261,42 @@ export default function ClientsPage() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-2 justify-between">
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                 <div className="relative w-full sm:w-auto sm:max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="customer-search-input"
-                      placeholder="Rechercher des clients..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-full"
-                      disabled={!hasCustomers}
-                    />
-                  </div>
-                  {areFiltersActive && (
-                    <Button variant="ghost" onClick={handleClearFilters}>
-                      <X className="mr-2 h-4 w-4" /> Effacer
-                    </Button>
-                  )}
+                <div className="relative w-full sm:w-auto sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="customer-search-input"
+                    placeholder="Rechercher des clients..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-full"
+                    disabled={!hasCustomers}
+                  />
+                </div>
+                {areFiltersActive && (
+                  <Button variant="ghost" onClick={handleClearFilters}>
+                    <X className="mr-2 h-4 w-4" /> Effacer
+                  </Button>
+                )}
               </div>
               <div className="flex items-center gap-2">
+                 <Select
+                  value={`${sortConfig.key}:${sortConfig.direction}`}
+                  onValueChange={handleSortChange}
+                  disabled={!hasCustomers}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Trier par..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="createdAt:descending">Plus récent</SelectItem>
+                    <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
+                    <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
+                    <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
+                    <SelectItem value="balance:descending">Solde (décroissant)</SelectItem>
+                    <SelectItem value="balance:ascending">Solde (croissant)</SelectItem>
+                    <SelectItem value="totalDebts:descending">Total dépensé</SelectItem>
+                  </SelectContent>
+                </Select>
                 <div className="flex items-center gap-1 border rounded-md p-1">
                   <Button
                     variant={viewMode === 'list' ? 'secondary' : 'ghost'}
@@ -297,28 +327,28 @@ export default function ClientsPage() {
                 <AddCustomerDialog />
               </div>
             </div>
-             {selectedCustomerIds.length > 0 && (
-                <div className="p-3 bg-muted rounded-md flex items-center justify-between flex-wrap gap-2">
-                  <p className="text-sm font-medium">
-                    {selectedCustomerIds.length} client(s) sélectionné(s)
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <BulkDeleteCustomersDialog
-                      customerIds={selectedCustomerIds}
-                      onSuccess={() => setSelectedCustomerIds([])}
-                    />
-                  </div>
+            {selectedCustomerIds.length > 0 && (
+              <div className="p-3 bg-muted rounded-md flex items-center justify-between flex-wrap gap-2">
+                <p className="text-sm font-medium">
+                  {selectedCustomerIds.length} client(s) sélectionné(s)
+                </p>
+                <div className="flex items-center gap-2">
+                  <BulkDeleteCustomersDialog
+                    customerIds={selectedCustomerIds}
+                    onSuccess={() => setSelectedCustomerIds([])}
+                  />
                 </div>
-              )}
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
           {hasResults ? (
             viewMode === 'grid' ? (
-              <CustomersGrid 
+              <CustomersGrid
                 customers={paginatedCustomers}
                 selectedCustomerIds={selectedCustomerIds}
-                onSelectionChange={handleSelectCustomer} 
+                onSelectionChange={handleSelectCustomer}
               />
             ) : (
               <CustomersTable
@@ -349,29 +379,31 @@ export default function ClientsPage() {
           )}
         </CardContent>
         {totalPages > 1 && (
-            <CardFooter className="flex items-center justify-between pt-4">
-                <div className="text-sm text-muted-foreground">
-                    Page {currentPage} sur {totalPages}
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    >
-                    Précédent
-                    </Button>
-                    <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    >
-                    Suivant
-                    </Button>
-                </div>
-            </CardFooter>
+          <CardFooter className="flex items-center justify-between pt-4">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} sur {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+              >
+                Suivant
+              </Button>
+            </div>
+          </CardFooter>
         )}
       </Card>
     </div>
