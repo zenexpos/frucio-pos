@@ -63,6 +63,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { OrderCard } from '@/components/orders/order-card';
 import { ResetOrdersDialog } from '@/components/orders/reset-orders-dialog';
 import { BulkDeleteOrdersDialog } from '@/components/orders/bulk-delete-orders-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice' | 'customerId' | 'customerName'>;
+
+interface SortConfig {
+  key: SortKey;
+  direction: 'ascending' | 'descending';
+}
 
 export default function OrdersPage() {
   const { breadOrders: orders, loading } = useMockData();
@@ -70,7 +84,8 @@ export default function OrdersPage() {
   const [date, setDate] = useState<DateRange | undefined>();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
-  
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'descending' });
+
   useEffect(() => {
     setSelectedOrderIds([]);
   }, [viewMode]);
@@ -90,19 +105,18 @@ export default function OrdersPage() {
 
     const todayStart = startOfDay(new Date());
 
-    const allOrders = [...orders].sort((a, b) => {
-      const scoreA = getOrderStatusScore(a);
-      const scoreB = getOrderStatusScore(b);
-      if (scoreA !== scoreB) {
-        return scoreA - scoreB;
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    const today = [...orders]
+      .filter((o) => !isBefore(new Date(o.createdAt), todayStart))
+      .sort((a, b) => {
+        const scoreA = getOrderStatusScore(a);
+        const scoreB = getOrderStatusScore(b);
+        if (scoreA !== scoreB) {
+          return scoreA - scoreB;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
 
-    const today = allOrders.filter(
-      (o) => !isBefore(new Date(o.createdAt), todayStart)
-    );
-    let past = allOrders.filter((o) =>
+    let past = orders.filter((o) =>
       isBefore(new Date(o.createdAt), todayStart)
     );
 
@@ -115,9 +129,36 @@ export default function OrdersPage() {
         isWithinInterval(new Date(o.createdAt), interval)
       );
     }
+    
+    past.sort((a, b) => {
+      const aValue = a[sortConfig.key] as any;
+      const bValue = b[sortConfig.key] as any;
+
+      if (aValue === undefined || aValue === null) return sortConfig.direction === 'ascending' ? 1 : -1;
+      if (bValue === undefined || bValue === null) return sortConfig.direction === 'ascending' ? -1 : 1;
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'ascending'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
 
     return { todayOrders: today, pastOrders: past };
-  }, [orders, date]);
+  }, [orders, date, sortConfig]);
+  
+  const handleSortChange = (value: string) => {
+    const [key, direction] = value.split(':');
+    setSortConfig({ key: key as SortKey, direction: direction as 'ascending' | 'descending' });
+  };
   
   // Selection handlers
   const handleSelectAllToday = (checked: boolean | 'indeterminate') => {
@@ -443,6 +484,24 @@ export default function OrdersPage() {
               </CardDescription>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
+              <Select
+                value={`${sortConfig.key}:${sortConfig.direction}`}
+                onValueChange={handleSortChange}
+              >
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Trier par..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="createdAt:descending">Plus récent</SelectItem>
+                  <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
+                  <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
+                  <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
+                  <SelectItem value="quantity:descending">Quantité (décroissant)</SelectItem>
+                  <SelectItem value="quantity:ascending">Quantité (croissant)</SelectItem>
+                  <SelectItem value="totalAmount:descending">Montant (décroissant)</SelectItem>
+                  <SelectItem value="totalAmount:ascending">Montant (croissant)</SelectItem>
+                </SelectContent>
+              </Select>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
