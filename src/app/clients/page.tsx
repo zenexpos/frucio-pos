@@ -215,16 +215,20 @@ export default function ClientsPage() {
     return filtered;
   }, [customersWithTotals, searchTerm, sortConfig, balanceFilter]);
 
+  const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
+
   const { paginatedCustomers, totalPages } = useMemo(() => {
-    const itemsPerPage = viewMode === 'grid' ? ITEMS_PER_PAGE : 10;
     const total = sortedAndFilteredCustomers.length;
     const pages = Math.ceil(total / itemsPerPage);
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const paginated = sortedAndFilteredCustomers.slice(start, end);
     return { paginatedCustomers: paginated, totalPages: pages };
-  }, [sortedAndFilteredCustomers, currentPage, viewMode]);
+  }, [sortedAndFilteredCustomers, currentPage, itemsPerPage]);
 
+  const startItem = sortedAndFilteredCustomers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const endItem = startItem + paginatedCustomers.length - 1;
+  
   const areFiltersActive = searchTerm !== '' || balanceFilter !== 'all';
 
   const handleClearFilters = () => {
@@ -461,7 +465,7 @@ export default function ClientsPage() {
         {totalPages > 1 && (
           <CardFooter className="flex items-center justify-between pt-4">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} sur {totalPages}
+              Affichage de {startItem} à {endItem} sur {sortedAndFilteredCustomers.length} clients
             </div>
             <div className="flex items-center gap-2">
               <Button
