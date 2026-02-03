@@ -43,6 +43,7 @@ import { CustomerCombobox } from '@/components/caisse/customer-combobox';
 import { Receipt, type ReceiptData } from '@/components/caisse/receipt';
 import { SettleDebtDialog } from '@/components/caisse/settle-debt-dialog';
 import { AddProductDialog } from '@/components/produits/add-product-dialog';
+import { ShortcutsDialog } from '@/components/caisse/shortcuts-dialog';
 
 
 const productImages = imageData.caisse;
@@ -550,6 +551,7 @@ export default function CaissePage() {
                     {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <ShortcutsDialog />
               </div>
             </CardHeader>
           </Card>
