@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, Truck } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { EditProductDialog } from './edit-product-dialog';
@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 const slugify = (text: string) => {
     return text
@@ -36,7 +37,7 @@ const slugify = (text: string) => {
 };
 const productImages = imageData.caisse;
 
-export function ProduitCard({ product }: { product: Product }) {
+export function ProduitCard({ product }: { product: Product & { supplierName?: string | null } }) {
     const getProductImage = (product: Product) => {
       const imageId = slugify(product.name);
       const img = productImages.find(i => i.id === imageId);
@@ -109,6 +110,12 @@ export function ProduitCard({ product }: { product: Product }) {
       <CardContent className="p-4 flex-grow">
         <CardTitle className="text-base font-semibold mb-1 truncate">{product.name}</CardTitle>
         <p className="text-sm text-muted-foreground">{product.category}</p>
+         {product.supplierId && product.supplierName && (
+            <Link href={`/fournisseurs/${product.supplierId}`} className="text-xs text-muted-foreground hover:underline flex items-center gap-1.5 mt-1">
+                <Truck className="h-3 w-3" />
+                <span>{product.supplierName}</span>
+            </Link>
+        )}
         <div className="mt-2">
             {getStockBadge()}
         </div>

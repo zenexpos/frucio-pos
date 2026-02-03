@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
-import type { Product } from '@/lib/types';
+import type { Product, Supplier } from '@/lib/types';
 import {
   Search,
   ArrowUp,
@@ -16,7 +16,9 @@ import {
   Archive,
   PackageWarning,
   PackageX,
+  Truck,
 } from 'lucide-react';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,7 +50,7 @@ import {
 } from '@/components/ui/select';
 
 
-type SortKey = keyof Product | 'margin';
+type SortKey = keyof Product | 'margin' | 'supplierName';
 type SortDirection = 'ascending' | 'descending';
 
 interface SortConfig {
@@ -61,9 +63,10 @@ type StockStatusFilter = 'all' | 'ok' | 'low' | 'out';
 export default function ProduitsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
-  const { products, settings, loading } = useMockData();
+  const { products, suppliers, settings, loading } = useMockData();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSupplier, setSelectedSupplier] = useState('all');
   const [stockStatus, setStockStatus] = useState<StockStatusFilter>('all');
 
   useEffect(() => {
@@ -71,6 +74,15 @@ export default function ProduitsPage() {
       setViewMode(settings.productPageViewMode);
     }
   }, [loading, settings.productPageViewMode]);
+
+  const productsWithSupplier = useMemo(() => {
+    if (!products || !suppliers) return [];
+    const supplierMap = new Map(suppliers.map(s => [s.id, s.name]));
+    return products.map(product => ({
+      ...product,
+      supplierName: product.supplierId ? supplierMap.get(product.supplierId) || null : null,
+    }));
+  }, [products, suppliers]);
 
   const categories = useMemo(() => {
     if (!products) return [];
@@ -94,13 +106,15 @@ export default function ProduitsPage() {
   }, [products]);
 
   const sortedAndFilteredProducts = useMemo(() => {
-    if (!products) return [];
-    let filtered = products.filter(product => {
+    if (!productsWithSupplier) return [];
+    let filtered = productsWithSupplier.filter(product => {
       const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (product.barcode || '').includes(searchTerm);
 
       const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
+      
+      const supplierMatch = selectedSupplier === 'all' || product.supplierId === selectedSupplier;
 
       let stockMatch = true;
       switch (stockStatus) {
@@ -117,20 +131,27 @@ export default function ProduitsPage() {
           stockMatch = true;
       }
 
-      return searchMatch && categoryMatch && stockMatch;
+      return searchMatch && categoryMatch && supplierMatch && stockMatch;
     });
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
-        let aValue: string | number | null | undefined;
-        let bValue: string | number | null | undefined;
+        let aValue: any;
+        let bValue: any;
 
         if (sortConfig.key === 'margin') {
           aValue = a.sellingPrice - a.purchasePrice;
           bValue = b.sellingPrice - b.purchasePrice;
         } else {
-          aValue = a[sortConfig.key as keyof Product];
-          bValue = b[sortConfig.key as keyof Product];
+          aValue = a[sortConfig.key as keyof typeof a];
+          bValue = b[sortConfig.key as keyof typeof b];
+        }
+        
+        if (aValue === null || aValue === undefined) aValue = '';
+        if (bValue === null || bValue === undefined) bValue = '';
+        
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         }
         
         if (aValue < bValue) {
@@ -148,7 +169,7 @@ export default function ProduitsPage() {
 
 
     return filtered;
-  }, [searchTerm, sortConfig, products, selectedCategory, stockStatus]);
+  }, [searchTerm, sortConfig, productsWithSupplier, selectedCategory, selectedSupplier, stockStatus]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';
@@ -171,6 +192,7 @@ export default function ProduitsPage() {
   const headers: { key: SortKey; label: string; className?: string, isSortable: boolean }[] = [
     { key: 'name', label: 'Nom', isSortable: true },
     { key: 'category', label: 'Catégorie', className: 'hidden md:table-cell', isSortable: true },
+    { key: 'supplierName', label: 'Fournisseur', className: 'hidden lg:table-cell', isSortable: true },
     { key: 'barcode', label: 'Code-Barres', className: 'hidden lg:table-cell', isSortable: true },
     { key: 'purchasePrice', label: "Prix d'achat", className: 'text-right hidden sm:table-cell', isSortable: true },
     { key: 'sellingPrice', label: 'Prix de vente', className: 'text-right', isSortable: true },
@@ -243,6 +265,15 @@ export default function ProduitsPage() {
                             {categories.map(cat => <SelectItem key={cat} value={cat}>{cat === 'all' ? 'Toutes les catégories' : cat}</SelectItem>)}
                         </SelectContent>
                     </Select>
+                     <Select value={selectedSupplier} onValueChange={setSelectedSupplier} disabled={!hasProducts}>
+                        <SelectTrigger className="w-full sm:w-[200px]">
+                            <SelectValue placeholder="Tous les fournisseurs" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tous les fournisseurs</SelectItem>
+                            {suppliers.map(sup => <SelectItem key={sup.id} value={sup.id}>{sup.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                      <Select value={stockStatus} onValueChange={(value) => setStockStatus(value as StockStatusFilter)} disabled={!hasProducts}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="État du stock" />
@@ -311,6 +342,13 @@ export default function ProduitsPage() {
                                         <TableCell className="font-medium p-4">{product.name}</TableCell>
                                         <TableCell className="p-4 hidden md:table-cell">
                                             <Badge variant="secondary">{product.category}</Badge>
+                                        </TableCell>
+                                        <TableCell className="p-4 hidden lg:table-cell text-muted-foreground">
+                                            {product.supplierId && product.supplierName ? (
+                                                <Link href={`/fournisseurs/${product.supplierId}`} className="hover:underline">{product.supplierName}</Link>
+                                            ) : (
+                                                '-'
+                                            )}
                                         </TableCell>
                                         <TableCell className="p-4 hidden lg:table-cell text-muted-foreground font-mono">
                                             {product.barcode}
