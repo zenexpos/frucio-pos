@@ -56,6 +56,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AdjustStockDialog } from '@/components/produits/adjust-stock-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BulkDeleteProductsDialog } from '@/components/produits/bulk-delete-products-dialog';
+import { PrintBarcodeDialog } from '@/components/produits/print-barcode-dialog';
 
 type SortKey = keyof Product | 'margin' | 'supplierName';
 type SortDirection = 'ascending' | 'descending';
@@ -646,6 +647,7 @@ export default function ProduitsPage() {
                         </TableCell>
                         <TableCell className="text-right p-4">
                           <div className="flex items-center justify-end gap-0.5">
+                            <PrintBarcodeDialog product={product} />
                             <AdjustStockDialog product={product} />
                             <EditProductDialog product={product} />
                             <DeleteProductDialog

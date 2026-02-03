@@ -26,6 +26,7 @@ import {
 import Link from 'next/link';
 import { AdjustStockDialog } from './adjust-stock-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PrintBarcodeDialog } from './print-barcode-dialog';
 
 const slugify = (text: string) => {
   return text
@@ -122,6 +123,14 @@ export function ProduitCard({
                 trigger={
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                     Ajuster le stock
+                  </DropdownMenuItem>
+                }
+              />
+              <PrintBarcodeDialog
+                product={product}
+                trigger={
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    Imprimer code-barres
                   </DropdownMenuItem>
                 }
               />
