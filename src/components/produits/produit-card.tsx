@@ -156,6 +156,9 @@ export function ProduitCard({
           {product.name}
         </CardTitle>
         <p className="text-sm text-muted-foreground">{product.category}</p>
+        {product.description && (
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
+        )}
         {product.supplierId && product.supplierName && (
           <Link
             href={`/fournisseurs/${product.supplierId}`}

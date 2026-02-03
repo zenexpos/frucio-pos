@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { updateProduct } from '@/lib/mock-data/api';
@@ -14,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const productSchema = z.object({
   name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
   category: z.string().min(2, { message: 'La catégorie doit comporter au moins 2 caractères.' }),
+  description: z.string().optional(),
   barcode: z.string().optional(),
   purchasePrice: z.coerce.number().min(0, { message: 'Le prix doit être un nombre positif.' }),
   sellingPrice: z.coerce.number().positive({ message: 'Le prix doit être un nombre positif.' }),
@@ -43,6 +45,7 @@ export function EditProductForm({
     onSubmit: async (data) => {
       await updateProduct(product.id, {
         ...data,
+        description: data.description || '',
         barcode: data.barcode || '',
         supplierId: selectedSupplierId,
       });
@@ -60,6 +63,10 @@ export function EditProductForm({
         <Label htmlFor="category">Catégorie</Label>
         <Input id="category" name="category" defaultValue={product.category} />
         {errors?.category && <p className="text-sm font-medium text-destructive">{errors.category._errors[0]}</p>}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="description">Description (Optionnel)</Label>
+        <Textarea id="description" name="description" placeholder="Ex: Un café court et intense..." defaultValue={product.description} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="supplierId">Fournisseur (Optionnel)</Label>

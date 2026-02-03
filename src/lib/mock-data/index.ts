@@ -106,6 +106,9 @@ export function loadData() {
       if (!parsedData.products) {
           parsedData.products = [];
       }
+       if (parsedData.products && parsedData.products.length > 0 && !('description' in parsedData.products[0])) {
+        parsedData.products = parsedData.products.map((p: any) => ({...p, description: ''}));
+      }
       if (parsedData.products && parsedData.products.length > 0 && !('supplierId' in parsedData.products[0])) {
         parsedData.products = parsedData.products.map((p: any) => ({...p, supplierId: null}));
       }
@@ -160,6 +163,7 @@ export function resetToSeedData() {
   const products: Product[] = SEED_PRODUCTS.map((p, i) => ({
       ...p,
       id: (i + 1).toString(),
+      description: p.description || '',
   }));
 
   // Recalculate balances after seeding

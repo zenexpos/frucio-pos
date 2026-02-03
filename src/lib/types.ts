@@ -97,6 +97,7 @@ export interface Product {
   id: string;
   name: string;
   category: string;
+  description?: string;
   barcode: string;
   purchasePrice: number;
   sellingPrice: number;
