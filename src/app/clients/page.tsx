@@ -107,6 +107,28 @@ export default function ClientsPage() {
       } else if (e.altKey && (e.key === 'e' || e.key === 'E')) {
         e.preventDefault();
         exportButtonRef.current?.click();
+      } else if (e.altKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        setActiveFilter('all');
+      } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        setActiveFilter('debt');
+      } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        setActiveFilter('credit');
+      } else if (e.altKey && (e.key === 'j' || e.key === 'J')) {
+        e.preventDefault();
+        setActiveFilter('dueToday');
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          setCurrentPage((p) => p + 1);
+        }
+      } else if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentPage > 1) {
+          setCurrentPage((p) => p - 1);
+        }
       }
     };
 
@@ -114,7 +136,7 @@ export default function ClientsPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [viewMode]);
+  }, [viewMode, currentPage, totalPages]);
 
   // Reset selection and page when filters change
   useEffect(() => {

@@ -21,7 +21,12 @@ import {
 
 const shortcuts = [
   { group: 'Navigation', key: 'F1', description: 'Rechercher un client' },
-  { group: 'Filtres', key: 'Alt + S', description: 'Ouvrir la sélection de tri' },
+  { group: 'Navigation', key: 'Alt + → / ←', description: 'Naviguer entre les pages' },
+  { group: 'Filtres et Tri', key: 'Alt + S', description: 'Ouvrir la sélection de tri' },
+  { group: 'Filtres et Tri', key: 'Alt + A', description: 'Afficher tous les clients' },
+  { group: 'Filtres et Tri', key: 'Alt + D', description: 'Filtrer les clients en dette' },
+  { group: 'Filtres et Tri', key: 'Alt + C', description: 'Filtrer les clients avec crédit' },
+  { group: 'Filtres et Tri', key: 'Alt + J', description: "Filtrer les clients dûs aujourd'hui" },
   { group: 'Actions', key: 'Alt + N', description: 'Ajouter un nouveau client' },
   { group: 'Actions', key: 'Alt + I', description: "Importer des clients (CSV)" },
   { group: 'Actions', key: 'Alt + E', description: "Exporter les clients (CSV)" },

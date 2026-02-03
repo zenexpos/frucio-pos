@@ -21,6 +21,7 @@ import {
 
 const shortcuts = [
   { group: 'Navigation', key: 'F1', description: 'Rechercher un produit' },
+  { group: 'Navigation', key: 'Alt + → / ←', description: 'Naviguer entre les pages' },
   { group: 'Filtres', key: 'Alt + C', description: 'Ouvrir la sélection de catégorie' },
   { group: 'Filtres', key: 'Alt + S', description: 'Ouvrir la sélection de fournisseur' },
   { group: 'Filtres', key: 'Alt + T', description: "Ouvrir la sélection de l'état du stock" },
