@@ -11,7 +11,8 @@ import {
   Users,
   List,
   LayoutGrid,
-  Wallet,
+  WalletCards,
+  HandCoins,
   UserCheck,
   UserX,
   Download,
@@ -68,22 +69,46 @@ export default function ClientsPage() {
     setSelectedCustomerIds([]);
   }, [searchTerm, balanceFilter, viewMode]);
 
-  const { totalCustomers, totalBalance, customersInDebt, customersWithCredit } =
-    useMemo(() => {
-      if (!customers)
-        return {
-          totalCustomers: 0,
-          totalBalance: 0,
-          customersInDebt: 0,
-          customersWithCredit: 0,
-        };
+  const {
+    totalCustomers,
+    totalDebtAmount,
+    totalCreditAmount,
+    customersInDebt,
+    customersWithCredit,
+  } = useMemo(() => {
+    if (!customers) {
       return {
-        totalCustomers: customers.length,
-        totalBalance: customers.reduce((sum, c) => sum + c.balance, 0),
-        customersInDebt: customers.filter((c) => c.balance > 0).length,
-        customersWithCredit: customers.filter((c) => c.balance < 0).length,
+        totalCustomers: 0,
+        totalDebtAmount: 0,
+        totalCreditAmount: 0,
+        customersInDebt: 0,
+        customersWithCredit: 0,
       };
-    }, [customers]);
+    }
+
+    let debt = 0;
+    let credit = 0;
+    let debtors = 0;
+    let creditors = 0;
+
+    for (const c of customers) {
+      if (c.balance > 0) {
+        debt += c.balance;
+        debtors++;
+      } else if (c.balance < 0) {
+        credit += c.balance;
+        creditors++;
+      }
+    }
+
+    return {
+      totalCustomers: customers.length,
+      totalDebtAmount: debt,
+      totalCreditAmount: Math.abs(credit),
+      customersInDebt: debtors,
+      customersWithCredit: creditors,
+    };
+  }, [customers]);
 
   const customersWithTotals = useMemo(() => {
     if (!customers || !rawTransactions) return [];
@@ -223,7 +248,7 @@ export default function ClientsPage() {
         </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard
           title="Total Clients"
           value={totalCustomers}
@@ -233,10 +258,16 @@ export default function ClientsPage() {
           isActive={balanceFilter === 'all'}
         />
         <StatCard
-          title="Solde Total"
-          value={formatCurrency(totalBalance)}
-          description={totalBalance > 0 ? 'Dette globale' : 'Crédit global'}
-          icon={Wallet}
+          title="Total des Dettes"
+          value={formatCurrency(totalDebtAmount)}
+          description="Argent dû par les clients"
+          icon={WalletCards}
+        />
+        <StatCard
+          title="Total des Crédits"
+          value={formatCurrency(totalCreditAmount)}
+          description="Argent que vous devez aux clients"
+          icon={HandCoins}
         />
         <StatCard
           title="Clients en Dette"
