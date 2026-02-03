@@ -35,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, getBalanceVariant } from '@/lib/utils';
+import { formatCurrency, getBalanceVariant, getBalanceColorClassName } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { AddSupplierDialog } from '@/components/fournisseurs/add-supplier-dialog';
 import { EditSupplierDialog } from '@/components/fournisseurs/edit-supplier-dialog';
@@ -58,6 +58,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { FournisseursGrid } from '@/components/fournisseurs/fournisseurs-grid';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 type SortKey = keyof Supplier;
 type SortDirection = 'ascending' | 'descending';
@@ -74,7 +75,7 @@ export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'toPay' | 'inCredit'>('all');
-  const { suppliers, loading } = useMockData();
+  const { suppliers, supplierTransactions, loading } = useMockData();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -118,6 +119,31 @@ export default function FournisseursPage() {
       totalCreditFromSuppliers: Math.abs(credit),
     };
   }, [suppliers]);
+
+  const recentSuppliers = useMemo(() => {
+    if (!supplierTransactions || !suppliers) return [];
+
+    const sortedTransactions = [...supplierTransactions].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    const recentSupplierIds = new Set<string>();
+
+    for (const t of sortedTransactions) {
+      if (t.supplierId) {
+        recentSupplierIds.add(t.supplierId);
+      }
+      if (recentSupplierIds.size >= 5) { // Get last 5 unique suppliers
+        break;
+      }
+    }
+
+    const supplierMap = new Map(suppliers.map((s) => [s.id, s]));
+
+    return Array.from(recentSupplierIds)
+      .map((id) => supplierMap.get(id))
+      .filter((s): s is Supplier => !!s);
+  }, [supplierTransactions, suppliers]);
 
   const sortedAndFilteredSuppliers = useMemo(() => {
     if (!suppliers) return [];
@@ -191,6 +217,17 @@ export default function FournisseursPage() {
     return <ArrowDown className="ml-2 h-4 w-4" />;
   };
   
+  const getInitials = (name: string) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
   if (loading) {
       return <FournisseursLoading />;
   }
@@ -253,6 +290,36 @@ export default function FournisseursPage() {
           icon={HandCoins}
         />
       </div>
+
+      {recentSuppliers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Fournisseurs Récents</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              {recentSuppliers.map((supplier) => (
+                <div key={supplier.id} className="flex items-center">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>{getInitials(supplier.name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-4 flex-grow">
+                    <p className="font-semibold text-sm">{supplier.name}</p>
+                    <p className={cn("text-xs font-mono", getBalanceColorClassName(supplier.balance))}>
+                      {formatCurrency(supplier.balance)}
+                    </p>
+                  </div>
+                  <Button asChild variant="secondary" size="sm">
+                    <Link href={`/fournisseurs/${supplier.id}`}>
+                      Voir <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
