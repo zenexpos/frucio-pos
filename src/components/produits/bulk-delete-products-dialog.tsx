@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Archive, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteProduct } from '@/lib/mock-data/api';
 
@@ -28,22 +28,22 @@ export function BulkDeleteProductsDialog({
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
 
-  const handleDelete = async () => {
+  const handleArchive = async () => {
     if (productIds.length === 0) return;
     setIsPending(true);
     try {
-      await Promise.all(productIds.map((id) => deleteProduct(id)));
+      await Promise.all(productIds.map((id) => deleteProduct(id))); // This now archives products
       toast({
         title: 'Succès !',
-        description: `${productIds.length} produit(s) ont été supprimé(s).`,
+        description: `${productIds.length} produit(s) ont été archivé(s).`,
       });
       onSuccess();
       setOpen(false);
     } catch (error) {
-      console.error('Failed to bulk delete products', error);
+      console.error('Failed to bulk archive products', error);
       toast({
         title: 'Erreur',
-        description: `Une erreur est survenue lors de la suppression des produits.`,
+        description: `Une erreur est survenue lors de l'archivage des produits.`,
         variant: 'destructive',
       });
     } finally {
@@ -56,10 +56,10 @@ export function BulkDeleteProductsDialog({
       <AlertDialogTrigger asChild>
         <Button
           size="sm"
-          variant="destructive"
+          variant="outline"
           disabled={productIds.length === 0}
         >
-          <Trash2 className="mr-2 h-4 w-4" /> Supprimer la sélection (
+          <Archive className="mr-2 h-4 w-4" /> Archiver la sélection (
           {productIds.length})
         </Button>
       </AlertDialogTrigger>
@@ -67,18 +67,16 @@ export function BulkDeleteProductsDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irréversible. {productIds.length} produit(s)
-            sélectionné(s) seront définitivement supprimé(s).
+            Cette action archivera {productIds.length} produit(s). Ils n'apparaîtront plus dans les listes actives mais ne seront pas supprimés définitivement.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Annuler</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleDelete}
+            onClick={handleArchive}
             disabled={isPending}
-            className="bg-destructive hover:bg-destructive/90"
           >
-            {isPending ? <Loader2 className="animate-spin" /> : 'Supprimer'}
+            {isPending ? <Loader2 className="animate-spin" /> : 'Archiver'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

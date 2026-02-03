@@ -31,8 +31,8 @@ export default function AlertsPage() {
 
   const lowStockProducts = useMemo(() => {
     if (!products) return [];
-    // Ensure stock is a number and also check for negative stock
-    return products.filter((p) => p.stock <= p.minStock);
+    // Ensure stock is a number and also check for negative stock, and that the product is not archived
+    return products.filter((p) => !p.isArchived && p.stock <= p.minStock);
   }, [products]);
 
   const overdueCustomers = useMemo(() => {

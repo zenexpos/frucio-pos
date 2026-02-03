@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Archive, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteProduct } from '@/lib/mock-data/api';
 
@@ -30,20 +30,20 @@ export function DeleteProductDialog({
   const [isPending, setIsPending] = useState(false);
   const { toast } = useToast();
 
-  const handleDelete = async () => {
+  const handleArchive = async () => {
     setIsPending(true);
     try {
-      await deleteProduct(productId);
+      await deleteProduct(productId); // This now archives the product
       toast({
         title: 'Succès !',
-        description: 'Le produit a été supprimé.',
+        description: 'Le produit a été archivé.',
       });
       setOpen(false);
     } catch (error) {
-      console.error('Failed to delete product', error);
+      console.error('Failed to archive product', error);
       toast({
         title: 'Erreur',
-        description: `Une erreur est survenue lors de la suppression du produit.`,
+        description: `Une erreur est survenue lors de l'archivage du produit.`,
         variant: 'destructive',
       });
     } finally {
@@ -52,32 +52,27 @@ export function DeleteProductDialog({
   };
 
   const defaultTrigger = (
-    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-      <Trash2 className="h-4 w-4" />
+    <Button variant="ghost" size="icon" className="h-8 w-8">
+      <Archive className="h-4 w-4" />
     </Button>
   );
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </AlertDialogTrigger>
+      <AlertDialogTrigger asChild>{trigger || defaultTrigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+          <AlertDialogTitle>Archiver le produit ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irréversible. Le produit "{productName}" sera
-            définitivement supprimé.
+            Cette action archivera le produit "{productName}". Il n'apparaîtra
+            plus dans la caisse ou les listes par défaut, mais ses données
+            historiques seront conservées.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Annuler</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-            disabled={isPending}
-            className="bg-destructive hover:bg-destructive/90"
-          >
-            {isPending ? <Loader2 className="animate-spin" /> : 'Supprimer'}
+          <AlertDialogAction onClick={handleArchive} disabled={isPending}>
+            {isPending ? <Loader2 className="animate-spin" /> : 'Archiver'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

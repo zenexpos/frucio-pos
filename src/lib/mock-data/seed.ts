@@ -70,16 +70,16 @@ export const SEED_SUPPLIER_TRANSACTIONS: Omit<SupplierTransaction, 'id' | 'suppl
 ];
 
 export const SEED_PRODUCTS: Omit<Product, 'id'>[] = [
-  { name: 'Café Espresso', category: 'Boissons', description: 'Un café court et intense, préparé à l\'italienne.', barcode: '1234567890123', purchasePrice: 1.5, sellingPrice: 2.5, stock: 100, minStock: 20, supplierId: '1' },
-  { name: 'Croissant au Beurre', category: 'Pâtisseries', description: 'Un classique de la viennoiserie française, pur beurre.', barcode: '2345678901234', purchasePrice: 0.8, sellingPrice: 1.8, stock: 50, minStock: 15, supplierId: '1' },
-  { name: 'Eau Minérale', category: 'Boissons', description: '', barcode: '3456789012345', purchasePrice: 0.5, sellingPrice: 1.2, stock: 200, minStock: 50, supplierId: '2' },
-  { name: "Jus d'Orange Frais", category: 'Boissons', description: '', barcode: '4567890123456', purchasePrice: 1.8, sellingPrice: 3.0, stock: 40, minStock: 10, supplierId: '3' },
-  { name: 'Pain au Chocolat', category: 'Pâtisseries', description: '', barcode: '5678901234567', purchasePrice: 0.9, sellingPrice: 1.9, stock: 15, minStock: 15, supplierId: '1' },
-  { name: 'Salade César', category: 'Salades', description: '', barcode: '6789012345678', purchasePrice: 4.0, sellingPrice: 7.2, stock: 20, minStock: 5, supplierId: '3' },
-  { name: 'Sandwich Poulet Crudités', category: 'Sandwichs', description: '', barcode: '7890123456789', purchasePrice: 3.5, sellingPrice: 5.5, stock: 25, minStock: 10, supplierId: null },
-  { name: 'Tarte au Citron', category: 'Pâtisseries', description: '', barcode: '8901234567890', purchasePrice: 2.0, sellingPrice: 3.5, stock: 10, minStock: 5, supplierId: '3' },
-  { name: 'Thé à la Menthe', category: 'Boissons', description: '', barcode: '9012345678901', purchasePrice: 1.2, sellingPrice: 2.2, stock: 80, minStock: 20, supplierId: '1' },
-  { name: 'Muffin Myrtille', category: 'Pâtisseries', description: '', barcode: '0123456789012', purchasePrice: 1.5, sellingPrice: 2.75, stock: 8, minStock: 10, supplierId: null }, // Low stock example
+  { name: 'Café Espresso', category: 'Boissons', description: 'Un café court et intense, préparé à l\'italienne.', barcode: '1234567890123', purchasePrice: 1.5, sellingPrice: 2.5, stock: 100, minStock: 20, supplierId: '1', isArchived: false },
+  { name: 'Croissant au Beurre', category: 'Pâtisseries', description: 'Un classique de la viennoiserie française, pur beurre.', barcode: '2345678901234', purchasePrice: 0.8, sellingPrice: 1.8, stock: 50, minStock: 15, supplierId: '1', isArchived: false },
+  { name: 'Eau Minérale', category: 'Boissons', description: '', barcode: '3456789012345', purchasePrice: 0.5, sellingPrice: 1.2, stock: 200, minStock: 50, supplierId: '2', isArchived: false },
+  { name: "Jus d'Orange Frais", category: 'Boissons', description: '', barcode: '4567890123456', purchasePrice: 1.8, sellingPrice: 3.0, stock: 40, minStock: 10, supplierId: '3', isArchived: false },
+  { name: 'Pain au Chocolat', category: 'Pâtisseries', description: '', barcode: '5678901234567', purchasePrice: 0.9, sellingPrice: 1.9, stock: 15, minStock: 15, supplierId: '1', isArchived: false },
+  { name: 'Salade César', category: 'Salades', description: '', barcode: '6789012345678', purchasePrice: 4.0, sellingPrice: 7.2, stock: 20, minStock: 5, supplierId: '3', isArchived: false },
+  { name: 'Sandwich Poulet Crudités', category: 'Sandwichs', description: '', barcode: '7890123456789', purchasePrice: 3.5, sellingPrice: 5.5, stock: 25, minStock: 10, supplierId: null, isArchived: false },
+  { name: 'Tarte au Citron', category: 'Pâtisseries', description: '', barcode: '8901234567890', purchasePrice: 2.0, sellingPrice: 3.5, stock: 10, minStock: 5, supplierId: '3', isArchived: false },
+  { name: 'Thé à la Menthe', category: 'Boissons', description: '', barcode: '9012345678901', purchasePrice: 1.2, sellingPrice: 2.2, stock: 80, minStock: 20, supplierId: '1', isArchived: false },
+  { name: 'Muffin Myrtille', category: 'Pâtisseries', description: '', barcode: '0123456789012', purchasePrice: 1.5, sellingPrice: 2.75, stock: 8, minStock: 10, supplierId: null, isArchived: false }, // Low stock example
 ];
 
 

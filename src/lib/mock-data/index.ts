@@ -112,6 +112,9 @@ export function loadData() {
       if (parsedData.products && parsedData.products.length > 0 && !('supplierId' in parsedData.products[0])) {
         parsedData.products = parsedData.products.map((p: any) => ({...p, supplierId: null}));
       }
+      if (parsedData.products && parsedData.products.length > 0 && !('isArchived' in parsedData.products[0])) {
+        parsedData.products = parsedData.products.map((p: any) => ({...p, isArchived: false}));
+      }
       if (parsedData.transactions && parsedData.transactions.length > 0 && !('saleItems' in parsedData.transactions[0])) {
         parsedData.transactions = parsedData.transactions.map((t: any) => ({ ...t, saleItems: null }));
       }
@@ -164,6 +167,7 @@ export function resetToSeedData() {
       ...p,
       id: (i + 1).toString(),
       description: p.description || '',
+      isArchived: false,
   }));
 
   // Recalculate balances after seeding

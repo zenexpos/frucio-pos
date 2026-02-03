@@ -104,4 +104,5 @@ export interface Product {
   stock: number;
   minStock: number;
   supplierId?: string | null;
+  isArchived?: boolean;
 }

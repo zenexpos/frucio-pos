@@ -447,8 +447,11 @@ export const updateProduct = async (productId: string, data: Partial<AddProductD
 };
 
 export const deleteProduct = async (productId: string) => {
-    mockDataStore.products = mockDataStore.products.filter(p => p.id !== productId);
-    saveData();
+    const product = mockDataStore.products.find(p => p.id === productId);
+    if (product) {
+        product.isArchived = true;
+        saveData();
+    }
 };
 
 export const duplicateProduct = async (productId: string): Promise<Product> => {
@@ -461,6 +464,7 @@ export const duplicateProduct = async (productId: string): Promise<Product> => {
         id: nextId(),
         name: `${originalProduct.name} (Copie)`,
         barcode: '', // Barcodes should be unique
+        isArchived: false,
     };
     mockDataStore.products.push(newProduct);
     saveData();

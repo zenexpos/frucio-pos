@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreVertical, Truck, Copy } from 'lucide-react';
+import { MoreVertical, Truck, Copy, Archive } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { EditProductDialog } from './edit-product-dialog';
@@ -91,6 +91,9 @@ export function ProduitCard({
   const isLowStock = !isOutOfStock && product.stock <= product.minStock;
 
   const getStockBadge = () => {
+    if (product.isArchived) {
+      return <Badge variant="secondary">Archivé</Badge>;
+    }
     if (isOutOfStock) {
       return <Badge variant="destructive">Épuisé</Badge>;
     }
@@ -108,7 +111,8 @@ export function ProduitCard({
     <Card
       className={cn(
         'overflow-hidden flex flex-col transition-all',
-        isSelected && 'ring-2 ring-primary'
+        isSelected && 'ring-2 ring-primary',
+        product.isArchived && 'bg-muted/50'
       )}
     >
       <CardHeader className="p-0 relative">
@@ -117,7 +121,7 @@ export function ProduitCard({
           alt={product.name}
           width={400}
           height={400}
-          className={cn('object-cover w-full h-40', isOutOfStock && 'grayscale')}
+          className={cn('object-cover w-full h-40', (isOutOfStock || product.isArchived) && 'grayscale')}
           data-ai-hint={hint}
         />
         <div className="absolute top-2 left-2 bg-background/70 p-1 rounded-sm">
@@ -171,9 +175,9 @@ export function ProduitCard({
                 trigger={
                   <DropdownMenuItem
                     onSelect={(e) => e.preventDefault()}
-                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
                   >
-                    Supprimer
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archiver
                   </DropdownMenuItem>
                 }
               />

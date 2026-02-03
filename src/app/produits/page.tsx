@@ -72,7 +72,7 @@ interface SortConfig {
   direction: SortDirection;
 }
 
-type StockStatusFilter = 'all' | 'ok' | 'low' | 'out';
+type StockStatusFilter = 'all' | 'ok' | 'low' | 'out' | 'archived';
 const ITEMS_PER_PAGE = 12;
 
 export default function ProduitsPage() {
@@ -191,6 +191,8 @@ export default function ProduitsPage() {
     okStockCount,
     totalValue,
     totalRetailValue,
+    totalActiveProducts,
+    archivedCount,
   } = useMemo(() => {
     if (!products)
       return {
@@ -199,29 +201,21 @@ export default function ProduitsPage() {
         okStockCount: 0,
         totalValue: 0,
         totalRetailValue: 0,
+        totalActiveProducts: 0,
+        archivedCount: 0,
       };
 
-    return products.reduce(
-      (acc, p) => {
-        if (p.stock <= 0) {
-          acc.outOfStockCount++;
-        } else if (p.stock <= p.minStock) {
-          acc.lowStockCount++;
-        } else {
-          acc.okStockCount++;
-        }
-        acc.totalValue += p.purchasePrice * p.stock;
-        acc.totalRetailValue += p.sellingPrice * p.stock;
-        return acc;
-      },
-      {
-        lowStockCount: 0,
-        outOfStockCount: 0,
-        okStockCount: 0,
-        totalValue: 0,
-        totalRetailValue: 0,
-      }
-    );
+    const activeProducts = products.filter(p => !p.isArchived);
+    
+    return {
+      lowStockCount: activeProducts.filter(p => p.stock > 0 && p.stock <= p.minStock).length,
+      outOfStockCount: activeProducts.filter(p => p.stock <= 0).length,
+      okStockCount: activeProducts.filter(p => p.stock > p.minStock).length,
+      totalValue: activeProducts.reduce((sum, p) => sum + p.purchasePrice * p.stock, 0),
+      totalRetailValue: activeProducts.reduce((sum, p) => sum + p.sellingPrice * p.stock, 0),
+      totalActiveProducts: activeProducts.length,
+      archivedCount: products.length - activeProducts.length,
+    };
   }, [products]);
 
   const sortedAndFilteredProducts = useMemo(() => {
@@ -239,21 +233,25 @@ export default function ProduitsPage() {
         selectedSupplier === 'all' || product.supplierId === selectedSupplier;
 
       let stockMatch = true;
-      switch (stockStatus) {
-        case 'ok':
-          stockMatch = product.stock > product.minStock;
-          break;
-        case 'low':
-          stockMatch = product.stock > 0 && product.stock <= product.minStock;
-          break;
-        case 'out':
-          stockMatch = product.stock <= 0;
-          break;
-        default:
-          stockMatch = true;
+      if (stockStatus !== 'archived') { // Ignore stock status if viewing archived
+        switch (stockStatus) {
+          case 'ok':
+            stockMatch = product.stock > product.minStock;
+            break;
+          case 'low':
+            stockMatch = product.stock > 0 && product.stock <= product.minStock;
+            break;
+          case 'out':
+            stockMatch = product.stock <= 0;
+            break;
+          default:
+            stockMatch = true;
+        }
       }
 
-      return searchMatch && categoryMatch && supplierMatch && stockMatch;
+      const archiveMatch = stockStatus === 'archived' ? product.isArchived : !product.isArchived;
+
+      return searchMatch && categoryMatch && supplierMatch && stockMatch && archiveMatch;
     });
 
     if (sortConfig !== null) {
@@ -437,11 +435,11 @@ export default function ProduitsPage() {
         </div>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         <StatCard
           title="Tous les produits"
-          value={products.length}
-          description="Cliquez pour tout voir"
+          value={totalActiveProducts}
+          description="Produits actifs"
           icon={Package}
           onClick={() => setStockStatus('all')}
           isActive={stockStatus === 'all'}
@@ -469,6 +467,14 @@ export default function ProduitsPage() {
           icon={PackageX}
           onClick={() => setStockStatus('out')}
           isActive={stockStatus === 'out'}
+        />
+        <StatCard
+          title="Archivés"
+          value={archivedCount}
+          description="Produits inactifs"
+          icon={Archive}
+          onClick={() => setStockStatus('archived')}
+          isActive={stockStatus === 'archived'}
         />
         <StatCard
           title="Valeur d'Achat"
@@ -546,6 +552,7 @@ export default function ProduitsPage() {
                   <SelectItem value="ok">En Stock</SelectItem>
                   <SelectItem value="low">Stock Faible</SelectItem>
                   <SelectItem value="out">Rupture de Stock</SelectItem>
+                  <SelectItem value="archived">Archivé</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -668,7 +675,9 @@ export default function ProduitsPage() {
                       <TableRow
                         key={product.id}
                         className={cn(
-                          isOutOfStock
+                          product.isArchived 
+                            ? 'bg-muted/50 text-muted-foreground'
+                            : isOutOfStock
                             ? 'bg-destructive/10 hover:bg-destructive/20'
                             : isLowStock
                             ? 'bg-amber-500/10 hover:bg-amber-500/20'
@@ -692,12 +701,13 @@ export default function ProduitsPage() {
                               alt={product.name}
                               width={48}
                               height={48}
-                              className="rounded-lg object-cover"
+                              className={cn("rounded-lg object-cover", product.isArchived && "grayscale")}
                               data-ai-hint={hint}
                           />
                         </TableCell>
                         <TableCell className="font-medium p-4">
                           {product.name}
+                          {product.isArchived && <Badge variant="secondary" className="ml-2">Archivé</Badge>}
                         </TableCell>
                         <TableCell className="p-4 hidden md:table-cell">
                           <Badge variant="secondary">{product.category}</Badge>
@@ -726,9 +736,9 @@ export default function ProduitsPage() {
                         <TableCell
                           className={cn(
                             'text-right font-mono p-4 hidden sm:table-cell',
-                            isOutOfStock
+                            isOutOfStock && !product.isArchived
                               ? 'font-bold text-destructive'
-                              : isLowStock
+                              : isLowStock && !product.isArchived
                               ? 'font-bold text-amber-600'
                               : ''
                           )}

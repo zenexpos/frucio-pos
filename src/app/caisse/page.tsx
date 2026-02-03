@@ -272,7 +272,7 @@ export default function CaissePage() {
 
   const categories = useMemo(() => {
     if (!products) return [];
-    const allCategories = products.map(p => p.category);
+    const allCategories = products.filter(p => !p.isArchived).map(p => p.category);
     return ['Toutes', ...Array.from(new Set(allCategories))];
   }, [products]);
 
@@ -419,7 +419,7 @@ export default function CaissePage() {
         const scannedBarcode = barcode.trim();
         if (!scannedBarcode) return;
 
-        const product = products.find(p => p.barcode === scannedBarcode);
+        const product = products.find(p => p.barcode === scannedBarcode && !p.isArchived);
         if (product) {
             addToCart(product);
             setBarcode(''); // Clear input after adding
@@ -448,7 +448,8 @@ export default function CaissePage() {
     const filtered = products.filter(product => {
       const matchesCategory = selectedCategory === 'Toutes' || product.category === selectedCategory;
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch;
+      const isNotArchived = !product.isArchived;
+      return matchesCategory && matchesSearch && isNotArchived;
     });
     return {
         displayedProducts: filtered.slice(0, 15),
