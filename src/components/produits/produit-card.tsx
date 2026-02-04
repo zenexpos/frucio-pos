@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MoreVertical, Truck, Copy, Archive, Unarchive } from 'lucide-react';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, slugify } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { EditProductDialog } from './edit-product-dialog';
 import { DeleteProductDialog } from './delete-product-dialog';
@@ -30,17 +30,6 @@ import { PrintBarcodeDialog } from './print-barcode-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { duplicateProduct } from '@/lib/mock-data/api';
 
-const slugify = (text: string) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/'/g, '')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
-};
 const productImages = imageData.caisse;
 
 export function ProduitCard({

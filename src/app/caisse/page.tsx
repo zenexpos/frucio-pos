@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatCurrency, cn, getBalanceColorClassName } from '@/lib/utils';
+import { formatCurrency, cn, getBalanceColorClassName, slugify } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
 import { Separator } from '@/components/ui/separator';
 import { useMockData } from '@/hooks/use-mock-data';
@@ -58,20 +58,6 @@ interface CartState {
     discount: number;
     customerId: string | null;
 }
-
-// Helper to generate a slug from a product name
-const slugify = (text: string) => {
-    return text
-        .toString()
-        .toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/'/g, '')              // Remove apostrophes
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
-};
-
 
 export default function CaissePage() {
   const { products, customers, transactions, loading } = useMockData();

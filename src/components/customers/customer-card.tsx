@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { formatCurrency, getBalanceColorClassName, cn } from '@/lib/utils';
+import { formatCurrency, getBalanceColorClassName, cn, getInitials } from '@/lib/utils';
 import {
   MoreVertical,
   Mail,
@@ -48,17 +48,6 @@ export function CustomerCard({
   isSelected: boolean;
   onSelectionChange: (checked: boolean | 'indeterminate') => void;
 }) {
-  const getInitials = (name: string) => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-  };
-
   const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
   const isSettlementDay =
     customer.settlementDay &&

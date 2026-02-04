@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { CustomersGrid } from '@/components/customers/customers-grid';
 import { CustomersTable } from '@/components/customers/customers-table';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { formatCurrency, cn, getBalanceColorClassName } from '@/lib/utils';
+import { formatCurrency, cn, getBalanceColorClassName, getInitials } from '@/lib/utils';
 import { CsvImportDialog } from '@/components/customers/csv-import-dialog';
 import { exportCustomersToCsv } from '@/lib/mock-data/api';
 import {
@@ -231,17 +231,6 @@ export default function ClientsPage() {
     setCurrentPage(1);
     setSelectedCustomerIds([]);
   }, [searchTerm, activeFilter, viewMode, sortConfig]);
-
-  const getInitials = (name: string) => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-  };
 
   const recentCustomers = useMemo(() => {
     if (!rawTransactions || !customers) return [];

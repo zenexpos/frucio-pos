@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { formatCurrency, getBalanceColorClassName, cn } from '@/lib/utils';
+import { formatCurrency, getBalanceColorClassName, cn, getInitials } from '@/lib/utils';
 import {
   MoreVertical,
   Mail,
@@ -45,17 +45,6 @@ export function FournisseurCard({
   isSelected: boolean;
   onSelectionChange: (checked: boolean | 'indeterminate') => void;
 }) {
-  const getInitials = (name: string) => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-  };
-
   return (
     <Card className={cn('transition-all', isSelected && 'ring-2 ring-primary')}>
       <CardHeader className="flex flex-row items-start justify-between gap-4">

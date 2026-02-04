@@ -64,3 +64,26 @@ export function getBalanceColorClassName(balance: number): string {
   if (balance < 0) return 'text-accent';
   return 'text-foreground';
 }
+
+export function getInitials(name: string) {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
+export function slugify(text: string) {
+    return text
+        .toString()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/'/g, '')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+}
