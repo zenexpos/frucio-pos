@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
@@ -18,6 +17,7 @@ import {
   Bell,
   FileText,
   Menu,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -124,13 +124,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         <div className="flex h-full flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/caisse" className="flex items-center gap-2 font-semibold">
-               <Image
-                src="/icon.svg"
-                alt="App Logo"
-                width={32}
-                height={32}
-                className="rounded-lg"
-              />
+               <ShoppingCart className="h-8 w-8 text-primary" />
               <span className="text-xl">Frucio</span>
             </Link>
           </div>
@@ -155,13 +149,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             <SheetContent side="left" className="flex flex-col p-0">
                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                   <Link href="/caisse" className="flex items-center gap-2 font-semibold">
-                    <Image
-                      src="/icon.svg"
-                      alt="App Logo"
-                      width={32}
-                      height={32}
-                      className="rounded-lg"
-                    />
+                    <ShoppingCart className="h-8 w-8 text-primary" />
                     <span className="text-xl">Frucio</span>
                   </Link>
                 </div>

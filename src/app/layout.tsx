@@ -4,6 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/layout/theme-provider';
 
+const shoppingCartIcon = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>";
+
 export const metadata: Metadata = {
   title: 'Frucio',
   description: 'Une application pour gérer les crédits clients et les commandes.',
@@ -18,9 +20,9 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    icon: shoppingCartIcon,
+    shortcut: shoppingCartIcon,
+    apple: shoppingCartIcon,
   },
 };
 
