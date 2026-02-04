@@ -542,10 +542,6 @@ export const updateProductPageViewMode = async (mode: 'list' | 'grid') => {
     saveData();
 };
 
-export const setInitialBreadUnitPrice = () => {
-    // This is handled by loadData now, this function is for API compatibility
-};
-
 // --- Data Management ---
 export const exportData = () => {
     const dataStr = JSON.stringify(mockDataStore, null, 2);
@@ -793,75 +789,6 @@ export const exportExpensesToCsv = (expenses: Expense[]) => {
 
 export const resetAllData = () => {
     resetSeed();
-};
-
-// Daily reconciliation logic
-export const reconcileDailyOrders = async () => {
-  const today = startOfDay(new Date()).toISOString().split('T')[0];
-  const lastReconciliationDate = localStorage.getItem('lastOrderReconciliationDate');
-
-  if (lastReconciliationDate === today) {
-    return { didSync: false, message: 'La vérification quotidienne a déjà été effectuée.' };
-  }
-
-  let changesMade = false;
-  
-  mockDataStore.breadOrders.forEach(order => {
-    if (!order.customerId) return;
-    
-    const existingTx = mockDataStore.transactions.find(tx => tx.orderId === order.id);
-    
-    // Case 1: Order is NOT paid. There should be a 'debt' transaction.
-    if (!order.isPaid) {
-      // If no transaction exists for this order, create one.
-      if (!existingTx) {
-        addTransaction({
-          customerId: order.customerId,
-          type: 'debt',
-          amount: order.totalAmount,
-          description: `Commande (auto): ${order.name}`,
-          date: order.createdAt,
-          orderId: order.id,
-        });
-        changesMade = true;
-      } 
-      // If a 'payment' transaction exists by mistake, delete it and create the correct 'debt' one.
-      else if (existingTx.type === 'payment') {
-        deleteTransaction(existingTx.id);
-        addTransaction({
-          customerId: order.customerId,
-          type: 'debt',
-          amount: order.totalAmount,
-          description: `Commande (auto): ${order.name}`,
-          date: order.createdAt,
-          orderId: order.id,
-        });
-        changesMade = true;
-      } 
-      // If a 'debt' transaction exists but the amount is wrong, correct it.
-      else if (existingTx.amount !== order.totalAmount) {
-        updateTransaction(existingTx.id, {
-            amount: order.totalAmount,
-            description: existingTx.description,
-            date: existingTx.date
-        });
-        changesMade = true;
-      }
-    }
-    
-    // Case 2: Order IS paid. Any 'debt' transaction should be removed.
-    if (order.isPaid && existingTx && existingTx.type === 'debt') {
-      deleteTransaction(existingTx.id);
-      changesMade = true;
-    }
-  });
-
-  localStorage.setItem('lastOrderReconciliationDate', today);
-  
-  if (changesMade) {
-     return { didSync: true, message: 'Vérification terminée. Les soldes ont été mis à jour.' };
-  }
-  return { didSync: false, message: 'Aucune modification nécessaire.' };
 };
 
 export const recreatePinnedOrders = async () => {
