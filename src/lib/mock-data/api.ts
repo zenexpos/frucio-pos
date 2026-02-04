@@ -52,6 +52,7 @@ interface AddTransactionData {
   orderId?: string;
   saleItems?: {
       productId: string;
+      productName: string;
       quantity: number;
       unitPrice: number;
       purchasePrice: number;
@@ -147,6 +148,13 @@ export const addBreadOrder = async (data: AddBreadOrderData) => {
             description: `Commande: ${data.name}`,
             date: new Date().toISOString(),
             orderId: newOrder.id,
+            saleItems: [{
+              productId: newOrder.id,
+              productName: newOrder.name,
+              quantity: newOrder.quantity,
+              unitPrice: newOrder.unitPrice,
+              purchasePrice: 0,
+            }]
         });
     } else {
         saveData();
@@ -182,6 +190,13 @@ export const updateBreadOrder = async (orderId: string, data: Partial<Omit<Bread
             description: `Commande: ${order.name}`,
             date: order.createdAt,
             orderId: order.id,
+            saleItems: [{
+              productId: order.id,
+              productName: order.name,
+              quantity: order.quantity,
+              unitPrice: order.unitPrice,
+              purchasePrice: 0,
+            }]
         });
     }
   } else {
@@ -249,6 +264,10 @@ export const processSale = async (cartItems: { product: Product, quantity: numbe
 
   // First, check if all products have enough stock
   for (const item of cartItems) {
+    // Custom products are not in the main inventory, so we skip stock checks.
+    if (item.product.id.startsWith('custom-')) {
+        continue;
+    }
     const productInStore = mockDataStore.products.find(p => p.id === item.product.id);
     if (!productInStore) {
       throw new Error(`Produit non trouvé: ${item.product.name}.`);
@@ -258,8 +277,11 @@ export const processSale = async (cartItems: { product: Product, quantity: numbe
     }
   }
 
-  // If all checks pass, update the stock
+  // If all checks pass, update the stock for non-custom items
   for (const item of cartItems) {
+    if (item.product.id.startsWith('custom-')) {
+        continue;
+    }
     const productInStore = mockDataStore.products.find(p => p.id === item.product.id);
     if (productInStore) {
         productInStore.stock -= item.quantity;
@@ -270,6 +292,7 @@ export const processSale = async (cartItems: { product: Product, quantity: numbe
   if (saleDetails.customerId) {
       const saleItems = cartItems.map(item => ({
           productId: item.product.id,
+          productName: item.product.name,
           quantity: item.quantity,
           unitPrice: item.product.sellingPrice,
           purchasePrice: item.product.purchasePrice,

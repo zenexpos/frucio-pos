@@ -41,6 +41,7 @@ export interface Transaction {
   orderId?: string;
   saleItems?: {
       productId: string;
+      productName: string;
       quantity: number;
       unitPrice: number;
       purchasePrice: number;

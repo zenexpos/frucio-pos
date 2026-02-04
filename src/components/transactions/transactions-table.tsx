@@ -35,6 +35,7 @@ interface BaseTransaction {
   supplierId?: string;
   saleItems?: {
     productId: string;
+    productName: string;
     quantity: number;
     unitPrice: number;
   }[] | null;
@@ -164,7 +165,7 @@ export function TransactionsTable({
                                         <TableBody>
                                             {transaction.saleItems!.map((item, index) => (
                                                 <TableRow key={index} className="border-b-0 hover:bg-transparent">
-                                                    <TableCell className="py-2 font-medium">{productMap?.get(item.productId) || item.productId}</TableCell>
+                                                    <TableCell className="py-2 font-medium">{item.productName || productMap?.get(item.productId) || item.productId}</TableCell>
                                                     <TableCell className="py-2 text-center">{item.quantity}</TableCell>
                                                     <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice)}</TableCell>
                                                     <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
