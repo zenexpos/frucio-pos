@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, getLowStockProducts, getOverdueCustomers, getUnpaidBreadOrders } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 import {
   Users,
@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useMockData } from '@/hooks/use-mock-data';
 import { useMemo } from 'react';
-import { addDays, isAfter } from 'date-fns';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -31,44 +30,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const alertCount = useMemo(() => {
     if (loading || !products || !customers || !transactions || !settings?.companyInfo || !breadOrders) return 0;
     
-    const lowStockCount = products.filter((p) => p.stock <= p.minStock).length;
+    const lowStockCount = getLowStockProducts(products).length;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const paymentTermsDays = settings.companyInfo.paymentTermsDays;
-
-    const overdueCount = customers
-      .filter((customer) => {
-        if (customer.balance <= 0) return false;
-
-        const customerTransactions = transactions
-          .filter((t) => t.customerId === customer.id)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        let balanceLookback = customer.balance;
-        let oldestUnpaidDebtDate: Date | null = null;
-
-        for (const t of customerTransactions) {
-          if (t.type === 'debt') {
-            oldestUnpaidDebtDate = new Date(t.date);
-            balanceLookback -= t.amount;
-          } else { // payment
-            balanceLookback += t.amount;
-          }
-          if (balanceLookback <= 0) {
-            break;
-          }
-        }
-
-        if (!oldestUnpaidDebtDate) return false;
-
-        const dueDate = addDays(oldestUnpaidDebtDate, paymentTermsDays);
-        return isAfter(today, dueDate);
-      })
-      .length;
+    const overdueCount = getOverdueCustomers(customers, transactions, settings).length;
     
-    const unpaidBreadOrdersCount = breadOrders.filter(o => !o.isPaid).length;
+    const unpaidBreadOrdersCount = getUnpaidBreadOrders(breadOrders).length;
 
     return lowStockCount + overdueCount + unpaidBreadOrdersCount;
   }, [products, customers, transactions, loading, settings, breadOrders]);
