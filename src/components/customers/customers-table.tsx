@@ -22,20 +22,12 @@ import {
   CalendarCheck2,
   Pencil,
   Trash2,
-  MoreVertical,
   ArrowRight,
   Printer,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { AddTransactionDialog } from '@/components/transactions/add-transaction-dialog';
 import { EditCustomerDialog } from './edit-customer-dialog';
 import { DeleteCustomerDialog } from './delete-customer-dialog';
@@ -219,81 +211,63 @@ export function CustomersTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Ouvrir le menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/clients/${customer.id}`}>
-                          <ArrowRight className="mr-2 h-4 w-4" />
-                          Voir les détails
-                        </Link>
-                      </DropdownMenuItem>
-                       <DropdownMenuItem asChild>
-                        <Link href={`/clients/${customer.id}?print=true`} target="_blank">
-                          <Printer className="mr-2 h-4 w-4" />
-                          Imprimer le relevé
-                        </Link>
-                      </DropdownMenuItem>
-                      <EditCustomerDialog
-                        customer={customer}
-                        trigger={
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                        }
-                      />
-                      <DeleteCustomerDialog
-                        customerId={customer.id}
-                        customerName={customer.name}
-                        trigger={
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        }
-                      />
-                      <DropdownMenuSeparator />
-                      <AddTransactionDialog
-                        type="debt"
-                        customerId={customer.id}
-                        trigger={
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                          >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Ajouter une dette
-                          </DropdownMenuItem>
-                        }
-                      />
-                      {customer.balance > 0 && (
-                        <AddTransactionDialog
-                          type="payment"
-                          customerId={customer.id}
-                          defaultAmount={customer.balance}
-                          defaultDescription="Règlement du solde"
-                          trigger={
-                            <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()}
-                            >
-                              <MinusCircle className="mr-2 h-4 w-4" />
-                              Ajouter un paiement
-                            </DropdownMenuItem>
-                          }
+                   <div className="flex items-center justify-end gap-0.5">
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                            <Link href={`/clients/${customer.id}`}>
+                                <ArrowRight className="h-4 w-4" />
+                                <span className="sr-only">Voir les détails</span>
+                            </Link>
+                        </Button>
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                            <Link href={`/clients/${customer.id}?print=true`} target="_blank">
+                                <Printer className="h-4 w-4" />
+                                <span className="sr-only">Imprimer le relevé</span>
+                            </Link>
+                        </Button>
+                        <EditCustomerDialog
+                            customer={customer}
+                            trigger={
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Modifier</span>
+                                </Button>
+                            }
                         />
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <AddTransactionDialog
+                            type="debt"
+                            customerId={customer.id}
+                            trigger={
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <PlusCircle className="h-4 w-4" />
+                                    <span className="sr-only">Ajouter une dette</span>
+                                </Button>
+                            }
+                        />
+                        {customer.balance > 0 && (
+                            <AddTransactionDialog
+                                type="payment"
+                                customerId={customer.id}
+                                defaultAmount={customer.balance}
+                                defaultDescription="Règlement du solde"
+                                trigger={
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MinusCircle className="h-4 w-4" />
+                                        <span className="sr-only">Ajouter un paiement</span>
+                                    </Button>
+                                }
+                            />
+                        )}
+                        <DeleteCustomerDialog
+                            customerId={customer.id}
+                            customerName={customer.name}
+                            trigger={
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Supprimer</span>
+                                </Button>
+                            }
+                        />
+                    </div>
                 </TableCell>
               </TableRow>
             );
