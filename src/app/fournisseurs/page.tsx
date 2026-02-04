@@ -484,7 +484,7 @@ export default function FournisseursPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -507,7 +507,7 @@ export default function FournisseursPage() {
                   </Button>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                 <ShortcutsDialog 
                     shortcuts={fournisseursShortcuts}
                     title="Raccourcis Clavier Fournisseurs"

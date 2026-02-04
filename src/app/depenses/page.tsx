@@ -390,10 +390,10 @@ export default function DepensesPage() {
                 )}
             </div>
           </div>
-           <div className="flex justify-end gap-2 mt-4">
+           <div className="flex justify-end gap-2 mt-4 flex-wrap">
                 <DepensesCsvImportDialog trigger={
                     <Button ref={importTriggerRef} variant="outline">
-                        <Upload className="h-4 w-4" /> Importer
+                        <Upload /> Importer
                     </Button>
                 }/>
                 <Button
@@ -402,7 +402,7 @@ export default function DepensesPage() {
                     onClick={handleExport}
                     disabled={!hasResults}
                 >
-                    <Download className="h-4 w-4" /> Exporter
+                    <Download /> Exporter
                 </Button>
                 <ShortcutsDialog 
                   shortcuts={depensesShortcuts}

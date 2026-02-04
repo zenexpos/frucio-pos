@@ -458,7 +458,7 @@ export default function ClientsPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-2 justify-between">
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-between flex-wrap">
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <div className="relative w-full sm:w-auto sm:max-w-xs">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -478,7 +478,7 @@ export default function ClientsPage() {
                   </Button>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                  <ShortcutsDialog 
                     shortcuts={clientShortcuts}
                     title="Raccourcis Clavier Clients"
