@@ -51,14 +51,14 @@ export function PaymentDialog({
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [amountPaidStr, setAmountPaidStr] = useState('');
-  const [printReceipt, setPrintReceipt] = useState(true);
+  const [printReceipt, setPrintReceipt] = useState(false);
   const { toast } = useToast();
   const { customers } = useMockData();
 
   useEffect(() => {
     if (open) {
       setAmountPaidStr(total > 0 ? total.toString() : '');
-      setPrintReceipt(true); // Default to printing receipt
+      setPrintReceipt(false); // Default to not printing receipt
     }
   }, [total, open]);
 
