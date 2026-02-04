@@ -70,6 +70,7 @@ const caisseShortcuts = [
   { group: 'Clients', key: 'F4', description: 'Sélectionner / Désélectionner un client' },
   { group: 'Clients', key: 'Alt + N', description: 'Ajouter un nouveau client' },
   { group: 'Panier', key: 'F6', description: 'Appliquer une réduction' },
+  { group: 'Panier', key: 'Alt + P', description: 'Ajouter un produit personnalisé' },
   { group: 'Panier', key: 'F9', description: 'Vider le panier' },
   { group: 'Panier', key: 'F10', description: 'Finaliser la vente (Paiement)' },
   { group: 'Onglets', key: 'F8', description: 'Ouvrir un nouvel onglet de vente' },
@@ -100,6 +101,7 @@ export default function CaissePage() {
   const newTabTriggerRef = useRef<HTMLButtonElement>(null);
   const clearCartTriggerRef = useRef<HTMLButtonElement>(null);
   const addCustomerTriggerRef = useRef<HTMLButtonElement>(null);
+  const addCustomProductTriggerRef = useRef<HTMLButtonElement>(null);
   const categoryTriggerRef = useRef<HTMLButtonElement>(null);
 
   const productMap = useMemo(() => new Map(products.map(p => [p.id, p])), [products]);
@@ -203,6 +205,9 @@ export default function CaissePage() {
       } else if (e.altKey && (e.key === 'n' || e.key === 'N')) {
         e.preventDefault();
         addCustomerTriggerRef.current?.click();
+      } else if (e.altKey && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        addCustomProductTriggerRef.current?.click();
       }
     };
 
@@ -563,7 +568,16 @@ export default function CaissePage() {
                   <Barcode className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input ref={barcodeInputRef} placeholder="Saisir le code-barres... (F2)" className="pl-8" value={barcode} onChange={e => setBarcode(e.target.value)} onKeyDown={handleBarcodeScan} />
                 </div>
-                <AddCustomProductDialog onAdd={handleAddCustomProduct} />
+                <AddCustomProductDialog
+                    onAdd={handleAddCustomProduct}
+                    trigger={
+                        <Button ref={addCustomProductTriggerRef} variant="outline" className="w-full sm:w-auto">
+                            <PlusSquare className="h-4 w-4" />
+                            Produit Personnalisé
+                            <kbd className="ml-1.5 rounded bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">Alt+P</kbd>
+                        </Button>
+                    }
+                />
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger ref={categoryTriggerRef} className="w-full md:w-[200px]">
                     <SelectValue placeholder="Catégories (Alt+C)" />

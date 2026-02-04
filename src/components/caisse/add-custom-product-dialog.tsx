@@ -55,17 +55,19 @@ function AddCustomProductForm({ onSuccess }: AddCustomProductFormProps) {
 }
 
 
-export function AddCustomProductDialog({ onAdd }: { onAdd: (data: CustomProductData) => void }) {
+export function AddCustomProductDialog({ onAdd, trigger }: { onAdd: (data: CustomProductData) => void, trigger?: React.ReactNode }) {
+  const defaultTrigger = (
+    <Button variant="outline" className="w-full sm:w-auto">
+      <PlusSquare className="h-4 w-4" />
+      Produit Personnalisé
+    </Button>
+  );
+
   return (
     <FormDialog
       title="Ajouter un produit personnalisé"
       description="Ajoutez un article ou un service ponctuel qui n'est pas dans votre inventaire."
-      trigger={
-        <Button variant="outline" className="w-full sm:w-auto">
-          <PlusSquare className="h-4 w-4" />
-          Produit Personnalisé
-        </Button>
-      }
+      trigger={trigger || defaultTrigger}
       form={<AddCustomProductForm />}
       onFormSuccess={onAdd}
     />
