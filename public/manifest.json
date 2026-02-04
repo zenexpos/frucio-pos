@@ -1,11 +1,6 @@
 {
-  "theme_color": "#f9fafb",
-  "background_color": "#f9fafb",
-  "display": "standalone",
-  "scope": "/",
-  "start_url": "/",
-  "name": "Gestion de Crédit",
-  "short_name": "Crédit",
+  "name": "Frucio",
+  "short_name": "Frucio",
   "description": "Une application pour gérer les crédits clients et les commandes.",
   "icons": [
     {
@@ -13,5 +8,10 @@
       "sizes": "any",
       "type": "image/svg+xml"
     }
-  ]
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "background_color": "#f2f5f9",
+  "theme_color": "#14b8a6"
 }
