@@ -14,13 +14,13 @@ import {
   LayoutGrid,
   Package,
   Archive,
-  PackageWarning,
+  FileWarning,
   PackageX,
   Truck,
   Tags,
   PackageCheck,
   Copy,
-  Unarchive,
+  ArchiveRestore,
   Wallet,
   X,
   Plus,
@@ -551,7 +551,7 @@ export default function ProduitsPage() {
           title="Stock faible"
           value={lowStockCount}
           description="Produits en dessous du seuil"
-          icon={PackageWarning}
+          icon={FileWarning}
           onClick={() => setStockStatus('low')}
           isActive={stockStatus === 'low'}
         />

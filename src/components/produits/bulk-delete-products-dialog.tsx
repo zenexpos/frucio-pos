@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Archive, Unarchive, Loader2 } from 'lucide-react';
+import { Archive, ArchiveRestore, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteProduct, unarchiveProduct } from '@/lib/mock-data/api';
 
@@ -31,7 +31,7 @@ export function BulkDeleteProductsDialog({
   const { toast } = useToast();
 
   const actionText = isArchivedView ? 'Désarchiver' : 'Archiver';
-  const ActionIcon = isArchivedView ? Unarchive : Archive;
+  const ActionIcon = isArchivedView ? ArchiveRestore : Archive;
 
   const handleAction = async () => {
     if (productIds.length === 0) return;
