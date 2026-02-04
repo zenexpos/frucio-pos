@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Customer, Transaction, Product } from '@/lib/types';
 import HistoryLoading from './loading';
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, FileText, Calendar as CalendarIcon, Download } from 'lucide-react';
+import { Search, FileText, Calendar as CalendarIcon, Download, Wallet, TrendingUp, TrendingDown, X } from 'lucide-react';
 import { TransactionsHistoryTable } from '@/components/history/transactions-history-table';
 import { DateRange } from 'react-day-picker';
 import {
@@ -35,6 +35,8 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { formatCurrency, cn } from '@/lib/utils';
 import { exportTransactionsToCsv } from '@/lib/mock-data/api';
+import { StatCard } from '@/components/dashboard/stat-card';
+import { HistoryShortcutsDialog } from '@/components/history/shortcuts-dialog';
 
 type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
 type SortDirection = 'ascending' | 'descending';
@@ -43,6 +45,8 @@ interface SortConfig {
   key: SortKey;
   direction: SortDirection;
 }
+
+const ITEMS_PER_PAGE = 15;
 
 export default function HistoryPage() {
   const { customers, transactions, products, loading } = useMockData();
@@ -54,6 +58,14 @@ export default function HistoryPage() {
     to: new Date(),
   });
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'descending' });
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const dateFilterTriggerRef = useRef<HTMLButtonElement>(null);
+  const customerSelectTriggerRef = useRef<HTMLButtonElement>(null);
+  const typeSelectTriggerRef = useRef<HTMLButtonElement>(null);
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const clearFiltersButtonRef = useRef<HTMLButtonElement>(null);
 
   const transactionsWithCustomer = useMemo(() => {
     return transactions
@@ -128,6 +140,38 @@ export default function HistoryPage() {
     sortConfig,
   ]);
   
+  const { paginatedTransactions, totalPages } = useMemo(() => {
+    const total = filteredTransactions.length;
+    const pages = Math.ceil(total / ITEMS_PER_PAGE);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const paginated = filteredTransactions.slice(start, end);
+    return { paginatedTransactions: paginated, totalPages: pages };
+  }, [filteredTransactions, currentPage]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'F1') { e.preventDefault(); searchInputRef.current?.focus(); }
+        else if (e.altKey && (e.key === 'd' || e.key === 'D')) { e.preventDefault(); dateFilterTriggerRef.current?.click(); }
+        else if (e.altKey && (e.key === 'c' || e.key === 'C')) { e.preventDefault(); customerSelectTriggerRef.current?.click(); }
+        else if (e.altKey && (e.key === 't' || e.key === 'T')) { e.preventDefault(); typeSelectTriggerRef.current?.click(); }
+        else if (e.altKey && (e.key === 'x' || e.key === 'X')) { e.preventDefault(); clearFiltersButtonRef.current?.click(); }
+        else if (e.altKey && (e.key === 'e' || e.key === 'E')) { e.preventDefault(); exportButtonRef.current?.click(); }
+        else if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); if (currentPage < totalPages) { setCurrentPage(p => p + 1); }}
+        else if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); if (currentPage > 1) { setCurrentPage(p => p - 1); }}
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentPage, totalPages]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCustomerId, transactionType, date, sortConfig]);
+
+
   const { totalDebts, totalPayments, netChange } = useMemo(() => {
     return filteredTransactions.reduce(
       (acc, t) => {
@@ -151,12 +195,24 @@ export default function HistoryPage() {
     setSortConfig({ key, direction });
   };
 
+  const areFiltersActive = searchTerm !== '' || selectedCustomerId !== 'all' || transactionType !== 'all' || date !== undefined;
+  
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedCustomerId('all');
+    setTransactionType('all');
+    setDate(undefined);
+  };
+
   if (loading) {
     return <HistoryLoading />;
   }
 
   const hasTransactions = transactions.length > 0;
   const hasResults = filteredTransactions.length > 0;
+
+  const startItem = hasResults ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0;
+  const endItem = startItem + paginatedTransactions.length - 1;
 
   return (
     <div className="space-y-6">
@@ -169,6 +225,13 @@ export default function HistoryPage() {
         </p>
       </header>
 
+       <div className="grid gap-4 md:grid-cols-3">
+        <StatCard title="Total Dettes (Période)" value={formatCurrency(totalDebts)} icon={TrendingUp} />
+        <StatCard title="Total Paiements (Période)" value={formatCurrency(totalPayments)} icon={TrendingDown} />
+        <StatCard title="Solde Net (Période)" value={formatCurrency(netChange)} icon={Wallet} />
+      </div>
+
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -177,8 +240,9 @@ export default function HistoryPage() {
               <div className="relative w-full sm:w-auto sm:max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
+                  ref={searchInputRef}
                   id="transaction-search"
-                  placeholder="Rechercher..."
+                  placeholder="Rechercher... (F1)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-full"
@@ -188,6 +252,7 @@ export default function HistoryPage() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={dateFilterTriggerRef}
                     id="date"
                     variant={'outline'}
                     className={cn(
@@ -228,7 +293,7 @@ export default function HistoryPage() {
                 onValueChange={setSelectedCustomerId}
                 disabled={!hasTransactions}
               >
-                <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectTrigger ref={customerSelectTriggerRef} className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Filtrer par client" />
                 </SelectTrigger>
                 <SelectContent>
@@ -245,7 +310,7 @@ export default function HistoryPage() {
                 onValueChange={setTransactionType}
                 disabled={!hasTransactions}
               >
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger ref={typeSelectTriggerRef} className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filtrer par type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -255,6 +320,7 @@ export default function HistoryPage() {
                 </SelectContent>
               </Select>
                <Button
+                ref={exportButtonRef}
                 variant="outline"
                 onClick={() => exportTransactionsToCsv(filteredTransactions)}
                 disabled={!hasResults}
@@ -262,13 +328,19 @@ export default function HistoryPage() {
                 <Download className="mr-2 h-4 w-4" />
                 Exporter
               </Button>
+               {areFiltersActive && (
+                  <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
+                    <X className="mr-2 h-4 w-4" /> Effacer
+                  </Button>
+                )}
+               <HistoryShortcutsDialog />
             </div>
           </div>
         </CardHeader>
         <CardContent>
           {hasResults ? (
             <TransactionsHistoryTable 
-              transactions={filteredTransactions}
+              transactions={paginatedTransactions}
               products={products} 
               onSort={requestSort}
               sortConfig={sortConfig}
@@ -291,30 +363,31 @@ export default function HistoryPage() {
             </div>
           )}
         </CardContent>
-        {hasResults && (
-          <CardFooter className="flex justify-end space-x-8 pt-4">
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Total Dettes</p>
-              <p className="text-lg font-semibold text-destructive">
-                {formatCurrency(totalDebts)}
-              </p>
+        {totalPages > 1 && (
+          <CardFooter className="flex items-center justify-between pt-4">
+            <div className="text-sm text-muted-foreground">
+              Affichage de {startItem} à {endItem} sur{' '}
+              {filteredTransactions.length} transactions
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Total Paiements</p>
-              <p className="text-lg font-semibold text-accent">
-                {formatCurrency(totalPayments)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Solde Net</p>
-              <p
-                className={cn(
-                  'text-lg font-semibold',
-                  netChange > 0 ? 'text-destructive' : 'text-accent'
-                )}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
               >
-                {formatCurrency(netChange)}
-              </p>
+                Précédent
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+              >
+                Suivant
+              </Button>
             </div>
           </CardFooter>
         )}
