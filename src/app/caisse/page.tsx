@@ -537,7 +537,7 @@ export default function CaissePage() {
                             key={product.id}
                             onClick={() => !isOutOfStock && addToCart(product)}
                             className={cn(
-                              "overflow-hidden flex flex-col transition-all duration-200 ease-in-out",
+                              "overflow-hidden flex flex-col transition-all duration-200 ease-in-out shadow-sm",
                               isOutOfStock
                                 ? "cursor-not-allowed bg-muted/50"
                                 : "cursor-pointer hover:shadow-lg hover:ring-2 hover:ring-primary/50",
@@ -766,24 +766,31 @@ export default function CaissePage() {
                           const hasIssue = stockIssue;
 
                           return (
-                              <div key={item.productId} className={cn("flex items-center gap-4 transition-colors p-2 rounded-lg -m-2", hasIssue && "bg-destructive/10")}>
-                                  <Image src={getProductImage(product).url} alt={product.name} width={48} height={48} className="rounded-md" data-ai-hint={getProductImage(product).hint} />
-                                  <div className="flex-grow">
-                                      <p className="font-medium text-sm truncate">{product.name}</p>
-                                      <p className="text-xs text-muted-foreground">{formatCurrency(product.sellingPrice)}</p>
-                                      {stockIssue && (
-                                          <p className="text-xs text-destructive font-bold">
-                                              Stock insuffisant (dispo: {product.stock})
-                                          </p>
-                                      )}
+                              <div key={item.productId} className={cn("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 transition-colors p-2 rounded-lg -m-2", hasIssue && "bg-destructive/10")}>
+                                  {/* Left side: Image and Name */}
+                                  <div className="flex items-center gap-4">
+                                      <Image src={getProductImage(product).url} alt={product.name} width={48} height={48} className="rounded-md" data-ai-hint={getProductImage(product).hint} />
+                                      <div className="flex-grow">
+                                          <p className="font-medium text-sm truncate">{product.name}</p>
+                                          <p className="text-xs text-muted-foreground">{formatCurrency(product.sellingPrice)}</p>
+                                          {stockIssue && (
+                                              <p className="text-xs text-destructive font-bold">
+                                                  Stock insuffisant (dispo: {product.stock})
+                                              </p>
+                                          )}
+                                      </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                      <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
-                                      <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                                      <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+
+                                  {/* Right side: Controls and Price */}
+                                  <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
+                                      <div className="flex items-center gap-2">
+                                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
+                                          <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                          <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+                                      </div>
+                                      <p className="font-semibold text-sm w-20 text-right">{formatCurrency(product.sellingPrice * item.quantity)}</p>
+                                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.productId, 0)}><Trash2 className="h-4 w-4"/></Button>
                                   </div>
-                                  <p className="font-semibold text-sm w-16 text-right">{formatCurrency(product.sellingPrice * item.quantity)}</p>
-                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.productId, 0)}><Trash2 className="h-4 w-4"/></Button>
                               </div>
                           )
                       })}
