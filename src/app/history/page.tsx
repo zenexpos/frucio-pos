@@ -273,7 +273,7 @@ export default function HistoryPage() {
                     )}
                     disabled={!hasTransactions}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="h-4 w-4" />
                     {date?.from ? (
                       date.to ? (
                         <>
@@ -337,12 +337,12 @@ export default function HistoryPage() {
                 onClick={() => exportTransactionsToCsv(filteredTransactions)}
                 disabled={!hasResults}
               >
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="h-4 w-4" />
                 Exporter
               </Button>
                {areFiltersActive && (
                   <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
-                    <X className="mr-2 h-4 w-4" /> Effacer
+                    <X className="h-4 w-4" /> Effacer
                   </Button>
                 )}
                <ShortcutsDialog 

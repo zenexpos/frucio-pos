@@ -113,7 +113,7 @@ export function ImportDataDialog() {
     }}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="h-4 w-4" />
           Importer les données
         </Button>
       </DialogTrigger>

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import type { Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
-import { TransactionsTable } from './transactions-table';
+import { TransactionsTable } from '@/components/transactions/transactions-table';
 import { AddTransactionDialog } from './add-transaction-dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

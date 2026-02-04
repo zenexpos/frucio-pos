@@ -47,7 +47,7 @@ export function ResetAllDataDialog() {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="destructive">
-          <RotateCcw className="mr-2 h-4 w-4" />
+          <RotateCcw className="h-4 w-4" />
           Réinitialiser toutes les données
         </Button>
       </AlertDialogTrigger>

@@ -236,13 +236,13 @@ export default function DepensesPage() {
   const getSortIcon = (key: SortKey) => {
     if (sortConfig.key !== key) {
       return (
-        <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+        <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
       );
     }
     return sortConfig.direction === 'ascending' ? (
-      <ArrowUp className="ml-2 h-4 w-4" />
+      <ArrowUp className="h-4 w-4" />
     ) : (
-      <ArrowDown className="ml-2 h-4 w-4" />
+      <ArrowDown className="h-4 w-4" />
     );
   };
   
@@ -385,7 +385,7 @@ export default function DepensesPage() {
               </Popover>
                {areFiltersActive && (
                   <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
-                    <X className="mr-2 h-4 w-4" /> Effacer
+                    <X className="h-4 w-4" /> Effacer
                   </Button>
                 )}
             </div>
@@ -393,7 +393,7 @@ export default function DepensesPage() {
            <div className="flex justify-end gap-2 mt-4">
                 <DepensesCsvImportDialog trigger={
                     <Button ref={importTriggerRef} variant="outline">
-                        <Upload className="mr-2 h-4 w-4" /> Importer
+                        <Upload className="h-4 w-4" /> Importer
                     </Button>
                 }/>
                 <Button
@@ -402,7 +402,7 @@ export default function DepensesPage() {
                     onClick={handleExport}
                     disabled={!hasResults}
                 >
-                    <Download className="mr-2 h-4 w-4" /> Exporter
+                    <Download className="h-4 w-4" /> Exporter
                 </Button>
                 <ShortcutsDialog 
                   shortcuts={depensesShortcuts}

@@ -59,7 +59,7 @@ export function BulkDeleteSuppliersDialog({
           variant="destructive"
           disabled={supplierIds.length === 0}
         >
-          <Trash2 className="mr-2 h-4 w-4" /> Supprimer la sélection ({supplierIds.length})
+          <Trash2 className="h-4 w-4" /> Supprimer la sélection ({supplierIds.length})
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

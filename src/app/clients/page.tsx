@@ -467,7 +467,7 @@ export default function ClientsPage() {
                   </div>
                   <Button asChild variant="secondary" size="sm">
                     <Link href={`/clients/${customer.id}`}>
-                      Voir <ArrowRight className="ml-2 h-4 w-4" />
+                      Voir <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
@@ -496,7 +496,7 @@ export default function ClientsPage() {
                 </div>
                 {areFiltersActive && (
                   <Button ref={clearFiltersButtonRef} variant="ghost" onClick={handleClearFilters}>
-                    <X className="mr-2 h-4 w-4" /> Effacer
+                    <X className="h-4 w-4" /> Effacer
                   </Button>
                 )}
               </div>
@@ -556,7 +556,7 @@ export default function ClientsPage() {
                 </div>
                 <CsvImportDialog trigger={
                     <Button ref={importTriggerRef} variant="outline">
-                      <Upload className="mr-2 h-4 w-4" /> Importer
+                      <Upload className="h-4 w-4" /> Importer
                     </Button>
                 } />
                 <Button
@@ -565,7 +565,7 @@ export default function ClientsPage() {
                   onClick={exportCustomersToCsv}
                   disabled={!hasCustomers}
                 >
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="h-4 w-4" />
                   Exporter
                 </Button>
                 <AddCustomerDialog trigger={

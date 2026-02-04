@@ -68,7 +68,7 @@ export function BulkDeleteProductsDialog({
           variant="outline"
           disabled={productIds.length === 0}
         >
-          <ActionIcon className="mr-2 h-4 w-4" /> {actionText} la sélection ({productIds.length})
+          <ActionIcon className="h-4 w-4" /> {actionText} la sélection ({productIds.length})
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

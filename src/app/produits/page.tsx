@@ -434,13 +434,13 @@ export default function ProduitsPage() {
   const getSortIcon = (key: SortKey) => {
     if (!sortConfig || sortConfig.key !== key) {
       return (
-        <ChevronsUpDown className="ml-2 h-4 w-4 text-muted-foreground/50" />
+        <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
       );
     }
     if (sortConfig.direction === 'ascending') {
-      return <ArrowUp className="ml-2 h-4 w-4" />;
+      return <ArrowUp className="h-4 w-4" />;
     }
-    return <ArrowDown className="ml-2 h-4 w-4" />;
+    return <ArrowDown className="h-4 w-4" />;
   };
   
   const areFiltersActive = searchTerm !== '' || selectedCategory !== 'all' || selectedSupplier !== 'all' || stockStatus !== 'all';
@@ -690,7 +690,7 @@ export default function ProduitsPage() {
                 <ProductCsvImportDialog
                   trigger={
                     <Button ref={importTriggerRef} variant="outline">
-                      <Upload className="mr-2 h-4 w-4" /> Importer
+                      <Upload className="h-4 w-4" /> Importer
                     </Button>
                   }
                 />
@@ -700,11 +700,11 @@ export default function ProduitsPage() {
                   onClick={exportProductsToCsv}
                   disabled={!hasProducts}
                 >
-                  <Download className="mr-2 h-4 w-4" /> Exporter
+                  <Download className="h-4 w-4" /> Exporter
                 </Button>
                 <AddProductDialog trigger={
                     <Button ref={addProductTriggerRef} className="w-full sm:w-auto">
-                        <Plus className="mr-2 h-4 w-4" /> Ajouter un produit
+                        <Plus className="h-4 w-4" /> Ajouter un produit
                     </Button>
                 } />
               </div>

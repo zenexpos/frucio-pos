@@ -749,12 +749,11 @@ export default function OrdersPage() {
                         onClick={handleExport}
                         disabled={pastOrders.length === 0}
                     >
-                        <Download className="mr-2 h-4 w-4" />
-                        Exporter
+                        <Download className="h-4 w-4" /> Exporter
                     </Button>
                     {date && (
                       <Button variant="ghost" onClick={() => setDate(undefined)}>
-                        <X className="mr-2 h-4 w-4" /> Effacer
+                        <X className="h-4 w-4" /> Effacer
                       </Button>
                     )}
                 </div>

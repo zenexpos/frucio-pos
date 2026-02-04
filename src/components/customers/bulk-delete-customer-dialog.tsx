@@ -59,7 +59,7 @@ export function BulkDeleteCustomersDialog({
           variant="destructive"
           disabled={customerIds.length === 0}
         >
-          <Trash2 className="mr-2 h-4 w-4" /> Supprimer la sélection ({customerIds.length})
+          <Trash2 className="h-4 w-4" /> Supprimer la sélection ({customerIds.length})
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

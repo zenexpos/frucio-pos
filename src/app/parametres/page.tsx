@@ -393,7 +393,7 @@ export default function SettingsPage() {
               <CardFooter>
                 <Button type="submit" disabled={isCompanyPending}>
                   {isCompanyPending ? (
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                    <Loader2 className="animate-spin h-4 w-4" />
                   ) : (
                     <Save />
                   )}
@@ -434,7 +434,7 @@ export default function SettingsPage() {
                 </div>
                 <Button type="submit" disabled={isAppearancePending}>
                   {isAppearancePending ? (
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                    <Loader2 className="animate-spin h-4 w-4" />
                   ) : (
                     <Save />
                   )}
@@ -571,7 +571,7 @@ export default function SettingsPage() {
                 <CardFooter>
                   <Button type="submit" disabled={isModulesPending}>
                     {isModulesPending ? (
-                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                      <Loader2 className="animate-spin h-4 w-4" />
                     ) : (
                       <Save />
                     )}
@@ -607,7 +607,7 @@ export default function SettingsPage() {
                       <CsvImportDialog
                         trigger={
                           <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" /> Importer (CSV)
+                            <Upload className="h-4 w-4" /> Importer (CSV)
                           </Button>
                         }
                       />
@@ -615,7 +615,7 @@ export default function SettingsPage() {
                         onClick={handleExportCustomers}
                         variant="outline"
                       >
-                        <Download className="mr-2 h-4 w-4" /> Exporter (CSV)
+                        <Download className="h-4 w-4" /> Exporter (CSV)
                       </Button>
                     </div>
                   </div>
@@ -626,7 +626,7 @@ export default function SettingsPage() {
                       <ProductCsvImportDialog
                         trigger={
                           <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" /> Importer (CSV)
+                            <Upload className="h-4 w-4" /> Importer (CSV)
                           </Button>
                         }
                       />
@@ -634,7 +634,7 @@ export default function SettingsPage() {
                         onClick={handleExportProducts}
                         variant="outline"
                       >
-                        <Download className="mr-2 h-4 w-4" /> Exporter (CSV)
+                        <Download className="h-4 w-4" /> Exporter (CSV)
                       </Button>
                     </div>
                   </div>
@@ -645,7 +645,7 @@ export default function SettingsPage() {
                       <SupplierCsvImportDialog
                         trigger={
                           <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" /> Importer (CSV)
+                            <Upload className="h-4 w-4" /> Importer (CSV)
                           </Button>
                         }
                       />
@@ -653,7 +653,7 @@ export default function SettingsPage() {
                         onClick={handleExportSuppliers}
                         variant="outline"
                       >
-                        <Download className="mr-2 h-4 w-4" /> Exporter (CSV)
+                        <Download className="h-4 w-4" /> Exporter (CSV)
                       </Button>
                     </div>
                   </div>
@@ -675,7 +675,7 @@ export default function SettingsPage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <ImportDataDialog />
                   <Button onClick={handleExportData} variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className="h-4 w-4" />
                     Exporter les données (.json)
                   </Button>
                   <ResetAllDataDialog />
