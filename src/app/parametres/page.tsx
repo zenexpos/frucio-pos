@@ -281,7 +281,7 @@ export default function SettingsPage() {
       </header>
 
       <Tabs defaultValue="company" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="company">
             Informations sur l'entreprise
           </TabsTrigger>
