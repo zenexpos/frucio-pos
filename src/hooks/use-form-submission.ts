@@ -10,7 +10,7 @@ interface UseFormSubmissionProps<T extends z.ZodType<any, any>, U = void> {
   onSuccess?: (result: U) => void;
   formRef: React.RefObject<HTMLFormElement>;
   config?: {
-    successMessage?: string;
+    successMessage?: string | null;
     errorMessage?: string;
     validationErrorMessage?: string;
   };
@@ -55,10 +55,17 @@ export function useFormSubmission<T extends z.ZodType<any, any>, U = void>({
     try {
       const result = await onSubmit(validatedFields.data);
 
-      toast({
-        title: 'Succès !',
-        description: config?.successMessage || 'Opération réussie.',
-      });
+      if (config?.successMessage) {
+          toast({
+            title: 'Succès !',
+            description: config.successMessage,
+          });
+      } else if (config?.successMessage === undefined) {
+          toast({
+            title: 'Succès !',
+            description: 'Opération réussie.',
+          });
+      }
 
       formRef.current?.reset();
       onSuccess?.(result);

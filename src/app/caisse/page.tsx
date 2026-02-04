@@ -11,6 +11,7 @@ import {
   X,
   User,
   UserPlus,
+  PlusSquare,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -44,6 +45,7 @@ import { Receipt, type ReceiptData } from '@/components/caisse/receipt';
 import { SettleDebtDialog } from '@/components/caisse/settle-debt-dialog';
 import { AddProductDialog } from '@/components/produits/add-product-dialog';
 import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
+import { AddCustomProductDialog } from '@/components/caisse/add-custom-product-dialog';
 
 
 const productImages = imageData.caisse;
@@ -51,6 +53,8 @@ const productImages = imageData.caisse;
 interface CartItem {
   productId: string;
   quantity: number;
+  customPrice?: number;
+  customName?: string;
 }
 
 interface CartState {
@@ -134,6 +138,9 @@ export default function CaissePage() {
   const hasCartIssues = useMemo(() => {
     if (!products) return false;
     return activeCart.some(item => {
+        // Custom items don't have stock issues or disappear from product list
+        if (item.customName) return false;
+
         const upToDateProduct = productMap.get(item.productId);
         if (!upToDateProduct) {
             return true; // Product in cart no longer exists
@@ -300,6 +307,20 @@ export default function CaissePage() {
     const itemIndex = cart.findIndex(item => item.productId === productId);
 
     if (itemIndex > -1) {
+        const cartItem = cart[itemIndex];
+        
+        // For custom items, we only care about quantity > 0
+        if (cartItem.customName) {
+            if (quantity <= 0) {
+                cart.splice(itemIndex, 1);
+            } else {
+                cart[itemIndex].quantity = quantity;
+            }
+            updateActiveCartState({ items: cart });
+            return;
+        }
+        
+        // Standard product logic
         const upToDateProduct = productMap.get(productId);
         
         if (!upToDateProduct && quantity > 0) { // If product deleted, only allow removal
@@ -398,6 +419,9 @@ export default function CaissePage() {
 
   const subtotal = useMemo(() => {
     return activeCart.reduce((sum, item) => {
+        if (item.customName && typeof item.customPrice === 'number') {
+            return sum + item.customPrice * item.quantity;
+        }
         const product = productMap.get(item.productId);
         return sum + (product ? product.sellingPrice : 0) * item.quantity;
     }, 0);
@@ -422,6 +446,23 @@ export default function CaissePage() {
   const cartItemsForPayment = useMemo(() => {
     return activeCart
         .map(item => {
+            if (item.customName && typeof item.customPrice === 'number') {
+                const customProduct: Product = {
+                    id: item.productId,
+                    name: item.customName,
+                    sellingPrice: item.customPrice,
+                    category: 'Personnalisé',
+                    purchasePrice: 0, // Assume 0 cost for custom items
+                    stock: Infinity,
+                    minStock: 0,
+                    barcode: '',
+                    isArchived: false,
+                    description: '',
+                    supplierId: null,
+                };
+                return { product: customProduct, quantity: item.quantity };
+            }
+
             const product = productMap.get(item.productId);
             return product ? { product, quantity: item.quantity } : null;
         })
@@ -440,6 +481,22 @@ export default function CaissePage() {
       return { url: `https://picsum.photos/seed/${product.id}/400/400`, hint: 'product' };
   }
   
+    const handleAddCustomProduct = (data: { name: string; price: number }) => {
+        const cart = [...activeCart];
+        const newItem: CartItem = {
+            productId: `custom-${Date.now()}`,
+            quantity: 1,
+            customName: data.name,
+            customPrice: data.price,
+        };
+        cart.push(newItem);
+        updateActiveCartState({ items: cart });
+        toast({
+          title: 'Article personnalisé ajouté',
+          description: `${data.name} a été ajouté au panier.`,
+        });
+    };
+
   if (loading || !isStateLoaded) {
       return (
         <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-8rem)]">
@@ -506,6 +563,7 @@ export default function CaissePage() {
                   <Barcode className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input ref={barcodeInputRef} placeholder="Saisir le code-barres... (F2)" className="pl-8" value={barcode} onChange={e => setBarcode(e.target.value)} onKeyDown={handleBarcodeScan} />
                 </div>
+                <AddCustomProductDialog onAdd={handleAddCustomProduct} />
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger ref={categoryTriggerRef} className="w-full md:w-[200px]">
                     <SelectValue placeholder="Catégories (Alt+C)" />
@@ -746,6 +804,31 @@ export default function CaissePage() {
                           </Button>
                       </div>
                       {activeCart.map(item => {
+                          if (item.customName && typeof item.customPrice === 'number') {
+                            return (
+                                <div key={item.productId} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 transition-colors p-2 rounded-lg -m-2">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                                            <PlusSquare className="h-6 w-6 text-muted-foreground"/>
+                                        </div>
+                                        <div className="flex-grow">
+                                            <p className="font-medium text-sm truncate italic">{item.customName}</p>
+                                            <p className="text-xs text-muted-foreground">{formatCurrency(item.customPrice)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
+                                        <div className="flex items-center gap-2">
+                                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.productId, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
+                                            <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
+                                            <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.productId, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+                                        </div>
+                                        <p className="font-semibold text-sm w-20 text-right">{formatCurrency(item.customPrice * item.quantity)}</p>
+                                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.productId, 0)}><Trash2 className="h-4 w-4"/></Button>
+                                    </div>
+                                </div>
+                            )
+                          }
+                          
                           const product = productMap.get(item.productId);
                           if (!product) {
                               return (
