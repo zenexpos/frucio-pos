@@ -35,12 +35,6 @@ export const CustomerCombobox = React.forwardRef<
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 
-  const handleSelect = (currentValue: string) => {
-    const customerId = currentValue === 'none' ? null : currentValue;
-    onSelectCustomer(customerId);
-    setOpen(false);
-  };
-
   const customerOptions = [
     { id: 'none', name: 'Aucun (Vente au comptant)' },
     ...customers,
@@ -71,8 +65,12 @@ export const CustomerCombobox = React.forwardRef<
               {customerOptions.map((customer) => (
                 <CommandItem
                   key={customer.id}
-                  value={customer.id}
-                  onSelect={handleSelect}
+                  value={customer.name}
+                  onSelect={() => {
+                    const customerId = customer.id === 'none' ? null : customer.id;
+                    onSelectCustomer(customerId);
+                    setOpen(false);
+                  }}
                 >
                   <Check
                     className={cn(
