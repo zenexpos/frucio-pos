@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { updateExpense } from '@/lib/mock-data/api';
@@ -58,7 +59,7 @@ export function EditExpenseForm({
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Input id="description" name="description" defaultValue={expense.description} />
+        <Textarea id="description" name="description" defaultValue={expense.description} />
         {errors?.description && (
           <p className="text-sm font-medium text-destructive">
             {errors.description._errors[0]}
