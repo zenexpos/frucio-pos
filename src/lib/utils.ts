@@ -158,31 +158,41 @@ export function getUnpaidBreadOrders(breadOrders: BreadOrder[]) {
   return breadOrders.filter((order) => !order.isPaid);
 }
 
+function getRecentEntities<
+  T extends { date: string; [key: string]: any },
+  U extends { id: string }
+>(transactions: T[], entities: U[], count: number, idKey: keyof T): U[] {
+  if (!transactions || !entities) return [];
+
+  const sortedTransactions = [...transactions].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const recentEntityIds = new Set<string>();
+
+  for (const t of sortedTransactions) {
+    const entityId = t[idKey] as string | undefined;
+    if (entityId) {
+      recentEntityIds.add(entityId);
+    }
+    if (recentEntityIds.size >= count) {
+      break;
+    }
+  }
+
+  const entityMap = new Map(entities.map((e) => [e.id, e]));
+
+  return Array.from(recentEntityIds)
+    .map((id) => entityMap.get(id))
+    .filter((e): e is U => !!e);
+}
+
 export function getRecentCustomers(
   transactions: Transaction[],
   customers: Customer[],
   count: number
 ) {
-  if (!transactions || !customers) return [];
-
-  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
-  const recentCustomerIds = new Set<string>();
-  
-  for (const t of sortedTransactions) {
-    if (t.customerId) {
-      recentCustomerIds.add(t.customerId);
-    }
-    if (recentCustomerIds.size >= count) {
-      break;
-    }
-  }
-
-  const customerMap = new Map(customers.map(c => [c.id, c]));
-  
-  return Array.from(recentCustomerIds)
-      .map(id => customerMap.get(id))
-      .filter((c): c is Customer => !!c);
+  return getRecentEntities(transactions, customers, count, 'customerId');
 }
 
 export function getRecentSuppliers(
@@ -190,26 +200,5 @@ export function getRecentSuppliers(
   suppliers: Supplier[],
   count: number
 ) {
-    if (!supplierTransactions || !suppliers) return [];
-
-    const sortedTransactions = [...supplierTransactions].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-
-    const recentSupplierIds = new Set<string>();
-
-    for (const t of sortedTransactions) {
-      if (t.supplierId) {
-        recentSupplierIds.add(t.supplierId);
-      }
-      if (recentSupplierIds.size >= count) {
-        break;
-      }
-    }
-
-    const supplierMap = new Map(suppliers.map((s) => [s.id, s]));
-
-    return Array.from(recentSupplierIds)
-      .map((id) => supplierMap.get(id))
-      .filter((s): s is Supplier => !!s);
+    return getRecentEntities(supplierTransactions, suppliers, count, 'supplierId');
 }
