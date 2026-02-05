@@ -26,16 +26,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import SettingsLoading from './loading';
 import { Download, Save, Loader2, Check, Upload } from 'lucide-react';
-import { ResetAllDataDialog } from '@/components/settings/reset-all-data-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { useTheme } from 'next-themes';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
-import { ImportDataDialog } from '@/components/settings/import-data-dialog';
 import { Separator } from '@/components/ui/separator';
-import { CsvImportDialog, ProductCsvImportDialog, SupplierCsvImportDialog } from '@/components/dynamic';
+import { CsvImportDialog, ProductCsvImportDialog, SupplierCsvImportDialog, ResetAllDataDialog, ImportDataDialog } from '@/components/dynamic';
 
 const companyInfoSchema = z.object({
   name: z.string().min(1, "Le nom de l'entreprise est requis."),

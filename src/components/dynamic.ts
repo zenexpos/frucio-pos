@@ -67,6 +67,10 @@ export const SalesByCategoryChart = dynamic(() => import('@/components/rapports/
 export const ExpensesByCategoryChart = dynamic(() => import('@/components/rapports/expenses-by-category-chart').then(mod => mod.ExpensesByCategoryChart), { ssr: false });
 export const TopCustomersChart = dynamic(() => import('@/components/rapports/top-customers-chart').then(mod => mod.TopCustomersChart), { ssr: false });
 
+// Settings
+export const ResetAllDataDialog = dynamic(() => import('@/components/settings/reset-all-data-dialog').then(mod => mod.ResetAllDataDialog), { ssr: false });
+export const ImportDataDialog = dynamic(() => import('@/components/settings/import-data-dialog').then(mod => mod.ImportDataDialog), { ssr: false });
+
 // Transactions
 export const AddTransactionDialog = dynamic(() => import('@/components/transactions/add-transaction-dialog').then(mod => mod.AddTransactionDialog), { ssr: false });
 export const EditTransactionDialog = dynamic(() => import('@/components/transactions/edit-transaction-dialog').then(mod => mod.EditTransactionDialog), { ssr: false });
