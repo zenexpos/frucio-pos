@@ -3,12 +3,11 @@
 import { useState, useMemo } from 'react';
 import type { Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
-import { TransactionsTable } from '@/components/transactions/transactions-table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle, MinusCircle, FileText } from 'lucide-react';
 import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
-import { AddTransactionDialog, EditTransactionDialog, DeleteTransactionDialog } from '@/components/dynamic';
+import { AddTransactionDialog, EditTransactionDialog, DeleteTransactionDialog, TransactionsTable } from '@/components/dynamic';
 
 export function TransactionsView({
   transactions,
