@@ -125,12 +125,12 @@ export default function OrdersPage() {
   }, [viewMode, date, sortConfig, todaySearchTerm, todayStatusFilter, pastSearchTerm, pastStatusFilter]);
 
   const getOrderStatusScore = (order: BreadOrder) => {
-    // Status scoring: Pinned > Unpaid/Undelivered > Paid/Undelivered > Unpaid/Delivered > Paid/Delivered
-    if (order.isPinned) return 0;
-    if (!order.isDelivered && !order.isPaid) return 1;
-    if (!order.isDelivered && order.isPaid) return 2;
-    if (order.isDelivered && !order.isPaid) return 3;
-    if (order.isDelivered && order.isPaid) return 4;
+    // Priorité : Épinglé > Livré/Non Payé > Non Livré/Non Payé > Non Livré/Payé > Livré/Payé
+    if (order.isPinned) return 0; // Pinned
+    if (order.isDelivered && !order.isPaid) return 1; // Delivered, Unpaid -> Needs payment
+    if (!order.isDelivered && !order.isPaid) return 2; // Undelivered, Unpaid -> Needs delivery and payment
+    if (!order.isDelivered && order.isPaid) return 3; // Undelivered, Paid -> Needs delivery
+    if (order.isDelivered && order.isPaid) return 4; // Done
     return 5;
   };
 
