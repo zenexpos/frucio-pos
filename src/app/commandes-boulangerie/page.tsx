@@ -526,21 +526,21 @@ export default function OrdersPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          title="اجمالي الخبز اللازم"
+          title="Pain Requis Total"
           value={todayStats.totalRequired}
-          description="إجمالي الكمية المطلوبة لليوم"
+          description="Quantité totale pour aujourd'hui"
           icon={Package}
         />
         <StatCard
-          title="الخبز الذي لم يسلم بعد"
+          title="Non Livré"
           value={todayStats.notDelivered}
-          description="الكمية المتبقية للتسليم"
+          description="Quantité restante à livrer"
           icon={ClipboardX}
         />
         <StatCard
-          title="تم تسليمه"
+          title="Livré"
           value={todayStats.delivered}
-          description="الكمية التي تم تسليمها"
+          description="Quantité qui a été livrée"
           icon={ClipboardCheck}
         />
       </div>
@@ -628,7 +628,7 @@ export default function OrdersPage() {
             )}
         </CardContent>
         <CardFooter className="justify-end pt-4 font-semibold">
-          اجمالي الخبز اللازم: {todayStats.totalRequired}
+          Total de pain requis : {todayStats.totalRequired}
         </CardFooter>
       </Card>
 
