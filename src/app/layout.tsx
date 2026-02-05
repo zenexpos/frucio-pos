@@ -1,13 +1,10 @@
+
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { Toaster } from '@/components/ui/toaster';
-import { MainLayout } from '@/components/layout/main-layout';
-import { ThemeProvider } from '@/components/layout/theme-provider';
+import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-
-const basketIcon = "/icon.svg";
 
 export const metadata: Metadata = {
   title: 'Frucio',
@@ -21,11 +18,6 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
-  },
-  icons: {
-    icon: basketIcon,
-    shortcut: basketIcon,
-    apple: basketIcon,
   },
 };
 
@@ -45,15 +37,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <head />
       <body className={`${inter.className} antialiased bg-background`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <MainLayout>{children}</MainLayout>
-          <Toaster />
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useState, Fragment, useMemo } from 'react';
 import Link from 'next/link';
-import type { Product } from '@/lib/types';
+import type { Product, Transaction, SupplierTransaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import {
   Table,
@@ -24,23 +24,6 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-interface BaseTransaction {
-  id: string;
-  description: string;
-  type: 'debt' | 'payment' | 'purchase';
-  date: string;
-  amount: number;
-  customerName?: string;
-  customerId?: string;
-  supplierId?: string;
-  saleItems?: {
-    productId: string;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-  }[] | null;
-}
-
 type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
 type SortDirection = 'ascending' | 'descending';
 
@@ -57,12 +40,12 @@ export function TransactionsTable({
   sortConfig,
   actions,
 }: {
-  transactions: BaseTransaction[];
+  transactions: (Transaction | SupplierTransaction)[];
   products?: Product[];
   showCustomerColumn?: boolean;
   onSort?: (key: SortKey) => void;
   sortConfig?: SortConfig;
-  actions?: (transaction: BaseTransaction) => React.ReactNode;
+  actions?: (transaction: Transaction | SupplierTransaction) => React.ReactNode;
 }) {
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const productMap = useMemo(() => new Map(products?.map(p => [p.id, p.name])), [products]);
@@ -110,7 +93,7 @@ export function TransactionsTable({
         <TableBody>
           {transactions.map((transaction) => {
             const isDebtLike = transaction.type === 'debt' || transaction.type === 'purchase';
-            const canExpand = transaction.saleItems && transaction.saleItems.length > 0;
+            const canExpand = 'saleItems' in transaction && transaction.saleItems && transaction.saleItems.length > 0;
             return (
                 <Fragment key={transaction.id}>
                     <TableRow
@@ -119,13 +102,15 @@ export function TransactionsTable({
                     >
                         {showCustomerColumn && (
                             <TableCell className="font-medium">
-                                <Link
-                                    href={`/clients/${transaction.customerId}`}
-                                    className="hover:underline"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {transaction.customerName}
-                                </Link>
+                                {'customerId' in transaction && transaction.customerId ? (
+                                    <Link
+                                        href={`/clients/${transaction.customerId}`}
+                                        className="hover:underline"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {(transaction as any).customerName}
+                                    </Link>
+                                ) : null}
                             </TableCell>
                         )}
                         <TableCell className="font-medium">{transaction.description}</TableCell>
@@ -163,7 +148,7 @@ export function TransactionsTable({
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {transaction.saleItems!.map((item, index) => (
+                                            {(transaction as Transaction).saleItems!.map((item, index) => (
                                                 <TableRow key={index} className="border-b-0 hover:bg-transparent">
                                                     <TableCell className="py-2 font-medium">{item.productName || productMap?.get(item.productId) || item.productId}</TableCell>
                                                     <TableCell className="py-2 text-center">{item.quantity}</TableCell>
