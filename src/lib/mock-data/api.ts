@@ -49,7 +49,6 @@ interface AddTransactionData {
   amount: number;
   description: string;
   date: string; // ISO string
-  orderId?: string;
   saleItems?: {
       productId: string;
       productName: string;

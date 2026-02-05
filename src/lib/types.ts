@@ -38,7 +38,6 @@ export interface Transaction {
   amount: number;
   date: string; // ISO string
   description: string;
-  orderId?: string;
   saleItems?: {
       productId: string;
       productName: string;
