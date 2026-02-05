@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { mockDataStore, loadData } from '@/lib/mock-data';
-import { recreatePinnedOrders } from '@/lib/mock-data/api';
 import { useToast } from '@/hooks/use-toast';
 import type {
   Customer,
@@ -75,15 +74,6 @@ export function useMockData(): MockDataState {
 
     // Initial load might be async if localStorage is slow, so we start with loading true.
     loadData();
-
-    recreatePinnedOrders().then(({ didRecreate, count }) => {
-        if (didRecreate) {
-            toast({
-                title: 'Commandes recréées',
-                description: `${count} commande(s) épinglée(s) ont été recréée(s) pour aujourd'hui.`,
-            });
-        }
-    });
 
     handleDataChange(); // Set initial data
 

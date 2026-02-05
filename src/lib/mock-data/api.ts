@@ -224,31 +224,6 @@ export const deleteBreadOrder = async (orderId: string) => {
     saveData();
 };
 
-export const resetBreadOrders = async () => {
-    const todayStart = startOfDay(new Date());
-
-    // Filter out today's non-pinned orders
-    const ordersToKeep = mockDataStore.breadOrders.filter(o => 
-        isBefore(new Date(o.createdAt), todayStart) || 
-        (isSameDay(new Date(o.createdAt), todayStart) && o.isPinned)
-    );
-
-    // Reset today's pinned orders
-    const updatedOrders = ordersToKeep.map(order => {
-        if (isSameDay(new Date(o.createdAt), todayStart) && order.isPinned) {
-            return {
-                ...order,
-                isPaid: false,
-                isDelivered: false,
-            };
-        }
-        return order;
-    });
-
-    mockDataStore.breadOrders = updatedOrders;
-    saveData();
-};
-
 // --- Caisse Functions ---
 interface SaleDetails {
     total: number;
@@ -807,53 +782,4 @@ export const exportExpensesToCsv = (expenses: Expense[]) => {
 
 export const resetAllData = () => {
     resetSeed();
-};
-
-export const recreatePinnedOrders = async () => {
-    const today = startOfDay(new Date());
-    const lastRecreationDateStr = localStorage.getItem('lastPinnedOrderRecreationDate');
-    const lastRecreationDate = lastRecreationDateStr ? startOfDay(new Date(lastRecreationDateStr)) : null;
-
-    // Don't run if it has already run today
-    if (lastRecreationDate && isSameDay(today, lastRecreationDate)) {
-        return { didRecreate: false, count: 0 };
-    }
-
-    const pinnedOrders = mockDataStore.breadOrders.filter(o => o.isPinned);
-    let recreatedCount = 0;
-
-    if (pinnedOrders.length === 0) {
-        localStorage.setItem('lastPinnedOrderRecreationDate', today.toISOString());
-        return { didRecreate: false, count: 0 };
-    }
-
-    const newOrders: Promise<any>[] = [];
-
-    pinnedOrders.forEach(order => {
-        const alreadyExistsToday = mockDataStore.breadOrders.some(
-            o => isSameDay(startOfDay(new Date(o.createdAt)), today) && 
-                 o.name === order.name && 
-                 o.customerId === order.customerId
-        );
-
-        if (!alreadyExistsToday) {
-            const newOrderData = {
-                name: order.name,
-                quantity: order.quantity,
-                unitPrice: order.unitPrice,
-                totalAmount: order.totalAmount,
-                customerId: order.customerId,
-                customerName: order.customerName,
-            };
-            
-            newOrders.push(addBreadOrder(newOrderData));
-            recreatedCount++;
-        }
-    });
-
-    await Promise.all(newOrders);
-
-    localStorage.setItem('lastPinnedOrderRecreationDate', today.toISOString());
-    
-    return { didRecreate: recreatedCount > 0, count: recreatedCount };
 };

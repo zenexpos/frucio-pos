@@ -19,7 +19,6 @@ import {
   Wallet,
   LayoutGrid,
   List,
-  RotateCcw,
   PlusCircle,
   Search,
   Download,
@@ -65,7 +64,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { OrderCard } from '@/components/orders/order-card';
-import { ResetOrdersDialog } from '@/components/orders/reset-orders-dialog';
 import { BulkDeleteOrdersDialog } from '@/components/orders/bulk-delete-orders-dialog';
 import {
   Select,
@@ -93,7 +91,6 @@ const PAST_ORDERS_PER_PAGE = 10;
 
 const orderShortcuts = [
   { group: 'Actions', key: 'Alt + N', description: 'Ajouter une nouvelle commande' },
-  { group: 'Actions', key: 'Alt + R', description: 'Réinitialiser les commandes du jour' },
   { group: 'Interface', key: 'Alt + V', description: 'Basculer entre la vue grille et la vue liste' },
   { group: 'Historique', key: 'Alt + D', description: "Ouvrir le filtre de date pour l'historique" },
   { group: 'Historique', key: 'Alt + S', description: "Ouvrir la sélection de tri pour l'historique" },
@@ -116,7 +113,6 @@ export default function OrdersPage() {
 
   // Refs for keyboard shortcuts
   const addOrderTriggerRef = useRef<HTMLButtonElement>(null);
-  const resetOrdersTriggerRef = useRef<HTMLButtonElement>(null);
   const viewModeListButtonRef = useRef<HTMLButtonElement>(null);
   const viewModeGridButtonRef = useRef<HTMLButtonElement>(null);
   const dateFilterTriggerRef = useRef<HTMLButtonElement>(null);
@@ -244,9 +240,6 @@ export default function OrdersPage() {
         } else {
           viewModeGridButtonRef.current?.click();
         }
-      } else if (e.altKey && (e.key === 'r' || e.key === 'R')) {
-        e.preventDefault();
-        resetOrdersTriggerRef.current?.click();
       } else if (e.altKey && (e.key === 'd' || e.key === 'D')) {
         e.preventDefault();
         dateFilterTriggerRef.current?.click();
@@ -529,11 +522,6 @@ export default function OrdersPage() {
               title="Raccourcis Clavier Commandes"
               description="Utilisez ces raccourcis pour accélérer votre flux de travail sur la page des commandes."
             />
-            <ResetOrdersDialog trigger={
-              <Button ref={resetOrdersTriggerRef} variant="outline">
-                <RotateCcw /> Réinitialiser
-              </Button>
-            } />
             <AddOrderDialog trigger={
               <Button ref={addOrderTriggerRef}>
                 <PlusCircle /> Ajouter une commande
