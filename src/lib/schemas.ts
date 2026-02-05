@@ -45,6 +45,8 @@ export const orderSchema = z.object({
     .number()
     .int()
     .positive({ message: 'La quantité doit être un nombre entier positif.' }),
+  isPaid: z.preprocess((val) => val === 'on', z.boolean()).default(false),
+  isPinned: z.preprocess((val) => val === 'on', z.boolean()).default(false),
 });
 
 export const productSchema = z.object({

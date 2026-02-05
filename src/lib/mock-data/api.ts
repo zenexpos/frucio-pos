@@ -125,15 +125,20 @@ interface AddBreadOrderData {
   quantity: number;
   unitPrice: number;
   totalAmount: number;
+  isPaid?: boolean;
+  isPinned?: boolean;
 }
 
 export const addBreadOrder = async (data: AddBreadOrderData) => {
     const newOrder: BreadOrder = {
-        ...data,
+        name: data.name,
+        quantity: data.quantity,
+        unitPrice: data.unitPrice,
+        totalAmount: data.totalAmount,
         id: nextId(),
-        isPaid: false,
+        isPaid: data.isPaid || false,
         isDelivered: false,
-        isPinned: false,
+        isPinned: data.isPinned || false,
         createdAt: new Date().toISOString(),
     };
     mockDataStore.breadOrders.push(newOrder);

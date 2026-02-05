@@ -10,6 +10,7 @@ import { useFormSubmission } from '@/hooks/use-form-submission';
 import { addBreadOrder } from '@/lib/mock-data/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { orderSchema } from '@/lib/schemas';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -32,7 +33,10 @@ export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
       const totalAmount = data.quantity * unitPrice;
       
       await addBreadOrder({
-        ...data,
+        name: data.name,
+        quantity: data.quantity,
+        isPaid: data.isPaid,
+        isPinned: data.isPinned,
         unitPrice: unitPrice,
         totalAmount,
       });
@@ -74,6 +78,16 @@ export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
             {errors.quantity._errors[0]}
           </p>
         )}
+      </div>
+       <div className="space-y-4 pt-2">
+        <div className="flex items-center space-x-2">
+          <Checkbox id="isPaid" name="isPaid" />
+          <Label htmlFor="isPaid" className="cursor-pointer">Marquer comme payé</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox id="isPinned" name="isPinned" />
+          <Label htmlFor="isPinned" className="cursor-pointer">Commande journalière (Épingler)</Label>
+        </div>
       </div>
       <SubmitButton isPending={isPending}>Ajouter la commande</SubmitButton>
     </form>
