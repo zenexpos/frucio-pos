@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import {
   Search,
   Barcode,
@@ -36,16 +37,17 @@ import { Separator } from '@/components/ui/separator';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Product, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PaymentDialog } from '@/components/caisse/payment-dialog';
-import { DiscountDialog } from '@/components/caisse/discount-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { CustomerCombobox } from '@/components/caisse/customer-combobox';
 import { Receipt, type ReceiptData } from '@/components/caisse/receipt';
-import { SettleDebtDialog } from '@/components/caisse/settle-debt-dialog';
-import { AddProductDialog } from '@/components/produits/add-product-dialog';
-import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
-import { AddCustomProductDialog } from '@/components/caisse/add-custom-product-dialog';
+
+const PaymentDialog = dynamic(() => import('@/components/caisse/payment-dialog').then(mod => mod.PaymentDialog), { ssr: false });
+const DiscountDialog = dynamic(() => import('@/components/caisse/discount-dialog').then(mod => mod.DiscountDialog), { ssr: false });
+const AddCustomerDialog = dynamic(() => import('@/components/customers/add-customer-dialog').then(mod => mod.AddCustomerDialog), { ssr: false });
+const SettleDebtDialog = dynamic(() => import('@/components/caisse/settle-debt-dialog').then(mod => mod.SettleDebtDialog), { ssr: false });
+const AddProductDialog = dynamic(() => import('@/components/produits/add-product-dialog').then(mod => mod.AddProductDialog), { ssr: false });
+const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+const AddCustomProductDialog = dynamic(() => import('@/components/caisse/add-custom-product-dialog').then(mod => mod.AddCustomProductDialog), { ssr: false });
 
 
 const productImages = imageData.caisse;

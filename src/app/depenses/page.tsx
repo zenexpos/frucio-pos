@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Search,
   Calendar as CalendarIcon,
@@ -44,9 +45,6 @@ import {
 import { fr } from 'date-fns/locale';
 import { useMockData } from '@/hooks/use-mock-data';
 import DepensesLoading from './loading';
-import { AddExpenseDialog } from '@/components/depenses/add-expense-dialog';
-import { EditExpenseDialog } from '@/components/depenses/edit-expense-dialog';
-import { DeleteExpenseDialog } from '@/components/depenses/delete-expense-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -62,11 +60,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
 import type { Expense } from '@/lib/types';
 import { exportExpensesToCsv } from '@/lib/mock-data/api';
-import { DepensesCsvImportDialog } from '@/components/depenses/csv-import-dialog';
 import { useToast } from '@/hooks/use-toast';
+
+const AddExpenseDialog = dynamic(() => import('@/components/depenses/add-expense-dialog').then(mod => mod.AddExpenseDialog), { ssr: false });
+const EditExpenseDialog = dynamic(() => import('@/components/depenses/edit-expense-dialog').then(mod => mod.EditExpenseDialog), { ssr: false });
+const DeleteExpenseDialog = dynamic(() => import('@/components/depenses/delete-expense-dialog').then(mod => mod.DeleteExpenseDialog), { ssr: false });
+const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+const DepensesCsvImportDialog = dynamic(() => import('@/components/depenses/csv-import-dialog').then(mod => mod.DepensesCsvImportDialog), { ssr: false });
 
 type SortKey = 'description' | 'category' | 'amount' | 'date';
 type SortDirection = 'ascending' | 'descending';

@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { BreadOrder } from '@/lib/types';
-import { AddOrderDialog } from '@/components/orders/add-order-dialog';
 import OrdersLoading from './loading';
 import {
   Star,
@@ -51,8 +51,6 @@ import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder, exportBreadOrdersToCsv } from '@/lib/mock-data/api';
 import { cn, formatCurrency } from '@/lib/utils';
-import { EditOrderDialog } from '@/components/orders/edit-order-dialog';
-import { DeleteOrderDialog } from '@/components/orders/delete-order-dialog';
 import { type DateRange } from 'react-day-picker';
 import {
   Popover,
@@ -62,8 +60,6 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { OrderCard } from '@/components/orders/order-card';
-import { BulkDeleteOrdersDialog } from '@/components/orders/bulk-delete-orders-dialog';
 import {
   Select,
   SelectContent,
@@ -71,10 +67,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+const AddOrderDialog = dynamic(() => import('@/components/orders/add-order-dialog').then(mod => mod.AddOrderDialog), { ssr: false });
+const EditOrderDialog = dynamic(() => import('@/components/orders/edit-order-dialog').then(mod => mod.EditOrderDialog), { ssr: false });
+const DeleteOrderDialog = dynamic(() => import('@/components/orders/delete-order-dialog').then(mod => mod.DeleteOrderDialog), { ssr: false });
+const OrderCard = dynamic(() => import('@/components/orders/order-card').then(mod => mod.OrderCard), { ssr: false });
+const BulkDeleteOrdersDialog = dynamic(() => import('@/components/orders/bulk-delete-orders-dialog').then(mod => mod.BulkDeleteOrdersDialog), { ssr: false });
+const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
 
 type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice'>;
 
@@ -527,7 +528,7 @@ export default function OrdersPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          title="Pain Requis Total"
+          title="Total de pain requis"
           value={todayStats.totalRequired}
           description="Quantité totale pour aujourd'hui"
           icon={Package}

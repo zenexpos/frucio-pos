@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import type { Customer } from '@/lib/types';
 import { formatCurrency, getBalanceVariant, cn } from '@/lib/utils';
 import {
@@ -28,9 +29,11 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import { AddTransactionDialog } from '@/components/transactions/add-transaction-dialog';
-import { EditCustomerDialog } from './edit-customer-dialog';
-import { DeleteCustomerDialog } from './delete-customer-dialog';
+
+const AddTransactionDialog = dynamic(() => import('../transactions/add-transaction-dialog').then(mod => mod.AddTransactionDialog), { ssr: false });
+const EditCustomerDialog = dynamic(() => import('./edit-customer-dialog').then(mod => mod.EditCustomerDialog), { ssr: false });
+const DeleteCustomerDialog = dynamic(() => import('./delete-customer-dialog').then(mod => mod.DeleteCustomerDialog), { ssr: false });
+
 
 export function CustomersTable({
   customers,

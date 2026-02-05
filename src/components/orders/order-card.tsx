@@ -1,6 +1,7 @@
 'use client';
 
 import type { BreadOrder } from '@/lib/types';
+import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreVertical, Star } from 'lucide-react';
@@ -8,8 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { useState } from 'react';
 import { cn, formatCurrency } from '@/lib/utils';
-import { EditOrderDialog } from './edit-order-dialog';
-import { DeleteOrderDialog } from './delete-order-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +19,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
+const EditOrderDialog = dynamic(() => import('./edit-order-dialog').then(mod => mod.EditOrderDialog), { ssr: false });
+const DeleteOrderDialog = dynamic(() => import('./delete-order-dialog').then(mod => mod.DeleteOrderDialog), { ssr: false });
 
 export function OrderCard({
   order,

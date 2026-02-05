@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Customer, Transaction, Product } from '@/lib/types';
 import HistoryLoading from './loading';
@@ -36,9 +37,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { formatCurrency, cn } from '@/lib/utils';
 import { exportTransactionsToCsv } from '@/lib/mock-data/api';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
-import { EditTransactionDialog } from '@/components/transactions/edit-transaction-dialog';
-import { DeleteTransactionDialog } from '@/components/transactions/delete-transaction-dialog';
+
+const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+const EditTransactionDialog = dynamic(() => import('@/components/transactions/edit-transaction-dialog').then(mod => mod.EditTransactionDialog), { ssr: false });
+const DeleteTransactionDialog = dynamic(() => import('@/components/transactions/delete-transaction-dialog').then(mod => mod.DeleteTransactionDialog), { ssr: false });
 
 type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
 type SortDirection = 'ascending' | 'descending';

@@ -1,8 +1,11 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/main-layout';
 import { ThemeProvider } from '@/components/layout/theme-provider';
+
+const inter = Inter({ subsets: ['latin'] });
 
 const basketIcon = "/icon.svg";
 
@@ -41,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head />
-      <body className="antialiased bg-background">
+      <body className={`${inter.className} antialiased bg-background`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

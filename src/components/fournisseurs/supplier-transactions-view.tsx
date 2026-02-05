@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import type { SupplierTransaction, Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { TransactionsTable } from '@/components/transactions/transactions-table';
-import { AddSupplierTransactionDialog } from './add-supplier-transaction-dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle, MinusCircle, FileText } from 'lucide-react';
 import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
-import { EditSupplierTransactionDialog } from './edit-supplier-transaction-dialog';
-import { DeleteSupplierTransactionDialog } from './delete-supplier-transaction-dialog';
+
+const AddSupplierTransactionDialog = dynamic(() => import('./add-supplier-transaction-dialog').then(mod => mod.AddSupplierTransactionDialog), { ssr: false });
+const EditSupplierTransactionDialog = dynamic(() => import('./edit-supplier-transaction-dialog').then(mod => mod.EditSupplierTransactionDialog), { ssr: false });
+const DeleteSupplierTransactionDialog = dynamic(() => import('./delete-supplier-transaction-dialog').then(mod => mod.DeleteSupplierTransactionDialog), { ssr: false });
 
 export function SupplierTransactionsView({
   transactions,

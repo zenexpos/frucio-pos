@@ -1,6 +1,7 @@
 'use client';
 
 import type { Supplier } from '@/lib/types';
+import dynamic from 'next/dynamic';
 import {
   Card,
   CardContent,
@@ -30,11 +31,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EditSupplierDialog } from './edit-supplier-dialog';
-import { DeleteSupplierDialog } from './delete-supplier-dialog';
-import { AddSupplierTransactionDialog } from './add-supplier-transaction-dialog';
 import Link from 'next/link';
 import { Checkbox } from '../ui/checkbox';
+
+const EditSupplierDialog = dynamic(() => import('./edit-supplier-dialog').then(mod => mod.EditSupplierDialog), { ssr: false });
+const DeleteSupplierDialog = dynamic(() => import('./delete-supplier-dialog').then(mod => mod.DeleteSupplierDialog), { ssr: false });
+const AddSupplierTransactionDialog = dynamic(() => import('./add-supplier-transaction-dialog').then(mod => mod.AddSupplierTransactionDialog), { ssr: false });
+
 
 export function FournisseurCard({
   supplier,

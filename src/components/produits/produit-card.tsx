@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import type { Product } from '@/lib/types';
 import {
   Card,
@@ -14,8 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { MoreVertical, Truck, Copy, Archive, ArchiveRestore } from 'lucide-react';
 import { formatCurrency, cn, slugify } from '@/lib/utils';
 import imageData from '@/lib/placeholder-images.json';
-import { EditProductDialog } from './edit-product-dialog';
-import { DeleteProductDialog } from './delete-product-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +23,14 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { AdjustStockDialog } from './adjust-stock-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PrintBarcodeDialog } from './print-barcode-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { duplicateProduct } from '@/lib/mock-data/api';
+
+const EditProductDialog = dynamic(() => import('./edit-product-dialog').then(mod => mod.EditProductDialog), { ssr: false });
+const DeleteProductDialog = dynamic(() => import('./delete-product-dialog').then(mod => mod.DeleteProductDialog), { ssr: false });
+const AdjustStockDialog = dynamic(() => import('./adjust-stock-dialog').then(mod => mod.AdjustStockDialog), { ssr: false });
+const PrintBarcodeDialog = dynamic(() => import('./print-barcode-dialog').then(mod => mod.PrintBarcodeDialog), { ssr: false });
 
 const productImages = imageData.caisse;
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import type { Customer } from '@/lib/types';
 import {
   Card,
@@ -32,12 +33,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EditCustomerDialog } from './edit-customer-dialog';
-import { DeleteCustomerDialog } from './delete-customer-dialog';
-import { AddTransactionDialog } from '../transactions/add-transaction-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+const EditCustomerDialog = dynamic(() => import('./edit-customer-dialog').then(mod => mod.EditCustomerDialog), { ssr: false });
+const DeleteCustomerDialog = dynamic(() => import('./delete-customer-dialog').then(mod => mod.DeleteCustomerDialog), { ssr: false });
+const AddTransactionDialog = dynamic(() => import('../transactions/add-transaction-dialog').then(mod => mod.AddTransactionDialog), { ssr: false });
+
 
 export function CustomerCard({ 
   customer,

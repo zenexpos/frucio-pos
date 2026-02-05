@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Customer } from '@/lib/types';
 import ClientsLoading from './loading';
-import { AddCustomerDialog } from '@/components/customers/add-customer-dialog';
 import { Input } from '@/components/ui/input';
 import {
   Search,
@@ -34,7 +34,6 @@ import { CustomersGrid } from '@/components/customers/customers-grid';
 import { CustomersTable } from '@/components/customers/customers-table';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { formatCurrency, cn, getBalanceColorClassName, getInitials, getRecentCustomers } from '@/lib/utils';
-import { CsvImportDialog } from '@/components/customers/csv-import-dialog';
 import { exportCustomersToCsv } from '@/lib/mock-data/api';
 import {
   Card,
@@ -43,12 +42,15 @@ import {
   CardFooter,
   CardTitle,
 } from '@/components/ui/card';
-import { BulkDeleteCustomersDialog } from '@/components/customers/bulk-delete-customer-dialog';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
+
+const AddCustomerDialog = dynamic(() => import('@/components/customers/add-customer-dialog').then(mod => mod.AddCustomerDialog), { ssr: false });
+const CsvImportDialog = dynamic(() => import('@/components/customers/csv-import-dialog').then(mod => mod.CsvImportDialog), { ssr: false });
+const BulkDeleteCustomersDialog = dynamic(() => import('@/components/customers/bulk-delete-customer-dialog').then(mod => mod.BulkDeleteCustomersDialog), { ssr: false });
+const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
 
 type SortKey = keyof Customer | 'totalDebts' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';

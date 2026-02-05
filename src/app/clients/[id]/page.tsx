@@ -6,13 +6,16 @@ import { useMockData } from '@/hooks/use-mock-data';
 import type { Customer, Transaction } from '@/lib/types';
 import Link from 'next/link';
 import { usePrintOnLoad } from '@/hooks/use-print-on-load';
+import dynamic from 'next/dynamic';
 
 import { CustomerHeader } from '@/components/customers/customer-header';
-import { TransactionsView } from '@/components/transactions/transactions-view';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import CustomerDetailLoading from './loading';
-import { BalanceHistoryChart } from '@/components/customers/balance-history-chart';
+
+const TransactionsView = dynamic(() => import('@/components/transactions/transactions-view').then(mod => mod.TransactionsView), { ssr: false });
+const BalanceHistoryChart = dynamic(() => import('@/components/customers/balance-history-chart').then(mod => mod.BalanceHistoryChart), { ssr: false });
+
 
 export default function CustomerDetailPage() {
   const params = useParams();

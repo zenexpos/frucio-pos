@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Supplier } from '@/lib/types';
 import FournisseursLoading from './loading';
@@ -45,10 +46,6 @@ import {
   getRecentSuppliers,
 } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import { AddSupplierDialog } from '@/components/fournisseurs/add-supplier-dialog';
-import { EditSupplierDialog } from '@/components/fournisseurs/edit-supplier-dialog';
-import { DeleteSupplierDialog } from '@/components/fournisseurs/delete-supplier-dialog';
-import { AddSupplierTransactionDialog } from '@/components/fournisseurs/add-supplier-transaction-dialog';
 import Link from 'next/link';
 import { StatCard } from '@/components/dashboard/stat-card';
 import {
@@ -60,11 +57,8 @@ import {
 } from '@/components/ui/card';
 import { FournisseursGrid } from '@/components/fournisseurs/fournisseurs-grid';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SupplierCsvImportDialog } from '@/components/fournisseurs/csv-import-dialog';
 import { exportSuppliersToCsv } from '@/lib/mock-data/api';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BulkDeleteSuppliersDialog } from '@/components/fournisseurs/bulk-delete-supplier-dialog';
-import { ShortcutsDialog } from '@/components/layout/shortcuts-dialog';
 import {
   Select,
   SelectContent,
@@ -72,6 +66,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+const AddSupplierDialog = dynamic(() => import('@/components/fournisseurs/add-supplier-dialog').then(mod => mod.AddSupplierDialog), { ssr: false });
+const EditSupplierDialog = dynamic(() => import('@/components/fournisseurs/edit-supplier-dialog').then(mod => mod.EditSupplierDialog), { ssr: false });
+const DeleteSupplierDialog = dynamic(() => import('@/components/fournisseurs/delete-supplier-dialog').then(mod => mod.DeleteSupplierDialog), { ssr: false });
+const AddSupplierTransactionDialog = dynamic(() => import('@/components/fournisseurs/add-supplier-transaction-dialog').then(mod => mod.AddSupplierTransactionDialog), { ssr: false });
+const SupplierCsvImportDialog = dynamic(() => import('@/components/fournisseurs/csv-import-dialog').then(mod => mod.SupplierCsvImportDialog), { ssr: false });
+const BulkDeleteSuppliersDialog = dynamic(() => import('@/components/fournisseurs/bulk-delete-supplier-dialog').then(mod => mod.BulkDeleteSuppliersDialog), { ssr: false });
+const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
 
 type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
