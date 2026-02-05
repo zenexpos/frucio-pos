@@ -545,66 +545,73 @@ export default function OrdersPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle>Commandes du jour</CardTitle>
-                <CardDescription>
-                  Gérez les commandes de pain et de pâtisseries du jour ici.
-                </CardDescription>
-              </div>
-              <div className="flex w-full sm:w-auto items-center gap-2">
-                <div className="relative flex-grow sm:flex-grow-0">
+       <Tabs defaultValue="today" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="today">Commandes du Jour</TabsTrigger>
+          <TabsTrigger value="history">Historique des Commandes</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="today" className="mt-4">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Liste des commandes du jour</CardTitle>
+                  <CardDescription>Gérez les commandes de pain et de pâtisseries du jour ici.</CardDescription>
+                </div>
+                <div className="flex w-full sm:w-auto items-center gap-2">
+                  <div className="relative flex-grow sm:flex-grow-0">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input 
-                        placeholder="Rechercher..." 
-                        className="pl-8 sm:w-[200px]"
-                        value={todaySearchTerm}
-                        onChange={(e) => setTodaySearchTerm(e.target.value)}
+                      placeholder="Rechercher..." 
+                      className="pl-8 sm:w-[200px]"
+                      value={todaySearchTerm}
+                      onChange={(e) => setTodaySearchTerm(e.target.value)}
                     />
-                </div>
-                <div className="flex items-center gap-1 border rounded-md p-1">
-                  <Button
+                  </div>
+                   <Select value={todayStatusFilter} onValueChange={v => setTodayStatusFilter(v as TodayStatusFilter)}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
+                      <SelectValue placeholder="Filtrer..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      <SelectItem value="unpaid">Non Payées</SelectItem>
+                      <SelectItem value="undelivered">Non Livrées</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center gap-1 border rounded-md p-1">
+                    <Button
                       ref={viewModeListButtonRef}
                       variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                       size="icon"
                       onClick={() => setViewMode('list')}
                       className="h-8 w-8"
-                  >
+                    >
                       <List className="h-4 w-4" />
-                  </Button>
-                  <Button
+                    </Button>
+                    <Button
                       ref={viewModeGridButtonRef}
                       variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                       size="icon"
                       onClick={() => setViewMode('grid')}
                       className="h-8 w-8"
-                  >
+                    >
                       <LayoutGrid className="h-4 w-4" />
-                  </Button>
+                    </Button>
+                  </div>
                 </div>
-            </div>
-          </div>
-           <Tabs value={todayStatusFilter} onValueChange={v => setTodayStatusFilter(v as TodayStatusFilter)} className="pt-4">
-            <TabsList>
-              <TabsTrigger value="all">Toutes</TabsTrigger>
-              <TabsTrigger value="unpaid">Non Payées</TabsTrigger>
-              <TabsTrigger value="undelivered">Non Livrées</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardHeader>
-        <CardContent>
-            {selectedOrderIds.length > 0 && (
+              </div>
+            </CardHeader>
+            <CardContent>
+              {selectedOrderIds.length > 0 && todayOrders.some(o => selectedOrderIds.includes(o.id)) && (
                 <div className="mb-4 p-3 bg-muted rounded-md flex items-center justify-between">
-                    <p className="font-medium text-sm">{selectedOrderIds.length} commande(s) sélectionnée(s)</p>
-                    <BulkDeleteOrdersDialog orderIds={selectedOrderIds} onSuccess={() => setSelectedOrderIds([])} />
+                  <p className="font-medium text-sm">{selectedOrderIds.length} commande(s) sélectionnée(s)</p>
+                  <BulkDeleteOrdersDialog orderIds={selectedOrderIds} onSuccess={() => setSelectedOrderIds([])} />
                 </div>
-            )}
-
-            {todayOrders.length > 0 ? (
+              )}
+              {todayOrders.length > 0 ? (
                 viewMode === 'grid' ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {todayOrders.map(order => (
                       <OrderCard 
                         key={order.id} 
@@ -621,156 +628,98 @@ export default function OrdersPage() {
                     isToday
                   />
                 )
-            ) : (
+              ) : (
                  <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
                     <p>{todaySearchTerm || todayStatusFilter !== 'all' ? "Aucune commande ne correspond à vos filtres." : "Aucune commande pour aujourd'hui."}</p>
                 </div>
-            )}
-        </CardContent>
-        <CardFooter className="justify-end pt-4 font-semibold">
-          Total de pain requis : {todayStats.totalRequired}
-        </CardFooter>
-      </Card>
-
-      {orders.length > 0 && (
-        <Card>
-          <CardHeader className="flex-col items-start gap-4">
-            <div>
-              <CardTitle>Commandes des jours précédents</CardTitle>
-              <CardDescription>
-                Historique des commandes passées.
-              </CardDescription>
-            </div>
-            <div className="pt-2 w-full flex flex-col sm:flex-row items-center gap-2 flex-wrap">
-                <div className="relative flex-grow w-full sm:w-auto">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Rechercher une commande passée..." 
-                        className="pl-8"
-                        value={pastSearchTerm}
-                        onChange={(e) => setPastSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="flex w-full sm:w-auto items-center gap-2 justify-end flex-wrap">
-                    <Select value={pastStatusFilter} onValueChange={(v) => setPastStatusFilter(v as PastStatusFilter)}>
-                      <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Filtrer par statut..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tous les statuts</SelectItem>
-                        <SelectItem value="paid">Payé</SelectItem>
-                        <SelectItem value="unpaid">Non Payé</SelectItem>
-                        <SelectItem value="delivered">Livré</SelectItem>
-                        <SelectItem value="undelivered">Non Livré</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={`${sortConfig.key}:${sortConfig.direction}`}
-                      onValueChange={handleSortChange}
-                    >
-                      <SelectTrigger ref={sortSelectTriggerRef} className="w-full sm:w-[200px]">
-                        <SelectValue placeholder="Trier par..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="createdAt:descending">Plus récent</SelectItem>
-                        <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
-                        <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
-                        <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
-                        <SelectItem value="quantity:descending">Quantité (décroissant)</SelectItem>
-                        <SelectItem value="quantity:ascending">Quantité (croissant)</SelectItem>
-                        <SelectItem value="totalAmount:descending">Montant (décroissant)</SelectItem>
-                        <SelectItem value="totalAmount:ascending">Montant (croissant)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          ref={dateFilterTriggerRef}
-                          id="date"
-                          variant={'outline'}
-                          className={cn(
-                            'w-full sm:w-[280px] justify-start text-left font-normal',
-                            !date && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date?.from ? (
-                            date.to ? (
-                              <>
-                                {format(date.from, 'dd MMM yyyy', { locale: fr })} -{' '}
-                                {format(date.to, 'dd MMM yyyy', { locale: fr })}
-                              </>
-                            ) : (
-                              format(date.from, 'dd MMM yyyy', { locale: fr })
-                            )
-                          ) : (
-                            <span>Filtrer par date</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
-                        <Calendar
-                          initialFocus
-                          mode="range"
-                          defaultMonth={date?.from}
-                          selected={date}
-                          onSelect={setDate}
-                          numberOfMonths={2}
-                          locale={fr}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Button
-                        variant="outline"
-                        onClick={handleExport}
-                        disabled={pastOrders.length === 0}
-                    >
-                        <Download className="h-4 w-4" /> Exporter
-                    </Button>
-                    {date && (
-                      <Button variant="ghost" onClick={() => setDate(undefined)}>
-                        <X className="h-4 w-4" /> Effacer
-                      </Button>
-                    )}
-                </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <OrdersTable
-              orders={paginatedPastOrders}
-              noOrdersMessage="Aucune commande trouvée pour la période ou les filtres sélectionnés."
-            />
-          </CardContent>
-          {pastOrdersTotalPages > 1 && (
-            <CardFooter className="flex items-center justify-between pt-4">
-              <div className="text-sm text-muted-foreground">
-                Affichage de {pastOrdersStartItem} à {pastOrdersEndItem} sur{' '}
-                {pastOrders.length} commandes
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPastOrdersCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={pastOrdersCurrentPage === 1}
-                >
-                  Précédent
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setPastOrdersCurrentPage((p) => Math.min(pastOrdersTotalPages, p + 1))
-                  }
-                  disabled={pastOrdersCurrentPage === pastOrdersTotalPages}
-                >
-                  Suivant
-                </Button>
-              </div>
+              )}
+            </CardContent>
+            <CardFooter className="justify-end pt-4 font-semibold">
+              Total de pain requis : {todayStats.totalRequired}
             </CardFooter>
-          )}
-        </Card>
-      )}
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="history" className="mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                          <CardTitle>Historique des commandes</CardTitle>
+                          <CardDescription>Consultez les commandes des jours précédents.</CardDescription>
+                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            ref={dateFilterTriggerRef}
+                            id="date"
+                            variant={'outline'}
+                            className={cn('w-full sm:w-[280px] justify-start text-left font-normal', !date && 'text-muted-foreground')}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (date.to ? (<>{format(date.from, 'dd MMM yyyy', { locale: fr })} - {format(date.to, 'dd MMM yyyy', { locale: fr })}</>) : (format(date.from, 'dd MMM yyyy', { locale: fr }))) : (<span>Filtrer par date</span>)}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} locale={fr} />
+                        </PopoverContent>
+                      </Popover>
+                  </div>
+                  <div className="w-full flex flex-col sm:flex-row items-center gap-2 flex-wrap">
+                      <div className="relative flex-grow w-full sm:w-auto">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Rechercher une commande passée..." className="pl-8" value={pastSearchTerm} onChange={(e) => setPastSearchTerm(e.target.value)} />
+                      </div>
+                      <div className="flex w-full sm:w-auto items-center gap-2 justify-end flex-wrap">
+                          <Select value={pastStatusFilter} onValueChange={(v) => setPastStatusFilter(v as PastStatusFilter)}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                              <SelectValue placeholder="Filtrer par statut..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Tous les statuts</SelectItem>
+                              <SelectItem value="paid">Payé</SelectItem>
+                              <SelectItem value="unpaid">Non Payé</SelectItem>
+                              <SelectItem value="delivered">Livré</SelectItem>
+                              <SelectItem value="undelivered">Non Livré</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Select value={`${sortConfig.key}:${sortConfig.direction}`} onValueChange={handleSortChange}>
+                            <SelectTrigger ref={sortSelectTriggerRef} className="w-full sm:w-[200px]">
+                              <SelectValue placeholder="Trier par..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="createdAt:descending">Plus récent</SelectItem>
+                              <SelectItem value="createdAt:ascending">Plus ancien</SelectItem>
+                              <SelectItem value="name:ascending">Nom (A-Z)</SelectItem>
+                              <SelectItem value="name:descending">Nom (Z-A)</SelectItem>
+                              <SelectItem value="quantity:descending">Quantité (décroissant)</SelectItem>
+                              <SelectItem value="quantity:ascending">Quantité (croissant)</SelectItem>
+                              <SelectItem value="totalAmount:descending">Montant (décroissant)</SelectItem>
+                              <SelectItem value="totalAmount:ascending">Montant (croissant)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="outline" onClick={handleExport} disabled={pastOrders.length === 0}><Download className="h-4 w-4" /> Exporter</Button>
+                          {date && (<Button variant="ghost" onClick={() => setDate(undefined)}><X className="h-4 w-4" /> Effacer</Button>)}
+                      </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <OrdersTable orders={paginatedPastOrders} noOrdersMessage="Aucune commande trouvée pour la période ou les filtres sélectionnés." />
+              </CardContent>
+              {pastOrdersTotalPages > 1 && (
+                <CardFooter className="flex items-center justify-between pt-4">
+                  <div className="text-sm text-muted-foreground">Affichage de {pastOrdersStartItem} à {pastOrdersEndItem} sur {pastOrders.length} commandes</div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setPastOrdersCurrentPage((p) => Math.max(1, p - 1))} disabled={pastOrdersCurrentPage === 1}>Précédent</Button>
+                    <Button variant="outline" size="sm" onClick={() => setPastOrdersCurrentPage((p) => Math.min(pastOrdersTotalPages, p + 1))} disabled={pastOrdersCurrentPage === pastOrdersTotalPages}>Suivant</Button>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

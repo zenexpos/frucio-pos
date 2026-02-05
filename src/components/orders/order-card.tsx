@@ -153,9 +153,8 @@ export function OrderCard({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-x-4 pt-3 border-t no-print">
-            <div className="flex items-center justify-between">
-              <Label htmlFor={`paid-${order.id}`} className="text-xs">Payé</Label>
+           <div className="mt-3 grid grid-cols-2 gap-x-2 pt-3 border-t no-print">
+            <div className="flex items-center space-x-2">
               <Switch
                 id={`paid-${order.id}`}
                 checked={order.isPaid}
@@ -164,10 +163,10 @@ export function OrderCard({
                 }
                 disabled={isUpdating}
               />
+              <Label htmlFor={`paid-${order.id}`} className="text-xs">Payé</Label>
             </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor={`delivered-${order.id}`} className="text-xs">Livré</Label>
-              <Switch
+            <div className="flex items-center space-x-2">
+               <Switch
                 id={`delivered-${order.id}`}
                 checked={order.isDelivered}
                 onCheckedChange={(checked) =>
@@ -175,6 +174,7 @@ export function OrderCard({
                 }
                 disabled={isUpdating}
               />
+              <Label htmlFor={`delivered-${order.id}`} className="text-xs">Livré</Label>
             </div>
           </div>
         </div>
