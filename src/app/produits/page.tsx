@@ -39,8 +39,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { formatCurrency, cn, slugify } from '@/lib/utils';
 import ProduitsLoading from './loading';
 import {
   exportProductsToCsv,
@@ -118,17 +117,6 @@ export default function ProduitsPage() {
   const exportButtonRef = useRef<HTMLButtonElement>(null);
   const clearFiltersButtonRef = useRef<HTMLButtonElement>(null);
 
-  const slugify = (text: string) => {
-    return text
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/'/g, '')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '');
-  };
   const productImages = imageData.caisse;
 
   const getProductImage = (product: Product) => {
