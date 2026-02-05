@@ -1,7 +1,7 @@
 'use client';
 import { mockDataStore, saveData, resetToSeedData as resetSeed } from './index';
 import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product, SupplierTransaction, CompanyInfo } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { formatCurrency } from '../utils';
 
 let nextId = () => Date.now().toString() + Math.random().toString(36).substring(2, 9);
@@ -155,6 +155,51 @@ export const deleteBreadOrder = async (orderId: string) => {
         mockDataStore.breadOrders.splice(orderIndex, 1);
         saveData();
     }
+};
+
+export const recreatePinnedOrders = () => {
+  const today = startOfDay(new Date());
+  
+  // Find all unique pinned orders by name from the entire history.
+  // We take the latest one as the template.
+  const latestPinnedOrders = new Map<string, BreadOrder>();
+  mockDataStore.breadOrders.forEach(order => {
+      if (order.isPinned) {
+          const existing = latestPinnedOrders.get(order.name);
+          if (!existing || new Date(order.createdAt) > new Date(existing.createdAt)) {
+            latestPinnedOrders.set(order.name, order);
+          }
+      }
+  });
+
+  // Check if today's pinned orders already exist to prevent duplicates
+  const todayOrders = mockDataStore.breadOrders.filter(order => 
+      startOfDay(new Date(order.createdAt)).getTime() === today.getTime()
+  );
+
+  const ordersToCreate: Omit<BreadOrder, 'id'>[] = [];
+
+  latestPinnedOrders.forEach(templateOrder => {
+      const alreadyExistsToday = todayOrders.some(todayOrder => 
+          todayOrder.name === templateOrder.name && todayOrder.isPinned
+      );
+
+      if (!alreadyExistsToday) {
+          ordersToCreate.push({
+              ...templateOrder,
+              isPaid: false,
+              isDelivered: false,
+              createdAt: new Date().toISOString(),
+          });
+      }
+  });
+
+  if (ordersToCreate.length > 0) {
+      console.log(`Recreating ${ordersToCreate.length} pinned orders for today.`);
+      const newOrders = ordersToCreate.map(o => ({ ...o, id: nextId() }));
+      mockDataStore.breadOrders.push(...newOrders);
+      saveData(); // This will save changes and notify the UI
+  }
 };
 
 // --- Caisse Functions ---

@@ -13,6 +13,7 @@ import type {
   SupplierTransaction,
   CompanyInfo,
 } from '@/lib/types';
+import { recreatePinnedOrders } from '@/lib/mock-data/api';
 
 interface MockDataState {
   customers: Customer[];
@@ -71,6 +72,15 @@ export function useMockData(): MockDataState {
         loading: false,
       });
     };
+
+    // --- Automatic Pinned Order Recreation ---
+    const lastRecreationDate = localStorage.getItem('lastPinnedOrderRecreation');
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (lastRecreationDate !== todayStr) {
+        recreatePinnedOrders(); // This function saves data and triggers the 'datachanged' event
+        localStorage.setItem('lastPinnedOrderRecreation', todayStr);
+    }
+    // --- End of Recreation Logic ---
 
     // Initial load might be async if localStorage is slow, so we start with loading true.
     loadData();
