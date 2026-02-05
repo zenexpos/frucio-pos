@@ -102,6 +102,7 @@ export default function OrdersPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'descending' });
+  const [activeTab, setActiveTab] = useState('today');
 
   const [todaySearchTerm, setTodaySearchTerm] = useState('');
   const [todayStatusFilter, setTodayStatusFilter] = useState<TodayStatusFilter>('all');
@@ -117,11 +118,11 @@ export default function OrdersPage() {
   const dateFilterTriggerRef = useRef<HTMLButtonElement>(null);
   const sortSelectTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Reset page and selection when filters change
+  // Reset page and selection when filters or tab change
   useEffect(() => {
     setSelectedOrderIds([]);
     setPastOrdersCurrentPage(1);
-  }, [viewMode, date, sortConfig, todaySearchTerm, todayStatusFilter, pastSearchTerm, pastStatusFilter]);
+  }, [viewMode, date, sortConfig, todaySearchTerm, todayStatusFilter, pastSearchTerm, pastStatusFilter, activeTab]);
 
   const getOrderStatusScore = (order: BreadOrder) => {
     // Priorité : Épinglé > Livré/Non Payé > Non Livré/Non Payé > Non Livré/Payé > Livré/Payé
@@ -245,12 +246,12 @@ export default function OrdersPage() {
         sortSelectTriggerRef.current?.click();
       } else if (e.altKey && e.key === 'ArrowRight') {
         e.preventDefault();
-        if (pastOrdersCurrentPage < pastOrdersTotalPages) {
+        if (activeTab === 'history' && pastOrdersCurrentPage < pastOrdersTotalPages) {
           setPastOrdersCurrentPage((p) => p + 1);
         }
       } else if (e.altKey && e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (pastOrdersCurrentPage > 1) {
+        if (activeTab === 'history' && pastOrdersCurrentPage > 1) {
           setPastOrdersCurrentPage((p) => p - 1);
         }
       }
@@ -260,7 +261,7 @@ export default function OrdersPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [viewMode, pastOrdersCurrentPage, pastOrdersTotalPages]);
+  }, [viewMode, pastOrdersCurrentPage, pastOrdersTotalPages, activeTab]);
 
   const handleSortChange = (value: string) => {
     const [key, direction] = value.split(':');
@@ -545,7 +546,7 @@ export default function OrdersPage() {
         />
       </div>
 
-       <Tabs defaultValue="today" className="w-full">
+       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="today">Commandes du Jour</TabsTrigger>
           <TabsTrigger value="history">Historique des Commandes</TabsTrigger>
@@ -603,7 +604,7 @@ export default function OrdersPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {selectedOrderIds.length > 0 && todayOrders.some(o => selectedOrderIds.includes(o.id)) && (
+              {selectedOrderIds.length > 0 && (
                 <div className="mb-4 p-3 bg-muted rounded-md flex items-center justify-between">
                   <p className="font-medium text-sm">{selectedOrderIds.length} commande(s) sélectionnée(s)</p>
                   <BulkDeleteOrdersDialog orderIds={selectedOrderIds} onSuccess={() => setSelectedOrderIds([])} />
