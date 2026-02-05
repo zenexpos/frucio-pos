@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import dynamic from 'next/dynamic';
 import { DateRange } from 'react-day-picker';
 import {
   subDays,
@@ -30,23 +31,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { type ChartConfig } from '@/components/ui/chart';
-
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
+import type { ChartConfig } from '@/components/ui/chart';
 
 import {
   Wallet,
@@ -60,21 +45,12 @@ import {
   FileX,
 } from 'lucide-react';
 
-const COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-];
-
-const NoDataMessage = ({ message }: { message: string }) => (
-  <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
-    <FileX className="h-8 w-8" />
-    <p>{message}</p>
-  </div>
-);
-
+const SalesProfitChart = dynamic(() => import('@/components/rapports/sales-profit-chart').then(mod => mod.SalesProfitChart), { ssr: false });
+const TopProductsChart = dynamic(() => import('@/components/rapports/top-products-chart').then(mod => mod.TopProductsChart), { ssr: false });
+const TopProductsByQuantityChart = dynamic(() => import('@/components/rapports/top-products-by-quantity-chart').then(mod => mod.TopProductsByQuantityChart), { ssr: false });
+const SalesByCategoryChart = dynamic(() => import('@/components/rapports/sales-by-category-chart').then(mod => mod.SalesByCategoryChart), { ssr: false });
+const ExpensesByCategoryChart = dynamic(() => import('@/components/rapports/expenses-by-category-chart').then(mod => mod.ExpensesByCategoryChart), { ssr: false });
+const TopCustomersChart = dynamic(() => import('@/components/rapports/top-customers-chart').then(mod => mod.TopCustomersChart), { ssr: false });
 
 const salesProfitChartConfig = {
   Ventes: {
@@ -329,42 +305,7 @@ export default function RapportsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="h-80">
-            {salesAndProfitOverTime.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={salesAndProfitOverTime}
-                  margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                    }}
-                    formatter={(value, name) => [formatCurrency(value as number), name as string]}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="Ventes"
-                    stroke={salesProfitChartConfig.Ventes.color}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                   <Line
-                    type="monotone"
-                    dataKey="Marge Brute"
-                    stroke={salesProfitChartConfig['Marge Brute'].color}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-                <NoDataMessage message="Aucune vente de produits pour cette période." />
-            )}
+            <SalesProfitChart data={salesAndProfitOverTime} config={salesProfitChartConfig} />
           </CardContent>
         </Card>
 
@@ -380,47 +321,7 @@ export default function RapportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
-              {topProductsBySales.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={topProductsBySales}
-                    layout="vertical"
-                    margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis
-                      type="number"
-                      tickFormatter={(value) => formatCurrency(value as number)}
-                    />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      width={100}
-                      tick={{ fontSize: 12 }}
-                      />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                      }}
-                      formatter={(value: number) => [
-                        formatCurrency(value),
-                        "Chiffre d'affaires",
-                      ]}
-                      labelFormatter={(label) => (
-                        <span className="font-semibold">{label}</span>
-                      )}
-                    />
-                    <Bar
-                      dataKey="sales"
-                      name="Chiffre d'affaires"
-                      fill="hsl(var(--chart-1))"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <NoDataMessage message="Aucun produit vendu dans cette période." />
-              )}
+                <TopProductsChart data={topProductsBySales} />
             </CardContent>
           </Card>
           <Card className="lg:col-span-2">
@@ -434,41 +335,7 @@ export default function RapportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
-              {topProducts.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={topProducts}
-                    layout="vertical"
-                    margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      width={100}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                      }}
-                      formatter={(value: number) => [value, 'Unités vendues']}
-                      labelFormatter={(label) => (
-                        <span className="font-semibold">{label}</span>
-                      )}
-                    />
-                    <Bar
-                      dataKey="quantity"
-                      name="Quantité"
-                      fill="hsl(var(--chart-2))"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <NoDataMessage message="Aucun produit vendu dans cette période." />
-              )}
+                <TopProductsByQuantityChart data={topProducts} />
             </CardContent>
           </Card>
         </div>
@@ -479,38 +346,7 @@ export default function RapportsPage() {
               <CardTitle>Ventes par Catégorie</CardTitle>
             </CardHeader>
             <CardContent className="h-80">
-              {salesByCategory.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={salesByCategory}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {salesByCategory.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                      }}
-                      formatter={(value) => formatCurrency(Number(value))}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <NoDataMessage message="Aucune vente par catégorie à afficher." />
-              )}
+                <SalesByCategoryChart data={salesByCategory} />
             </CardContent>
           </Card>
           <Card>
@@ -518,38 +354,7 @@ export default function RapportsPage() {
               <CardTitle>Dépenses par Catégorie</CardTitle>
             </CardHeader>
             <CardContent className="h-80">
-              {expensesByCategory.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={expensesByCategory}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {expensesByCategory.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                      }}
-                      formatter={(value) => formatCurrency(Number(value))}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <NoDataMessage message="Aucune dépense à afficher pour cette période." />
-              )}
+                <ExpensesByCategoryChart data={expensesByCategory} />
             </CardContent>
           </Card>
         </div>
@@ -562,47 +367,7 @@ export default function RapportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="h-96">
-            {salesByCustomer.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={salesByCustomer}
-                  layout="vertical"
-                  margin={{ top: 5, right: 20, left: 80, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tickFormatter={(value) => formatCurrency(value as number)}
-                  />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={100}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                    }}
-                    formatter={(value: number) => [
-                      formatCurrency(value),
-                      "Chiffre d'affaires",
-                    ]}
-                    labelFormatter={(label) => (
-                      <span className="font-semibold">{label}</span>
-                    )}
-                  />
-                  <Bar
-                    dataKey="value"
-                    name="Chiffre d'affaires"
-                    fill="hsl(var(--chart-4))"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-                <NoDataMessage message="Aucune vente client à afficher pour cette période." />
-            )}
+              <TopCustomersChart data={salesByCustomer} />
           </CardContent>
         </Card>
       </div>

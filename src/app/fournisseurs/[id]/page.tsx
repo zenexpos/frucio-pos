@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import SupplierDetailLoading from './loading';
 import { SupplierHeader } from '@/components/fournisseurs/supplier-header';
-import { SupplierProducts } from '@/components/fournisseurs/supplier-products';
 import { usePrintOnLoad } from '@/hooks/use-print-on-load';
 import dynamic from 'next/dynamic';
 
 const SupplierBalanceHistoryChart = dynamic(() => import('@/components/fournisseurs/supplier-balance-history-chart').then(mod => mod.SupplierBalanceHistoryChart), { ssr: false });
 const SupplierTransactionsView = dynamic(() => import('@/components/fournisseurs/supplier-transactions-view').then(mod => mod.SupplierTransactionsView), { ssr: false });
+const SupplierProducts = dynamic(() => import('@/components/fournisseurs/supplier-products').then(mod => mod.SupplierProducts), { ssr: false });
 
 export default function SupplierDetailPage() {
   const params = useParams();

@@ -55,7 +55,6 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import { FournisseursGrid } from '@/components/fournisseurs/fournisseurs-grid';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { exportSuppliersToCsv } from '@/lib/mock-data/api';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -74,6 +73,7 @@ const AddSupplierTransactionDialog = dynamic(() => import('@/components/fourniss
 const SupplierCsvImportDialog = dynamic(() => import('@/components/fournisseurs/csv-import-dialog').then(mod => mod.SupplierCsvImportDialog), { ssr: false });
 const BulkDeleteSuppliersDialog = dynamic(() => import('@/components/fournisseurs/bulk-delete-supplier-dialog').then(mod => mod.BulkDeleteSuppliersDialog), { ssr: false });
 const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+const FournisseursGrid = dynamic(() => import('@/components/fournisseurs/fournisseurs-grid').then(mod => mod.FournisseursGrid), { ssr: false });
 
 type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
