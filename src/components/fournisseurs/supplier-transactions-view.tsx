@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import type { SupplierTransaction, Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
-import { TransactionsTable } from '@/components/transactions/transactions-table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle, MinusCircle, FileText } from 'lucide-react';
@@ -12,6 +11,7 @@ import {
   AddSupplierTransactionDialog,
   EditSupplierTransactionDialog,
   DeleteSupplierTransactionDialog,
+  TransactionsTable,
 } from '@/components/dynamic';
 
 export function SupplierTransactionsView({
