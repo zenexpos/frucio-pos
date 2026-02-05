@@ -1,7 +1,6 @@
 'use client';
 
 import type { BreadOrder } from '@/lib/types';
-import dynamic from 'next/dynamic';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreVertical, Star } from 'lucide-react';
@@ -19,9 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-const EditOrderDialog = dynamic(() => import('./edit-order-dialog').then(mod => mod.EditOrderDialog), { ssr: false });
-const DeleteOrderDialog = dynamic(() => import('./delete-order-dialog').then(mod => mod.DeleteOrderDialog), { ssr: false });
+import { EditOrderDialog, DeleteOrderDialog } from '@/components/dynamic';
 
 export function OrderCard({
   order,
