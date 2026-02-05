@@ -16,7 +16,6 @@ import {
   Package,
   ClipboardCheck,
   ClipboardX,
-  Wallet,
   LayoutGrid,
   List,
   PlusCircle,
@@ -291,30 +290,27 @@ export default function OrdersPage() {
   const isAllTodaySelected = todayOrders.length > 0 && todayOrders.every(o => selectedOrderIds.includes(o.id));
   const isSomeTodaySelected = todayOrders.some(o => selectedOrderIds.includes(o.id)) && !isAllTodaySelected;
 
-
-  const totalPainsRequis = useMemo(() => {
-    if (!todayOrders) return 0;
-    const allTodayOrders = orders.filter(o => !isBefore(new Date(o.createdAt), startOfDay(new Date())));
-    return allTodayOrders.reduce((sum, o) => sum + o.quantity, 0);
-  }, [orders]);
-
-  const { unpaidTodayCount, totalUnpaidAmount } =
-    useMemo(() => {
-      if (!orders)
-        return { unpaidTodayCount: 0, totalUnpaidAmount: 0 };
-      
-      const allTodayOrders = orders.filter(o => !isBefore(new Date(o.createdAt), startOfDay(new Date())));
-
-      const unpaidToday = allTodayOrders.filter((o) => !o.isPaid).length;
-      const totalUnpaid = orders
-        .filter((o) => !o.isPaid)
-        .reduce((sum, o) => sum + o.totalAmount, 0);
-
+  const todayStats = useMemo(() => {
+    if (!orders) {
       return {
-        unpaidTodayCount: unpaidToday,
-        totalUnpaidAmount: totalUnpaid,
+        totalRequired: 0,
+        notDelivered: 0,
+        delivered: 0,
       };
-    }, [orders]);
+    }
+    const todayStart = startOfDay(new Date());
+    const todaysOrdersRaw = orders.filter((o) => !isBefore(new Date(o.createdAt), todayStart));
+    
+    const totalRequired = todaysOrdersRaw.reduce((sum, o) => sum + o.quantity, 0);
+    const notDelivered = todaysOrdersRaw
+      .filter(o => !o.isDelivered)
+      .reduce((sum, o) => sum + o.quantity, 0);
+    const delivered = todaysOrdersRaw
+      .filter(o => o.isDelivered)
+      .reduce((sum, o) => sum + o.quantity, 0);
+
+    return { totalRequired, notDelivered, delivered };
+  }, [orders]);
 
   const handleToggle = async (
     order: BreadOrder,
@@ -528,30 +524,24 @@ export default function OrdersPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          title="Total Pains Requis (Auj.)"
-          value={totalPainsRequis}
-          description="Quantité totale pour aujourd'hui"
+          title="اجمالي الخبز اللازم"
+          value={todayStats.totalRequired}
+          description="إجمالي الكمية المطلوبة لليوم"
           icon={Package}
         />
         <StatCard
-          title="Commandes du Jour"
-          value={orders.filter(o => !isBefore(new Date(o.createdAt), startOfDay(new Date()))).length}
-          description="Nombre de commandes aujourd'hui"
-          icon={ClipboardCheck}
-        />
-        <StatCard
-          title="Non Payées (Auj.)"
-          value={unpaidTodayCount}
-          description="Commandes du jour non réglées"
+          title="الخبز الذي لم يسلم بعد"
+          value={todayStats.notDelivered}
+          description="الكمية المتبقية للتسليم"
           icon={ClipboardX}
         />
         <StatCard
-          title="Montant Total Non Payé"
-          value={formatCurrency(totalUnpaidAmount)}
-          description="Toutes les commandes non réglées"
-          icon={Wallet}
+          title="تم تسليمه"
+          value={todayStats.delivered}
+          description="الكمية التي تم تسليمها"
+          icon={ClipboardCheck}
         />
       </div>
 
@@ -614,7 +604,7 @@ export default function OrdersPage() {
 
             {todayOrders.length > 0 ? (
                 viewMode === 'grid' ? (
-                  <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {todayOrders.map(order => (
                       <OrderCard 
                         key={order.id} 
@@ -638,7 +628,7 @@ export default function OrdersPage() {
             )}
         </CardContent>
         <CardFooter className="justify-end pt-4 font-semibold">
-          Total Pains Requis: {totalPainsRequis}
+          اجمالي الخبز اللازم: {todayStats.totalRequired}
         </CardFooter>
       </Card>
 
