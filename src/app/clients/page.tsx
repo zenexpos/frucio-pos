@@ -30,8 +30,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { CustomersGrid } from '@/components/customers/customers-grid';
-import { CustomersTable } from '@/components/customers/customers-table';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { formatCurrency, cn, getBalanceColorClassName, getInitials, getRecentCustomers } from '@/lib/utils';
 import { exportCustomersToCsv } from '@/lib/mock-data/api';
@@ -51,6 +49,8 @@ const AddCustomerDialog = dynamic(() => import('@/components/customers/add-custo
 const CsvImportDialog = dynamic(() => import('@/components/customers/csv-import-dialog').then(mod => mod.CsvImportDialog), { ssr: false });
 const BulkDeleteCustomersDialog = dynamic(() => import('@/components/customers/bulk-delete-customer-dialog').then(mod => mod.BulkDeleteCustomersDialog), { ssr: false });
 const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+const CustomersGrid = dynamic(() => import('@/components/customers/customers-grid').then(mod => mod.CustomersGrid), { ssr: false });
+const CustomersTable = dynamic(() => import('@/components/customers/customers-table').then(mod => mod.CustomersTable), { ssr: false });
 
 type SortKey = keyof Customer | 'totalDebts' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
