@@ -479,13 +479,14 @@ export default function CaissePage() {
   const getProductImage = (product: Product) => {
       const imageId = slugify(product.name);
       const img = productImages.find(i => i.id === imageId);
+      const size = 200;
       if (img) {
           return {
-              url: `https://picsum.photos/seed/${img.seed}/${img.width}/${img.height}`,
+              url: `https://picsum.photos/seed/${img.seed}/${size}/${size}`,
               hint: img.hint
           }
       }
-      return { url: `https://picsum.photos/seed/${product.id}/400/400`, hint: 'product' };
+      return { url: `https://picsum.photos/seed/${product.id}/${size}/${size}`, hint: 'product' };
   }
   
     const handleAddCustomProduct = (data: { name: string; price: number }) => {
@@ -622,8 +623,8 @@ export default function CaissePage() {
                               <Image
                                 src={url}
                                 alt={product.name}
-                                width={400}
-                                height={400}
+                                width={200}
+                                height={200}
                                 className={cn("object-cover w-full h-32", isOutOfStock && "grayscale")}
                                 data-ai-hint={hint}
                               />

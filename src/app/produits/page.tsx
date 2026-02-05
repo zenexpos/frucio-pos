@@ -132,14 +132,15 @@ export default function ProduitsPage() {
   const getProductImage = (product: Product) => {
     const imageId = slugify(product.name);
     const img = productImages.find((i) => i.id === imageId);
+    const size = 100;
     if (img) {
       return {
-        url: `https://picsum.photos/seed/${img.seed}/${img.width}/${img.height}`,
+        url: `https://picsum.photos/seed/${img.seed}/${size}/${size}`,
         hint: img.hint,
       };
     }
     return {
-      url: `https://picsum.photos/seed/${product.id}/400/400`,
+      url: `https://picsum.photos/seed/${product.id}/${size}/${size}`,
       hint: 'product',
     };
   };
@@ -818,9 +819,9 @@ export default function ProduitsPage() {
                           <Image
                               src={url}
                               alt={product.name}
-                              width={48}
-                              height={48}
-                              className={cn("rounded-lg object-cover", product.isArchived && "grayscale")}
+                              width={100}
+                              height={100}
+                              className={cn("rounded-lg object-cover h-12 w-12", product.isArchived && "grayscale")}
                               data-ai-hint={hint}
                           />
                         </TableCell>

@@ -65,14 +65,15 @@ export function ProduitCard({
   const getProductImage = (product: Product) => {
     const imageId = slugify(product.name);
     const img = productImages.find((i) => i.id === imageId);
+    const size = 300;
     if (img) {
       return {
-        url: `https://picsum.photos/seed/${img.seed}/${img.width}/${img.height}`,
+        url: `https://picsum.photos/seed/${img.seed}/${size}/${size}`,
         hint: img.hint,
       };
     }
     return {
-      url: `https://picsum.photos/seed/${product.id}/400/400`,
+      url: `https://picsum.photos/seed/${product.id}/${size}/${size}`,
       hint: 'product',
     };
   };
@@ -110,8 +111,8 @@ export function ProduitCard({
         <Image
           src={url}
           alt={product.name}
-          width={400}
-          height={400}
+          width={300}
+          height={300}
           className={cn('object-cover w-full h-40', (isOutOfStock || product.isArchived) && 'grayscale')}
           data-ai-hint={hint}
         />
