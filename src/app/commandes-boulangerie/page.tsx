@@ -614,7 +614,7 @@ export default function OrdersPage() {
 
             {todayOrders.length > 0 ? (
                 viewMode === 'grid' ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
                     {todayOrders.map(order => (
                       <OrderCard 
                         key={order.id} 

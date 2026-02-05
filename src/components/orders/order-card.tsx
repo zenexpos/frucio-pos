@@ -3,7 +3,7 @@
 import type { BreadOrder } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, RefreshCw, Star, User } from 'lucide-react';
+import { MoreVertical, RefreshCw, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { useState } from 'react';
@@ -79,11 +79,11 @@ export function OrderCard({
   return (
     <Card
       className={cn(
-        'p-4 transition-all',
+        'p-3 transition-all',
         isSelected && 'ring-2 ring-primary'
       )}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         <Checkbox
           id={`select-${order.id}`}
           checked={isSelected}
@@ -95,7 +95,7 @@ export function OrderCard({
             <div className="space-y-1">
               <Label
                 htmlFor={`select-${order.id}`}
-                className="font-bold text-base cursor-pointer flex items-center gap-2"
+                className="font-semibold text-sm cursor-pointer flex items-center gap-2"
               >
                 {order.isPinned && (
                   <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
@@ -103,11 +103,11 @@ export function OrderCard({
                 {order.name}
               </Label>
               <div className="flex items-end justify-between">
-                <div className="flex items-center gap-2 text-primary font-bold">
-                    <span className="text-xl">{order.quantity}</span>
+                <div className="flex items-center gap-1 text-primary font-bold">
+                    <span className="text-lg">{order.quantity}</span>
                     <RefreshCw className="h-4 w-4" />
                 </div>
-                <div className="font-bold text-lg text-foreground">
+                <div className="font-semibold text-base text-foreground">
                     {formatCurrency(order.totalAmount)}
                 </div>
               </div>
@@ -156,9 +156,9 @@ export function OrderCard({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="mt-4 space-y-3 no-print">
+          <div className="mt-3 grid grid-cols-2 gap-x-4 pt-3 border-t no-print">
             <div className="flex items-center justify-between">
-              <Label htmlFor={`paid-${order.id}`}>Payé</Label>
+              <Label htmlFor={`paid-${order.id}`} className="text-xs">Payé</Label>
               <Switch
                 id={`paid-${order.id}`}
                 checked={order.isPaid}
@@ -169,7 +169,7 @@ export function OrderCard({
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor={`delivered-${order.id}`}>Livré</Label>
+              <Label htmlFor={`delivered-${order.id}`} className="text-xs">Livré</Label>
               <Switch
                 id={`delivered-${order.id}`}
                 checked={order.isDelivered}
