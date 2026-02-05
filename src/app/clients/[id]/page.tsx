@@ -3,18 +3,13 @@
 import { useMemo } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useMockData } from '@/hooks/use-mock-data';
-import type { Customer, Transaction } from '@/lib/types';
 import Link from 'next/link';
 import { usePrintOnLoad } from '@/hooks/use-print-on-load';
-import dynamic from 'next/dynamic';
-
 import { CustomerHeader } from '@/components/customers/customer-header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import CustomerDetailLoading from './loading';
-
-const TransactionsView = dynamic(() => import('@/components/transactions/transactions-view').then(mod => mod.TransactionsView), { ssr: false });
-const BalanceHistoryChart = dynamic(() => import('@/components/customers/balance-history-chart').then(mod => mod.BalanceHistoryChart), { ssr: false });
+import { TransactionsView, BalanceHistoryChart } from '@/components/dynamic';
 
 
 export default function CustomerDetailPage() {

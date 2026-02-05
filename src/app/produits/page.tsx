@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Product, Supplier } from '@/lib/types';
 import {
@@ -59,17 +58,18 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import imageData from '@/lib/placeholder-images.json';
-
-const AddProductDialog = dynamic(() => import('@/components/produits/add-product-dialog').then(mod => mod.AddProductDialog), { ssr: false });
-const EditProductDialog = dynamic(() => import('@/components/produits/edit-product-dialog').then(mod => mod.EditProductDialog), { ssr: false });
-const DeleteProductDialog = dynamic(() => import('@/components/produits/delete-product-dialog').then(mod => mod.DeleteProductDialog), { ssr: false });
-const ProductCsvImportDialog = dynamic(() => import('@/components/produits/csv-import-dialog').then(mod => mod.ProductCsvImportDialog), { ssr: false });
-const ProduitsGrid = dynamic(() => import('@/components/produits/produits-grid').then(mod => mod.ProduitsGrid), { ssr: false });
-const AdjustStockDialog = dynamic(() => import('@/components/produits/adjust-stock-dialog').then(mod => mod.AdjustStockDialog), { ssr: false });
-const BulkDeleteProductsDialog = dynamic(() => import('@/components/produits/bulk-delete-products-dialog').then(mod => mod.BulkDeleteProductsDialog), { ssr: false });
-const PrintBarcodeDialog = dynamic(() => import('@/components/produits/print-barcode-dialog').then(mod => mod.PrintBarcodeDialog), { ssr: false });
-const PrintBulkBarcodeDialog = dynamic(() => import('@/components/produits/print-bulk-barcode-dialog').then(mod => mod.PrintBulkBarcodeDialog), { ssr: false });
-const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+import {
+  AddProductDialog,
+  EditProductDialog,
+  DeleteProductDialog,
+  ProductCsvImportDialog,
+  ProduitsGrid,
+  AdjustStockDialog,
+  BulkDeleteProductsDialog,
+  PrintBarcodeDialog,
+  PrintBulkBarcodeDialog,
+  ShortcutsDialog,
+} from '@/components/dynamic';
 
 type SortKey = keyof Product | 'margin' | 'supplierName';
 type SortDirection = 'ascending' | 'descending';

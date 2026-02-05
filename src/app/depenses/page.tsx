@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import {
   Search,
   Calendar as CalendarIcon,
@@ -63,12 +62,13 @@ import {
 import type { Expense } from '@/lib/types';
 import { exportExpensesToCsv } from '@/lib/mock-data/api';
 import { useToast } from '@/hooks/use-toast';
-
-const AddExpenseDialog = dynamic(() => import('@/components/depenses/add-expense-dialog').then(mod => mod.AddExpenseDialog), { ssr: false });
-const EditExpenseDialog = dynamic(() => import('@/components/depenses/edit-expense-dialog').then(mod => mod.EditExpenseDialog), { ssr: false });
-const DeleteExpenseDialog = dynamic(() => import('@/components/depenses/delete-expense-dialog').then(mod => mod.DeleteExpenseDialog), { ssr: false });
-const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
-const DepensesCsvImportDialog = dynamic(() => import('@/components/depenses/csv-import-dialog').then(mod => mod.DepensesCsvImportDialog), { ssr: false });
+import {
+  AddExpenseDialog,
+  EditExpenseDialog,
+  DeleteExpenseDialog,
+  ShortcutsDialog,
+  DepensesCsvImportDialog,
+} from '@/components/dynamic';
 
 type SortKey = 'description' | 'category' | 'amount' | 'date';
 type SortDirection = 'ascending' | 'descending';

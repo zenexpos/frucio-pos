@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import dynamic from 'next/dynamic';
 import { DateRange } from 'react-day-picker';
 import {
   subDays,
@@ -44,13 +43,15 @@ import {
   Printer,
   FileX,
 } from 'lucide-react';
+import {
+  SalesProfitChart,
+  TopProductsChart,
+  TopProductsByQuantityChart,
+  SalesByCategoryChart,
+  ExpensesByCategoryChart,
+  TopCustomersChart,
+} from '@/components/dynamic';
 
-const SalesProfitChart = dynamic(() => import('@/components/rapports/sales-profit-chart').then(mod => mod.SalesProfitChart), { ssr: false });
-const TopProductsChart = dynamic(() => import('@/components/rapports/top-products-chart').then(mod => mod.TopProductsChart), { ssr: false });
-const TopProductsByQuantityChart = dynamic(() => import('@/components/rapports/top-products-by-quantity-chart').then(mod => mod.TopProductsByQuantityChart), { ssr: false });
-const SalesByCategoryChart = dynamic(() => import('@/components/rapports/sales-by-category-chart').then(mod => mod.SalesByCategoryChart), { ssr: false });
-const ExpensesByCategoryChart = dynamic(() => import('@/components/rapports/expenses-by-category-chart').then(mod => mod.ExpensesByCategoryChart), { ssr: false });
-const TopCustomersChart = dynamic(() => import('@/components/rapports/top-customers-chart').then(mod => mod.TopCustomersChart), { ssr: false });
 
 const salesProfitChartConfig = {
   Ventes: {

@@ -34,10 +34,8 @@ import { useTheme } from 'next-themes';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { ImportDataDialog } from '@/components/settings/import-data-dialog';
-import { CsvImportDialog } from '@/components/customers/csv-import-dialog';
-import { ProductCsvImportDialog } from '@/components/produits/csv-import-dialog';
-import { SupplierCsvImportDialog } from '@/components/fournisseurs/csv-import-dialog';
 import { Separator } from '@/components/ui/separator';
+import { CsvImportDialog, ProductCsvImportDialog, SupplierCsvImportDialog } from '@/components/dynamic';
 
 const companyInfoSchema = z.object({
   name: z.string().min(1, "Le nom de l'entreprise est requis."),

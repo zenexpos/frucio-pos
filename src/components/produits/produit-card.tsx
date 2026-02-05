@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
 import type { Product } from '@/lib/types';
 import {
   Card,
@@ -26,11 +25,12 @@ import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { duplicateProduct } from '@/lib/mock-data/api';
-
-const EditProductDialog = dynamic(() => import('./edit-product-dialog').then(mod => mod.EditProductDialog), { ssr: false });
-const DeleteProductDialog = dynamic(() => import('./delete-product-dialog').then(mod => mod.DeleteProductDialog), { ssr: false });
-const AdjustStockDialog = dynamic(() => import('./adjust-stock-dialog').then(mod => mod.AdjustStockDialog), { ssr: false });
-const PrintBarcodeDialog = dynamic(() => import('./print-barcode-dialog').then(mod => mod.PrintBarcodeDialog), { ssr: false });
+import {
+  EditProductDialog,
+  DeleteProductDialog,
+  AdjustStockDialog,
+  PrintBarcodeDialog,
+} from '@/components/dynamic';
 
 const productImages = imageData.caisse;
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import type { Customer, Transaction } from '@/lib/types';
 import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
 import {
@@ -17,9 +16,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useMockData } from '@/hooks/use-mock-data';
 import Image from 'next/image';
-
-const EditCustomerDialog = dynamic(() => import('./edit-customer-dialog').then(mod => mod.EditCustomerDialog), { ssr: false });
-const DeleteCustomerDialog = dynamic(() => import('./delete-customer-dialog').then(mod => mod.DeleteCustomerDialog), { ssr: false });
+import { EditCustomerDialog, DeleteCustomerDialog } from '@/components/dynamic';
 
 export function CustomerHeader({
   customer,

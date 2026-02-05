@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import type { Supplier, SupplierTransaction } from '@/lib/types';
 import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
 import {
@@ -16,9 +15,7 @@ import { Phone, WalletCards, HandCoins, Printer, Mail, Building } from 'lucide-r
 import { useMockData } from '@/hooks/use-mock-data';
 import Image from 'next/image';
 import { format } from 'date-fns';
-
-const EditSupplierDialog = dynamic(() => import('./edit-supplier-dialog').then(mod => mod.EditSupplierDialog), { ssr: false });
-const DeleteSupplierDialog = dynamic(() => import('./delete-supplier-dialog').then(mod => mod.DeleteSupplierDialog), { ssr: false });
+import { EditSupplierDialog, DeleteSupplierDialog } from '@/components/dynamic';
 
 export function SupplierHeader({
   supplier,

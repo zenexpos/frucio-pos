@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import type { Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { TransactionsTable } from '@/components/transactions/transactions-table';
@@ -9,10 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle, MinusCircle, FileText } from 'lucide-react';
 import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
-
-const AddTransactionDialog = dynamic(() => import('./add-transaction-dialog').then(mod => mod.AddTransactionDialog), { ssr: false });
-const EditTransactionDialog = dynamic(() => import('./edit-transaction-dialog').then(mod => mod.EditTransactionDialog), { ssr: false });
-const DeleteTransactionDialog = dynamic(() => import('./delete-transaction-dialog').then(mod => mod.DeleteTransactionDialog), { ssr: false });
+import { AddTransactionDialog, EditTransactionDialog, DeleteTransactionDialog } from '@/components/dynamic';
 
 export function TransactionsView({
   transactions,

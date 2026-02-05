@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { BreadOrder } from '@/lib/types';
 import OrdersLoading from './loading';
@@ -69,13 +68,14 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const AddOrderDialog = dynamic(() => import('@/components/orders/add-order-dialog').then(mod => mod.AddOrderDialog), { ssr: false });
-const EditOrderDialog = dynamic(() => import('@/components/orders/edit-order-dialog').then(mod => mod.EditOrderDialog), { ssr: false });
-const DeleteOrderDialog = dynamic(() => import('@/components/orders/delete-order-dialog').then(mod => mod.DeleteOrderDialog), { ssr: false });
-const OrderCard = dynamic(() => import('@/components/orders/order-card').then(mod => mod.OrderCard), { ssr: false });
-const BulkDeleteOrdersDialog = dynamic(() => import('@/components/orders/bulk-delete-orders-dialog').then(mod => mod.BulkDeleteOrdersDialog), { ssr: false });
-const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+import {
+  AddOrderDialog,
+  EditOrderDialog,
+  DeleteOrderDialog,
+  OrderCard,
+  BulkDeleteOrdersDialog,
+  ShortcutsDialog,
+} from '@/components/dynamic';
 
 type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice'>;
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import { useMockData } from '@/hooks/use-mock-data';
 import type { Supplier } from '@/lib/types';
 import FournisseursLoading from './loading';
@@ -65,15 +64,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-const AddSupplierDialog = dynamic(() => import('@/components/fournisseurs/add-supplier-dialog').then(mod => mod.AddSupplierDialog), { ssr: false });
-const EditSupplierDialog = dynamic(() => import('@/components/fournisseurs/edit-supplier-dialog').then(mod => mod.EditSupplierDialog), { ssr: false });
-const DeleteSupplierDialog = dynamic(() => import('@/components/fournisseurs/delete-supplier-dialog').then(mod => mod.DeleteSupplierDialog), { ssr: false });
-const AddSupplierTransactionDialog = dynamic(() => import('@/components/fournisseurs/add-supplier-transaction-dialog').then(mod => mod.AddSupplierTransactionDialog), { ssr: false });
-const SupplierCsvImportDialog = dynamic(() => import('@/components/fournisseurs/csv-import-dialog').then(mod => mod.SupplierCsvImportDialog), { ssr: false });
-const BulkDeleteSuppliersDialog = dynamic(() => import('@/components/fournisseurs/bulk-delete-supplier-dialog').then(mod => mod.BulkDeleteSuppliersDialog), { ssr: false });
-const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
-const FournisseursGrid = dynamic(() => import('@/components/fournisseurs/fournisseurs-grid').then(mod => mod.FournisseursGrid), { ssr: false });
+import {
+  AddSupplierDialog,
+  EditSupplierDialog,
+  DeleteSupplierDialog,
+  AddSupplierTransactionDialog,
+  SupplierCsvImportDialog,
+  BulkDeleteSuppliersDialog,
+  ShortcutsDialog,
+  FournisseursGrid,
+} from '@/components/dynamic';
 
 type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
