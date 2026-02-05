@@ -7,6 +7,7 @@ export const PaymentDialog = dynamic(() => import('@/components/caisse/payment-d
 export const DiscountDialog = dynamic(() => import('@/components/caisse/discount-dialog').then(mod => mod.DiscountDialog), { ssr: false });
 export const SettleDebtDialog = dynamic(() => import('@/components/caisse/settle-debt-dialog').then(mod => mod.SettleDebtDialog), { ssr: false });
 export const AddCustomProductDialog = dynamic(() => import('@/components/caisse/add-custom-product-dialog').then(mod => mod.AddCustomProductDialog), { ssr: false });
+export const CustomerCombobox = dynamic(() => import('@/components/caisse/customer-combobox').then(mod => mod.CustomerCombobox), { ssr: false });
 
 // Customers
 export const AddCustomerDialog = dynamic(() => import('@/components/customers/add-customer-dialog').then(mod => mod.AddCustomerDialog), { ssr: false });

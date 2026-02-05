@@ -37,7 +37,6 @@ import { useMockData } from '@/hooks/use-mock-data';
 import type { Product, Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { CustomerCombobox } from '@/components/caisse/customer-combobox';
 import { Receipt, type ReceiptData } from '@/components/caisse/receipt';
 import {
   PaymentDialog,
@@ -47,6 +46,7 @@ import {
   AddProductDialog,
   ShortcutsDialog,
   AddCustomProductDialog,
+  CustomerCombobox,
 } from '@/components/dynamic';
 
 
