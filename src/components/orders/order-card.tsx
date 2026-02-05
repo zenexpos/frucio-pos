@@ -3,7 +3,7 @@
 import type { BreadOrder } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, RefreshCw, Star } from 'lucide-react';
+import { MoreVertical, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import { useState } from 'react';
@@ -102,11 +102,8 @@ export function OrderCard({
                 )}
                 {order.name}
               </Label>
-              <div className="flex items-end justify-between">
-                <div className="flex items-center gap-1 text-primary font-bold">
-                    <span className="text-lg">{order.quantity}</span>
-                    <RefreshCw className="h-4 w-4" />
-                </div>
+              <div className="flex items-end justify-between gap-4">
+                <span className="text-lg font-bold text-primary">{order.quantity}</span>
                 <div className="font-semibold text-base text-foreground">
                     {formatCurrency(order.totalAmount)}
                 </div>
