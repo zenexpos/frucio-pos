@@ -737,7 +737,7 @@ export default function CaissePage() {
                                     {formatCurrency(selectedCustomer.balance)}
                                 </p>
                                 <p className="text-xs text-muted-foreground">Solde actuel du client</p>
-                                {selectedCustomer.balance > 0 && activeCart.length === 0 && (
+                                {selectedCustomer.balance > 0 && (
                                     <SettleDebtDialog
                                         customerId={selectedCustomer.id}
                                         customerName={selectedCustomer.name}
