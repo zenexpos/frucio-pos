@@ -174,7 +174,7 @@ export const recreatePinnedOrders = () => {
 
   // Check if today's pinned orders already exist to prevent duplicates
   const todayOrders = mockDataStore.breadOrders.filter(order => 
-      startOfDay(new Date(order.createdAt)).getTime() === today.getTime()
+      new Date(order.createdAt) >= today
   );
 
   const ordersToCreate: Omit<BreadOrder, 'id'>[] = [];
@@ -186,9 +186,13 @@ export const recreatePinnedOrders = () => {
 
       if (!alreadyExistsToday) {
           ordersToCreate.push({
-              ...templateOrder,
+              name: templateOrder.name,
+              quantity: templateOrder.quantity,
+              unitPrice: templateOrder.unitPrice,
+              totalAmount: templateOrder.totalAmount,
               isPaid: false,
               isDelivered: false,
+              isPinned: true, // Make sure the new one is also pinned
               createdAt: new Date().toISOString(),
           });
       }
@@ -196,7 +200,7 @@ export const recreatePinnedOrders = () => {
 
   if (ordersToCreate.length > 0) {
       console.log(`Recreating ${ordersToCreate.length} pinned orders for today.`);
-      const newOrders = ordersToCreate.map(o => ({ ...o, id: nextId() }));
+      const newOrders = ordersToCreate.map(o => ({ ...o, id: nextId() } as BreadOrder));
       mockDataStore.breadOrders.push(...newOrders);
       saveData(); // This will save changes and notify the UI
   }
