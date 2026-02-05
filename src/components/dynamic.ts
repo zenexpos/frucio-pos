@@ -72,3 +72,4 @@ export const AddTransactionDialog = dynamic(() => import('@/components/transacti
 export const EditTransactionDialog = dynamic(() => import('@/components/transactions/edit-transaction-dialog').then(mod => mod.EditTransactionDialog), { ssr: false });
 export const DeleteTransactionDialog = dynamic(() => import('@/components/transactions/delete-transaction-dialog').then(mod => mod.DeleteTransactionDialog), { ssr: false });
 export const TransactionsView = dynamic(() => import('@/components/transactions/transactions-view').then(mod => mod.TransactionsView), { ssr: false });
+export const TransactionsTable = dynamic(() => import('@/components/transactions/transactions-table').then(mod => mod.TransactionsTable), { ssr: false });

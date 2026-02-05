@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Search, FileText, Calendar as CalendarIcon, Download, Wallet, TrendingUp, TrendingDown, X } from 'lucide-react';
-import { TransactionsTable } from '@/components/transactions/transactions-table';
 import { DateRange } from 'react-day-picker';
 import {
   subDays,
@@ -40,6 +39,7 @@ import {
   ShortcutsDialog,
   EditTransactionDialog,
   DeleteTransactionDialog,
+  TransactionsTable,
 } from '@/components/dynamic';
 
 type SortKey = 'customerName' | 'description' | 'type' | 'date' | 'amount';
