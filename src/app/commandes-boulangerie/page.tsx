@@ -77,7 +77,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice' | 'customerId' | 'customerName'>;
+type SortKey = keyof Omit<BreadOrder, 'isPinned' | 'isDelivered' | 'isPaid' | 'unitPrice'>;
 
 interface SortConfig {
   key: SortKey;
@@ -143,8 +143,7 @@ export default function OrdersPage() {
     
     let todayFiltered = todayRaw.filter(o => {
         const searchMatch =
-            o.name.toLowerCase().includes(todaySearchTerm.toLowerCase()) ||
-            (o.customerName || '').toLowerCase().includes(todaySearchTerm.toLowerCase());
+            o.name.toLowerCase().includes(todaySearchTerm.toLowerCase());
         
         if (!searchMatch) return false;
 
@@ -168,8 +167,7 @@ export default function OrdersPage() {
     
     past = past.filter(o => {
         const searchMatch =
-            o.name.toLowerCase().includes(pastSearchTerm.toLowerCase()) ||
-            (o.customerName || '').toLowerCase().includes(pastSearchTerm.toLowerCase());
+            o.name.toLowerCase().includes(pastSearchTerm.toLowerCase());
         
         if (!searchMatch) return false;
 

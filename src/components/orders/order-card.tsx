@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import type { BreadOrder } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,16 +102,6 @@ export function OrderCard({
                 )}
                 {order.name}
               </Label>
-              {order.customerName && order.customerId && (
-                <Link
-                  href={`/customers/${order.customerId}`}
-                  className="text-sm text-muted-foreground hover:underline flex items-center gap-1.5"
-                  onClick={(e) => e.stopPropagation()} // Stop propagation to avoid selecting the card
-                >
-                  <User className="h-3 w-3" />
-                  <span>{order.customerName}</span>
-                </Link>
-              )}
               <div className="flex items-end justify-between">
                 <div className="flex items-center gap-2 text-primary font-bold">
                     <span className="text-xl">{order.quantity}</span>

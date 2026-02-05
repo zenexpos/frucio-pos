@@ -1,17 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useMockData } from '@/hooks/use-mock-data';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { addBreadOrder } from '@/lib/mock-data/api';
@@ -20,9 +13,8 @@ import { orderSchema } from '@/lib/schemas';
 
 export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   
-  const { customers, settings, loading: settingsLoading } = useMockData();
+  const { settings, loading: settingsLoading } = useMockData();
   const unitPrice = settings?.breadUnitPrice;
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
@@ -38,16 +30,11 @@ export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
         throw new Error('Le prix unitaire du pain non chargé.');
       }
       const totalAmount = data.quantity * unitPrice;
-      const selectedCustomer = customers?.find(
-        (c) => c.id === selectedCustomerId
-      );
-
+      
       await addBreadOrder({
         ...data,
         unitPrice: unitPrice,
         totalAmount,
-        customerId: selectedCustomerId,
-        customerName: selectedCustomer?.name || null,
       });
     },
   });
@@ -65,26 +52,6 @@ export function AddOrderForm({ onSuccess }: { onSuccess?: () => void }) {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="customer">Client (Optionnel)</Label>
-        <Select
-          onValueChange={(value) =>
-            setSelectedCustomerId(value === 'none' ? null : value)
-          }
-        >
-          <SelectTrigger id="customer">
-            <SelectValue placeholder="Sélectionner un client..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Aucun client</SelectItem>
-            {customers?.map((customer) => (
-              <SelectItem key={customer.id} value={customer.id}>
-                {customer.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       <div className="space-y-2">
         <Label htmlFor="name">Nom de la commande</Label>
         <Input id="name" name="name" placeholder="Ex: Boulangerie Al-Amal" />

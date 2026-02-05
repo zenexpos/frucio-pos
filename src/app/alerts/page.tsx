@@ -223,7 +223,6 @@ export default function AlertsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nom</TableHead>
-                    <TableHead>Client</TableHead>
                     <TableHead>Quantité</TableHead>
                     <TableHead>Montant</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -235,7 +234,6 @@ export default function AlertsPage() {
                       <TableCell className="font-medium">
                         {order.name}
                       </TableCell>
-                      <TableCell>{order.customerName || 'N/A'}</TableCell>
                       <TableCell>{order.quantity}</TableCell>
                       <TableCell className="font-semibold text-destructive">
                         {formatCurrency(order.totalAmount)}

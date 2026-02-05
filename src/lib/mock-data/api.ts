@@ -125,8 +125,6 @@ interface AddBreadOrderData {
   quantity: number;
   unitPrice: number;
   totalAmount: number;
-  customerId: string | null;
-  customerName: string | null;
 }
 
 export const addBreadOrder = async (data: AddBreadOrderData) => {
@@ -139,69 +137,13 @@ export const addBreadOrder = async (data: AddBreadOrderData) => {
         createdAt: new Date().toISOString(),
     };
     mockDataStore.breadOrders.push(newOrder);
-
-    if (data.customerId) {
-        addTransaction({
-            customerId: data.customerId,
-            type: 'debt',
-            amount: data.totalAmount,
-            description: `Commande: ${data.name}`,
-            date: new Date().toISOString(),
-            orderId: newOrder.id,
-            saleItems: [{
-              productId: newOrder.id,
-              productName: newOrder.name,
-              quantity: newOrder.quantity,
-              unitPrice: newOrder.unitPrice,
-              purchasePrice: 0,
-            }]
-        });
-    } else {
-        saveData();
-    }
+    saveData();
 };
 
 export const updateBreadOrder = async (orderId: string, data: Partial<Omit<BreadOrder, 'id'>>) => {
   const order = mockDataStore.breadOrders.find(o => o.id === orderId);
-  if (!order) return;
-
-  const originalCustomerId = order.customerId;
-  const originalAmount = order.totalAmount;
-
-  // Apply new data to the order in memory
-  Object.assign(order, data);
-
-  const newCustomerId = order.customerId;
-  const newAmount = order.totalAmount;
-
-  const existingTx = mockDataStore.transactions.find(t => t.orderId === orderId);
-
-  // If there's a change that affects the transaction...
-  if (originalCustomerId !== newCustomerId || (newCustomerId && originalAmount !== newAmount)) {
-    // The simplest, most robust way is to remove the old one and add a new one if needed.
-    if (existingTx) {
-        deleteTransaction(existingTx.id); // This calls saveData internally
-    }
-    if (newCustomerId) {
-        addTransaction({ // This also calls saveData internally
-            customerId: newCustomerId,
-            type: 'debt',
-            amount: newAmount,
-            description: `Commande: ${order.name}`,
-            date: order.createdAt,
-            orderId: order.id,
-            saleItems: [{
-              productId: order.id,
-              productName: order.name,
-              quantity: order.quantity,
-              unitPrice: order.unitPrice,
-              purchasePrice: 0,
-            }]
-        });
-    }
-  } else {
-    // No transaction change, but other order fields (like isPaid/isDelivered) might have changed.
-    // So we need to save the main data store.
+  if (order) {
+    Object.assign(order, data);
     saveData();
   }
 };
@@ -209,19 +151,10 @@ export const updateBreadOrder = async (orderId: string, data: Partial<Omit<Bread
 
 export const deleteBreadOrder = async (orderId: string) => {
     const orderIndex = mockDataStore.breadOrders.findIndex(o => o.id === orderId);
-    if (orderIndex === -1) return;
-
-    const order = mockDataStore.breadOrders[orderIndex];
-
-    // Also delete associated transaction.
-    const txIndex = mockDataStore.transactions.findIndex(t => t.orderId === orderId);
-    if (txIndex > -1) {
-        deleteTransaction(mockDataStore.transactions[txIndex].id);
-        // deleteTransaction calls saveData
+    if (orderIndex > -1) {
+        mockDataStore.breadOrders.splice(orderIndex, 1);
+        saveData();
     }
-
-    mockDataStore.breadOrders.splice(orderIndex, 1);
-    saveData();
 };
 
 // --- Caisse Functions ---
@@ -701,7 +634,7 @@ export const exportBreadOrdersToCsv = (orders: BreadOrder[]) => {
     if (orders.length === 0) {
         return;
     }
-    const headers = ['id', 'createdAt', 'name', 'customerName', 'quantity', 'unitPrice', 'totalAmount', 'isPaid', 'isDelivered', 'isPinned'];
+    const headers = ['id', 'createdAt', 'name', 'quantity', 'unitPrice', 'totalAmount', 'isPaid', 'isDelivered', 'isPinned'];
     const csvRows = [
         headers.join(',')
     ];
