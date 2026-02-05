@@ -9,6 +9,7 @@ import { useFormSubmission } from '@/hooks/use-form-submission';
 import { updateBreadOrder } from '@/lib/mock-data/api';
 import type { BreadOrder } from '@/lib/types';
 import { orderSchema } from '@/lib/schemas';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function EditOrderForm({
   order,
@@ -61,6 +62,16 @@ export function EditOrderForm({
             {errors.quantity._errors[0]}
           </p>
         )}
+      </div>
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center space-x-2">
+          <Checkbox id="isPaid" name="isPaid" defaultChecked={order.isPaid} />
+          <Label htmlFor="isPaid" className="cursor-pointer">Marquer comme payé</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox id="isPinned" name="isPinned" defaultChecked={order.isPinned} />
+          <Label htmlFor="isPinned" className="cursor-pointer">Commande journalière (Épingler)</Label>
+        </div>
       </div>
       <SubmitButton isPending={isPending}>
         Mettre à jour la commande
