@@ -1,15 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBasket } from 'lucide-react';
 import versionData from '@/lib/version.json';
 
 export default function AboutPage() {
-  const [version, setVersion] = useState('1.0.0');
-
-  useEffect(() => {
-    setVersion(versionData.version);
-  }, []);
+  const version = versionData.version;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">

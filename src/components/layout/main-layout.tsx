@@ -35,8 +35,14 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const lastSeenVersion = localStorage.getItem('frucio-version');
     const currentVersion = versionData.version;
-    if (lastSeenVersion !== currentVersion) {
-      setShowWhatsNew(true);
+    
+    if (lastSeenVersion) {
+      if (lastSeenVersion !== currentVersion) {
+        setShowWhatsNew(true);
+        localStorage.setItem('frucio-version', currentVersion);
+      }
+    } else {
+      // First visit, just set the version without showing the dialog
       localStorage.setItem('frucio-version', currentVersion);
     }
   }, []);
