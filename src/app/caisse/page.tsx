@@ -4,7 +4,6 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Search,
-  Barcode,
   Plus,
   Minus,
   Trash2,
@@ -67,9 +66,7 @@ interface CartState {
 }
 
 const caisseShortcuts = [
-  { group: 'Navigation', key: 'F1', description: 'Rechercher un produit' },
-  { group: 'Navigation', key: 'F2', description: 'Scanner un code-barres' },
-  { group: 'Navigation', key: 'Alt + C', description: 'Ouvrir la sélection de catégorie' },
+  { group: 'Navigation', key: 'F1', description: 'Rechercher ou scanner un produit' },
   { group: 'Clients', key: 'F4', description: 'Sélectionner / Désélectionner un client' },
   { group: 'Clients', key: 'Alt + N', description: 'Ajouter un nouveau client' },
   { group: 'Panier', key: 'F6', description: 'Appliquer une réduction' },
@@ -90,13 +87,11 @@ export default function CaissePage() {
   const [isStateLoaded, setIsStateLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Toutes');
-  const [barcode, setBarcode] = useState('');
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [addProductDialogOpen, setAddProductDialogOpen] = useState(false);
   const [barcodeForNewProduct, setBarcodeForNewProduct] = useState('');
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const barcodeInputRef = useRef<HTMLInputElement>(null);
   const customerComboboxTriggerRef = useRef<HTMLButtonElement>(null);
   const deselectCustomerTriggerRef = useRef<HTMLButtonElement>(null);
   const discountTriggerRef = useRef<HTMLButtonElement>(null);
@@ -158,14 +153,34 @@ export default function CaissePage() {
         return getRecentCustomers(transactions, customers, 4);
     }, [transactions, customers]);
 
+  const { displayedProducts, totalFilteredCount } = useMemo(() => {
+    if (!products) return { displayedProducts: [], totalFilteredCount: 0 };
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    const filtered = products.filter(product => {
+      const isNotArchived = !product.isArchived;
+      if (!isNotArchived) return false;
+      
+      const matchesCategory = selectedCategory === 'Toutes' || product.category === selectedCategory;
+      if (!matchesCategory) return false;
+      
+      if (searchTerm === '') return true;
+
+      const matchesSearch = product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+        (product.barcodes || []).some(b => b.includes(lowerCaseSearchTerm));
+        
+      return matchesSearch;
+    });
+    return {
+        displayedProducts: filtered.slice(0, 15),
+        totalFilteredCount: filtered.length
+    };
+  }, [products, searchTerm, selectedCategory]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'F1') {
         e.preventDefault();
         searchInputRef.current?.focus();
-      } else if (e.key === 'F2') {
-        e.preventDefault();
-        barcodeInputRef.current?.focus();
       } else if (e.key === 'F4') {
         e.preventDefault();
         if (selectedCustomer) {
@@ -218,7 +233,7 @@ export default function CaissePage() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedCustomer, carts, activeTab]);
+  }, [selectedCustomer, carts, activeTab, displayedProducts, searchTerm, products, selectedCategory]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -401,27 +416,40 @@ export default function CaissePage() {
         setReceiptData(data);
       }
       
-      barcodeInputRef.current?.focus();
+      searchInputRef.current?.focus();
   }
 
-  const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
         e.preventDefault();
-        const scannedBarcode = barcode.trim();
-        if (!scannedBarcode) return;
+        const value = searchTerm.trim();
+        if (!value) return;
 
-        const product = products.find(p => p.barcodes?.includes(scannedBarcode) && !p.isArchived);
-        if (product) {
-            addToCart(product);
-            setBarcode(''); // Clear input after adding
-        } else {
-            setBarcodeForNewProduct(scannedBarcode);
+        // 1. Prioritize exact barcode match
+        const productByBarcode = products.find(p => p.barcodes?.includes(value) && !p.isArchived);
+        if (productByBarcode) {
+            addToCart(productByBarcode);
+            setSearchTerm('');
+            return;
+        }
+        
+        // 2. If only one product is currently displayed in the grid, add it.
+        if (displayedProducts.length === 1) {
+            addToCart(displayedProducts[0]);
+            setSearchTerm('');
+            return;
+        }
+
+        // 3. If no exact barcode match and no single item in grid, check if it's a potential new barcode
+        if (/^\d{6,}$/.test(value)) {
+            setBarcodeForNewProduct(value);
             setAddProductDialogOpen(true);
             toast({
                 title: 'Produit non trouvé',
-                description: `Le code-barres "${scannedBarcode}" n'est pas dans la base. Veuillez l'ajouter.`,
+                description: `Le code-barres "${value}" n'est pas dans la base. Veuillez l'ajouter.`,
             });
         }
+        // 4. Otherwise, it's a search term with multiple or zero results. Do nothing.
     }
   };
 
@@ -436,20 +464,6 @@ export default function CaissePage() {
   }, [activeCart, productMap]);
 
   const total = subtotal - activeDiscount;
-
-  const { displayedProducts, totalFilteredCount } = useMemo(() => {
-    if (!products) return { displayedProducts: [], totalFilteredCount: 0 };
-    const filtered = products.filter(product => {
-      const matchesCategory = selectedCategory === 'Toutes' || product.category === selectedCategory;
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const isNotArchived = !product.isArchived;
-      return matchesCategory && matchesSearch && isNotArchived;
-    });
-    return {
-        displayedProducts: filtered.slice(0, 15),
-        totalFilteredCount: filtered.length
-    };
-  }, [products, searchTerm, selectedCategory]);
 
   const cartItemsForPayment = useMemo(() => {
     return activeCart
@@ -566,11 +580,14 @@ export default function CaissePage() {
               <div className="flex flex-col md:flex-row gap-2">
                 <div className="relative flex-grow">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input ref={searchInputRef} placeholder="Rechercher des produits... (F1)" className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                </div>
-                <div className="relative flex-grow">
-                  <Barcode className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input ref={barcodeInputRef} placeholder="Saisir le code-barres... (F2)" className="pl-8" value={barcode} onChange={e => setBarcode(e.target.value)} onKeyDown={handleBarcodeScan} />
+                  <Input 
+                    ref={searchInputRef} 
+                    placeholder="Rechercher ou scanner un produit... (F1)" 
+                    className="pl-8" 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                   />
                 </div>
                 <AddCustomProductDialog
                     onAdd={handleAddCustomProduct}
@@ -963,9 +980,8 @@ export default function CaissePage() {
         onOpenChange={(isOpen) => {
             setAddProductDialogOpen(isOpen);
             if (!isOpen) {
-                setBarcode('');
                 setBarcodeForNewProduct('');
-                barcodeInputRef.current?.focus();
+                searchInputRef.current?.focus();
             }
         }}
         defaultBarcode={barcodeForNewProduct}
