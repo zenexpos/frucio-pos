@@ -594,7 +594,7 @@ export default function CaissePage() {
                     trigger={
                         <Button ref={addCustomProductTriggerRef} variant="outline" className="w-full sm:w-auto">
                             <PlusSquare className="h-4 w-4" />
-                            Produit Personnalisé
+                            Personnalisé
                             <kbd className="ml-1.5 rounded bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">Alt+P</kbd>
                         </Button>
                     }
