@@ -1,15 +1,28 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
 import { useFormSubmission } from '@/hooks/use-form-submission';
 import { addSupplier } from '@/lib/mock-data/api';
 import { supplierSchema } from '@/lib/schemas';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
+
+const weekDays: MultiSelectOption[] = [
+    { value: 'Lundi', label: 'Lundi' },
+    { value: 'Mardi', label: 'Mardi' },
+    { value: 'Mercredi', label: 'Mercredi' },
+    { value: 'Jeudi', label: 'Jeudi' },
+    { value: 'Vendredi', label: 'Vendredi' },
+    { value: 'Samedi', label: 'Samedi' },
+    { value: 'Dimanche', label: 'Dimanche' },
+];
 
 export function AddSupplierForm({ onSuccess }: { onSuccess?: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -51,8 +64,18 @@ export function AddSupplierForm({ onSuccess }: { onSuccess?: () => void }) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="visitDay">Jours de visite</Label>
-        <Input id="visitDay" name="visitDay" placeholder="Ex: Lundi, Mercredi" />
-        <p className="text-xs text-muted-foreground">Séparez plusieurs jours par une virgule.</p>
+        <MultiSelect
+            options={weekDays}
+            selected={selectedDays}
+            onChange={setSelectedDays}
+            placeholder="Sélectionner les jours..."
+        />
+        <input type="hidden" name="visitDay" value={selectedDays.join(', ')} />
+        {errors?.visitDay && (
+          <p className="text-sm font-medium text-destructive">
+            {errors.visitDay._errors[0]}
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="contact">Contact (email)</Label>

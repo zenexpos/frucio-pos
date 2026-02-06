@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/forms/submit-button';
@@ -8,6 +8,18 @@ import { useFormSubmission } from '@/hooks/use-form-submission';
 import { updateSupplier } from '@/lib/mock-data/api';
 import type { Supplier } from '@/lib/types';
 import { supplierSchema } from '@/lib/schemas';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
+
+const weekDays: MultiSelectOption[] = [
+    { value: 'Lundi', label: 'Lundi' },
+    { value: 'Mardi', label: 'Mardi' },
+    { value: 'Mercredi', label: 'Mercredi' },
+    { value: 'Jeudi', label: 'Jeudi' },
+    { value: 'Vendredi', label: 'Vendredi' },
+    { value: 'Samedi', label: 'Samedi' },
+    { value: 'Dimanche', label: 'Dimanche' },
+];
+
 
 export function EditSupplierForm({
   supplier,
@@ -17,6 +29,9 @@ export function EditSupplierForm({
   onSuccess?: () => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [selectedDays, setSelectedDays] = useState<string[]>(
+    supplier.visitDay ? supplier.visitDay.split(',').map(d => d.trim()).filter(Boolean) : []
+  );
 
   const { isPending, errors, handleSubmit } = useFormSubmission({
     formRef,
@@ -55,8 +70,18 @@ export function EditSupplierForm({
       </div>
        <div className="space-y-2">
         <Label htmlFor="visitDay">Jours de visite</Label>
-        <Input id="visitDay" name="visitDay" defaultValue={supplier.visitDay} placeholder="Ex: Lundi, Mercredi" />
-        <p className="text-xs text-muted-foreground">Séparez plusieurs jours par une virgule.</p>
+        <MultiSelect
+            options={weekDays}
+            selected={selectedDays}
+            onChange={setSelectedDays}
+            placeholder="Sélectionner les jours..."
+        />
+        <input type="hidden" name="visitDay" value={selectedDays.join(', ')} />
+         {errors?.visitDay && (
+          <p className="text-sm font-medium text-destructive">
+            {errors.visitDay._errors[0]}
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="contact">Contact (email)</Label>
