@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { Checkbox } from '../ui/checkbox';
-import { EditSupplierDialog, DeleteSupplierDialog, AddSupplierTransactionDialog } from '@/components/dynamic';
+import { EditSupplierDialog, DeleteSupplierDialog, AddSupplierTransactionDialog, AddPurchaseInvoiceDialog } from '@/components/dynamic';
 
 
 export function FournisseurCard({
@@ -123,8 +123,7 @@ export function FournisseurCard({
               }
             />
             <DropdownMenuSeparator />
-            <AddSupplierTransactionDialog
-              type="purchase"
+            <AddPurchaseInvoiceDialog
               supplierId={supplier.id}
               trigger={
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

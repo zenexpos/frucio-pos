@@ -38,6 +38,7 @@ export const SupplierProducts = dynamic(() => import('@/components/fournisseurs/
 export const SupplierTransactionsView = dynamic(() => import('@/components/fournisseurs/supplier-transactions-view').then(mod => mod.SupplierTransactionsView), { ssr: false });
 export const EditSupplierTransactionDialog = dynamic(() => import('@/components/fournisseurs/edit-supplier-transaction-dialog').then(mod => mod.EditSupplierTransactionDialog), { ssr: false });
 export const DeleteSupplierTransactionDialog = dynamic(() => import('@/components/fournisseurs/delete-supplier-transaction-dialog').then(mod => mod.DeleteSupplierTransactionDialog), { ssr: false });
+export const AddPurchaseInvoiceDialog = dynamic(() => import('@/components/fournisseurs/add-purchase-invoice-dialog').then(mod => mod.AddPurchaseInvoiceDialog), { ssr: false });
 
 // Layout
 export const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });

@@ -12,7 +12,9 @@ import {
   EditSupplierTransactionDialog,
   DeleteSupplierTransactionDialog,
   TransactionsTable,
+  AddPurchaseInvoiceDialog,
 } from '@/components/dynamic';
+import { useMockData } from '@/hooks/use-mock-data';
 
 export function SupplierTransactionsView({
   transactions,
@@ -24,6 +26,7 @@ export function SupplierTransactionsView({
   supplierBalance: number;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { products } = useMockData();
 
   const filteredTransactions = useMemo(() => {
     if (!searchTerm) {
@@ -54,8 +57,7 @@ export function SupplierTransactionsView({
                 disabled={!hasTransactions}
               />
             </div>
-            <AddSupplierTransactionDialog
-              type="purchase"
+            <AddPurchaseInvoiceDialog
               supplierId={supplierId}
               trigger={
                 <Button variant="outline" id="add-purchase-btn">
@@ -85,6 +87,7 @@ export function SupplierTransactionsView({
         {hasResults ? (
           <TransactionsTable
             transactions={filteredTransactions}
+            products={products}
             actions={(transaction) => (
                 <div className="flex items-center justify-end gap-0.5">
                   <EditSupplierTransactionDialog transaction={transaction as SupplierTransaction} />

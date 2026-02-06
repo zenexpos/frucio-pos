@@ -93,7 +93,7 @@ export function TransactionsTable({
         <TableBody>
           {transactions.map((transaction) => {
             const isDebtLike = transaction.type === 'debt' || transaction.type === 'purchase';
-            const canExpand = 'saleItems' in transaction && transaction.saleItems && transaction.saleItems.length > 0;
+            const canExpand = ('saleItems' in transaction && transaction.saleItems && transaction.saleItems.length > 0) || ('purchaseItems' in transaction && transaction.purchaseItems && transaction.purchaseItems.length > 0);
             return (
                 <Fragment key={transaction.id}>
                     <TableRow
@@ -136,29 +136,56 @@ export function TransactionsTable({
                     {canExpand && expandedRowId === transaction.id && (
                         <TableRow className="bg-muted/20 hover:bg-muted/30">
                             <TableCell colSpan={showCustomerColumn ? 6 : 5} className="p-0">
-                                <div className="p-4">
-                                    <h4 className="font-semibold mb-2 text-sm">Détails de la vente</h4>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="hover:bg-transparent">
-                                                <TableHead className="h-auto">Produit</TableHead>
-                                                <TableHead className="h-auto text-center">Quantité</TableHead>
-                                                <TableHead className="h-auto text-right">Prix Unitaire</TableHead>
-                                                <TableHead className="h-auto text-right">Total</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {(transaction as Transaction).saleItems!.map((item, index) => (
-                                                <TableRow key={index} className="border-b-0 hover:bg-transparent">
-                                                    <TableCell className="py-2 font-medium">{item.productName || productMap?.get(item.productId) || item.productId}</TableCell>
-                                                    <TableCell className="py-2 text-center">{item.quantity}</TableCell>
-                                                    <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice)}</TableCell>
-                                                    <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
+                                {'saleItems' in transaction && transaction.saleItems && transaction.saleItems.length > 0 && (
+                                     <div className="p-4">
+                                        <h4 className="font-semibold mb-2 text-sm">Détails de la vente</h4>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="hover:bg-transparent">
+                                                    <TableHead className="h-auto">Produit</TableHead>
+                                                    <TableHead className="h-auto text-center">Quantité</TableHead>
+                                                    <TableHead className="h-auto text-right">Prix Unitaire</TableHead>
+                                                    <TableHead className="h-auto text-right">Total</TableHead>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {(transaction as Transaction).saleItems!.map((item, index) => (
+                                                    <TableRow key={index} className="border-b-0 hover:bg-transparent">
+                                                        <TableCell className="py-2 font-medium">{item.productName || productMap?.get(item.productId) || item.productId}</TableCell>
+                                                        <TableCell className="py-2 text-center">{item.quantity}</TableCell>
+                                                        <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice)}</TableCell>
+                                                        <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                                {'purchaseItems' in transaction && transaction.purchaseItems && transaction.purchaseItems.length > 0 && (
+                                     <div className="p-4">
+                                        <h4 className="font-semibold mb-2 text-sm">Détails de l'achat</h4>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className="hover:bg-transparent">
+                                                    <TableHead className="h-auto">Produit</TableHead>
+                                                    <TableHead className="h-auto text-center">Quantité</TableHead>
+                                                    <TableHead className="h-auto text-right">Prix Unitaire</TableHead>
+                                                    <TableHead className="h-auto text-right">Total</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {(transaction as SupplierTransaction).purchaseItems!.map((item, index) => (
+                                                    <TableRow key={index} className="border-b-0 hover:bg-transparent">
+                                                        <TableCell className="py-2 font-medium">{item.productName}</TableCell>
+                                                        <TableCell className="py-2 text-center">{item.quantity}</TableCell>
+                                                        <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice)}</TableCell>
+                                                        <TableCell className="py-2 text-right font-mono">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
                             </TableCell>
                         </TableRow>
                     )}

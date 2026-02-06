@@ -69,6 +69,13 @@ export interface Expense {
 
 export type SupplierTransactionType = 'purchase' | 'payment';
 
+export interface SupplierPurchaseItem {
+  productId: string | null;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 export interface SupplierTransaction {
   id: string;
   supplierId: string;
@@ -76,6 +83,7 @@ export interface SupplierTransaction {
   amount: number;
   date: string; // ISO Date string
   description: string;
+  purchaseItems?: SupplierPurchaseItem[] | null;
 }
 
 export interface Supplier {

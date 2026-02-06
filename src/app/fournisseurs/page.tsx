@@ -73,6 +73,7 @@ import {
   BulkDeleteSuppliersDialog,
   ShortcutsDialog,
   FournisseursGrid,
+  AddPurchaseInvoiceDialog,
 } from '@/components/dynamic';
 
 type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
@@ -733,8 +734,7 @@ export default function FournisseursPage() {
                                       </Button>
                                   }
                               />
-                              <AddSupplierTransactionDialog
-                                  type="purchase"
+                              <AddPurchaseInvoiceDialog
                                   supplierId={supplier.id}
                                   trigger={
                                       <Button variant="ghost" size="icon" className="h-8 w-8">

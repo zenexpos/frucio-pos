@@ -1,6 +1,6 @@
 'use client';
 import { mockDataStore, saveData, resetToSeedData as resetSeed } from './index';
-import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product, SupplierTransaction, CompanyInfo } from '@/lib/types';
+import type { Transaction, Customer, TransactionType, BreadOrder, Expense, Supplier, Product, SupplierTransaction, CompanyInfo, SupplierPurchaseItem } from '@/lib/types';
 import { format, startOfDay } from 'date-fns';
 import { formatCurrency } from '../utils';
 
@@ -426,6 +426,73 @@ export const deleteSupplierTransaction = (transactionId: string) => {
   
   mockDataStore.supplierTransactions.splice(transactionIndex, 1);
   saveData();
+};
+
+interface PurchaseInvoiceData {
+    supplierId: string;
+    description: string;
+    date: string;
+    items: SupplierPurchaseItem[];
+    amountPaid: number;
+}
+
+export const addPurchaseInvoice = async (data: PurchaseInvoiceData) => {
+    const supplier = mockDataStore.suppliers.find(s => s.id === data.supplierId);
+    if (!supplier) {
+        throw new Error("Fournisseur non trouvé.");
+    }
+
+    const invoiceTotal = data.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+
+    if (invoiceTotal <= 0) {
+        throw new Error("Le total de la facture doit être positif.");
+    }
+    
+    if (data.amountPaid > invoiceTotal) {
+        throw new Error("Le montant payé ne peut pas dépasser le total de la facture.");
+    }
+
+    // 1. Create the purchase transaction
+    const purchaseTransaction: SupplierTransaction = {
+        id: nextId(),
+        supplierId: data.supplierId,
+        type: 'purchase',
+        amount: invoiceTotal,
+        date: data.date,
+        description: data.description,
+        purchaseItems: data.items,
+    };
+    mockDataStore.supplierTransactions.push(purchaseTransaction);
+    supplier.balance += invoiceTotal;
+
+    // 2. Create the payment transaction if applicable
+    if (data.amountPaid > 0) {
+        const paymentTransaction: SupplierTransaction = {
+            id: nextId(),
+            supplierId: data.supplierId,
+            type: 'payment',
+            amount: data.amountPaid,
+            date: data.date,
+            description: `Paiement sur facture: ${data.description}`,
+            purchaseItems: null,
+        };
+        mockDataStore.supplierTransactions.push(paymentTransaction);
+        supplier.balance -= data.amountPaid;
+    }
+
+    // 3. Update product stock and purchase price
+    for (const item of data.items) {
+        if (item.productId) {
+            const product = mockDataStore.products.find(p => p.id === item.productId);
+            if (product) {
+                product.stock += item.quantity;
+                // Update purchase price to the latest price
+                product.purchasePrice = item.unitPrice;
+            }
+        }
+    }
+
+    saveData();
 };
 
 
