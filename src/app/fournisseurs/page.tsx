@@ -18,6 +18,7 @@ import {
   Upload,
   Download,
   X,
+  CalendarCheck2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,8 @@ import {
   FournisseursGrid,
   FournisseursTable,
 } from '@/components/dynamic';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
 type SortDirection = 'ascending' | 'descending';
@@ -71,6 +74,7 @@ const fournisseursShortcuts = [
   { group: 'Filtres', key: 'Alt + A', description: 'Afficher tous les fournisseurs' },
   { group: 'Filtres', key: 'Alt + P', description: 'Filtrer les fournisseurs à payer' },
   { group: 'Filtres', key: 'Alt + C', description: 'Filtrer les fournisseurs en crédit' },
+  { group: 'Filtres', key: 'Alt + J', description: "Filtrer les fournisseurs en visite aujourd'hui" },
   { group: 'Filtres', key: 'Alt + X', description: 'Effacer les filtres' },
   { group: 'Actions', key: 'Alt + N', description: 'Ajouter un nouveau fournisseur' },
   { group: 'Actions', key: 'Alt + I', description: "Importer des fournisseurs (CSV)" },
@@ -84,7 +88,7 @@ export default function FournisseursPage() {
     key: 'createdAt',
     direction: 'descending',
   });
-  const [activeFilter, setActiveFilter] = useState<'all' | 'toPay' | 'inCredit'>(
+  const [activeFilter, setActiveFilter] = useState<'all' | 'toPay' | 'inCredit' | 'visitingToday'>(
     'all'
   );
   const { suppliers, supplierTransactions, loading } = useMockData();
@@ -133,6 +137,7 @@ export default function FournisseursPage() {
     suppliersInCreditCount,
     totalDebtToSuppliers,
     totalCreditFromSuppliers,
+    visitingTodayCount,
   } = useMemo(() => {
     if (!suppliers) {
       return {
@@ -141,6 +146,7 @@ export default function FournisseursPage() {
         suppliersInCreditCount: 0,
         totalDebtToSuppliers: 0,
         totalCreditFromSuppliers: 0,
+        visitingTodayCount: 0,
       };
     }
 
@@ -148,6 +154,9 @@ export default function FournisseursPage() {
     let credit = 0;
     let toPayCount = 0;
     let inCreditCount = 0;
+    
+    const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
+    let visitingToday = 0;
 
     for (const s of suppliers) {
       if (s.balance > 0) {
@@ -157,6 +166,9 @@ export default function FournisseursPage() {
         credit += s.balance;
         inCreditCount++;
       }
+      if (s.visitDay?.toLowerCase().includes(todayName)) {
+        visitingToday++;
+      }
     }
 
     return {
@@ -165,6 +177,7 @@ export default function FournisseursPage() {
       suppliersInCreditCount: inCreditCount,
       totalDebtToSuppliers: debt,
       totalCreditFromSuppliers: Math.abs(credit),
+      visitingTodayCount: visitingToday,
     };
   }, [suppliers]);
 
@@ -184,6 +197,11 @@ export default function FournisseursPage() {
       filtered = filtered.filter((c) => c.balance > 0);
     } else if (activeFilter === 'inCredit') {
       filtered = filtered.filter((c) => c.balance < 0);
+    } else if (activeFilter === 'visitingToday') {
+        const todayName = format(new Date(), 'EEEE', { locale: fr }).toLowerCase();
+        filtered = filtered.filter(
+            (s) => s.visitDay && s.visitDay.toLowerCase().includes(todayName)
+        );
     }
 
     filtered.sort((a, b) => {
@@ -259,6 +277,9 @@ export default function FournisseursPage() {
       } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
         setActiveFilter('inCredit');
+      } else if (e.altKey && (e.key === 'j' || e.key === 'J')) {
+        e.preventDefault();
+        setActiveFilter('visitingToday');
       } else if (e.altKey && (e.key === 'x' || e.key === 'X')) {
         e.preventDefault();
         clearFiltersButtonRef.current?.click();
@@ -359,7 +380,7 @@ export default function FournisseursPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard
           title="Total Fournisseurs"
           value={totalSuppliers}
@@ -383,6 +404,14 @@ export default function FournisseursPage() {
           icon={ListX}
           onClick={() => setActiveFilter('inCredit')}
           isActive={activeFilter === 'inCredit'}
+        />
+         <StatCard
+          title="En Visite Aujourd'hui"
+          value={visitingTodayCount}
+          description="Fournisseurs qui visitent aujourd'hui"
+          icon={CalendarCheck2}
+          onClick={() => setActiveFilter('visitingToday')}
+          isActive={activeFilter === 'visitingToday'}
         />
         <StatCard
           title="Dette Totale"
