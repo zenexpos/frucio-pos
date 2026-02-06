@@ -12,6 +12,7 @@ import {
   User,
   UserPlus,
   PlusSquare,
+  HandCoins,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -479,7 +480,7 @@ export default function CaissePage() {
   const getProductImage = (product: Product) => {
       const imageId = slugify(product.name);
       const img = productImages.find(i => i.id === imageId);
-      const size = 200;
+      const size = 100;
       if (img) {
           return {
               url: `https://picsum.photos/seed/${img.seed}/${size}/${size}`,
@@ -623,8 +624,8 @@ export default function CaissePage() {
                               <Image
                                 src={url}
                                 alt={product.name}
-                                width={200}
-                                height={200}
+                                width={100}
+                                height={100}
                                 className={cn("object-cover w-full h-32", isOutOfStock && "grayscale")}
                                 data-ai-hint={hint}
                               />
@@ -736,21 +737,26 @@ export default function CaissePage() {
                                 </Button>
                             </div>
                             <div className="text-center pt-1">
-                                <p className={cn("text-2xl font-bold font-mono", getBalanceColorClassName(selectedCustomer.balance))}>
-                                    {formatCurrency(selectedCustomer.balance)}
-                                </p>
+                                <div className="flex items-center justify-center gap-2">
+                                    <p className={cn("text-2xl font-bold font-mono", getBalanceColorClassName(selectedCustomer.balance))}>
+                                        {formatCurrency(selectedCustomer.balance)}
+                                    </p>
+                                    {selectedCustomer.balance > 0 && (
+                                        <SettleDebtDialog
+                                            customerId={selectedCustomer.id}
+                                            customerName={selectedCustomer.name}
+                                            customerBalance={selectedCustomer.balance}
+                                            onSuccess={() => { /* Data refreshes automatically */ }}
+                                            trigger={
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-accent">
+                                                    <HandCoins className="h-5 w-5" />
+                                                    <span className="sr-only">Régler le solde</span>
+                                                </Button>
+                                            }
+                                        />
+                                    )}
+                                </div>
                                 <p className="text-xs text-muted-foreground">Solde actuel du client</p>
-                                {selectedCustomer.balance > 0 && (
-                                    <SettleDebtDialog
-                                        customerId={selectedCustomer.id}
-                                        customerName={selectedCustomer.name}
-                                        customerBalance={selectedCustomer.balance}
-                                        onSuccess={() => { /* Data refreshes automatically */ }}
-                                        trigger={
-                                            <Button variant="link" className="mt-2 h-auto p-0 text-base">Régler le solde</Button>
-                                        }
-                                    />
-                                )}
                             </div>
                           </div>
                       ) : (
