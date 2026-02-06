@@ -55,7 +55,8 @@ export function EditSupplierForm({
       </div>
        <div className="space-y-2">
         <Label htmlFor="visitDay">Jours de visite</Label>
-        <Input id="visitDay" name="visitDay" defaultValue={supplier.visitDay} />
+        <Input id="visitDay" name="visitDay" defaultValue={supplier.visitDay} placeholder="Ex: Lundi, Mercredi" />
+        <p className="text-xs text-muted-foreground">Séparez plusieurs jours par une virgule.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="contact">Contact (email)</Label>

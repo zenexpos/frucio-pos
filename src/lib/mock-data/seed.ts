@@ -47,7 +47,7 @@ export const SEED_EXPENSE_CATEGORIES: string[] = [
 ];
 
 export const SEED_SUPPLIERS: Omit<Supplier, 'id' | 'totalPurchases' | 'totalPayments'>[] = [
-    { name: 'Fournisseur de Farine', category: 'Matières Premières', contact: 'contact@farine.com', phone: '021000001', balance: 0, visitDay: 'Lundi', createdAt: subDays(new Date(), 60).toISOString() },
+    { name: 'Fournisseur de Farine', category: 'Matières Premières', contact: 'contact@farine.com', phone: '021000001', balance: 0, visitDay: 'Lundi, Jeudi', createdAt: subDays(new Date(), 60).toISOString() },
     { name: 'Fournisseur d\'Emballage', category: 'Emballage', contact: 'contact@emballage.com', phone: '021000002', balance: 0, visitDay: 'Jeudi', createdAt: subDays(new Date(), 90).toISOString() },
 ];
 
