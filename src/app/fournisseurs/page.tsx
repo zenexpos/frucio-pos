@@ -6,20 +6,13 @@ import type { Supplier } from '@/lib/types';
 import FournisseursLoading from './loading';
 import {
   Search,
-  ArrowUp,
-  ArrowDown,
-  ChevronsUpDown,
   PlusCircle,
-  MinusCircle,
   ArrowRight,
   Truck,
   ListChecks,
   ListX,
   WalletCards,
   HandCoins,
-  Pencil,
-  Trash2,
-  Printer,
   LayoutGrid,
   List,
   Upload,
@@ -29,22 +22,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import {
   formatCurrency,
-  getBalanceVariant,
   getBalanceColorClassName,
   getInitials,
   getRecentSuppliers,
 } from '@/lib/utils';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { StatCard } from '@/components/dashboard/stat-card';
 import {
@@ -56,7 +38,6 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { exportSuppliersToCsv } from '@/lib/mock-data/api';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -66,14 +47,11 @@ import {
 } from '@/components/ui/select';
 import {
   AddSupplierDialog,
-  EditSupplierDialog,
-  DeleteSupplierDialog,
-  AddSupplierTransactionDialog,
   SupplierCsvImportDialog,
   BulkDeleteSuppliersDialog,
   ShortcutsDialog,
   FournisseursGrid,
-  AddPurchaseInvoiceDialog,
+  FournisseursTable,
 } from '@/components/dynamic';
 
 type SortKey = keyof Supplier | 'totalPurchases' | 'totalPayments';
@@ -325,18 +303,6 @@ export default function FournisseursPage() {
     setSortConfig({ key: key as SortKey, direction: direction as SortDirection });
   };
 
-  const getSortIcon = (key: SortKey) => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return (
-        <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
-      );
-    }
-    if (sortConfig.direction === 'ascending') {
-      return <ArrowUp className="h-4 w-4" />;
-    }
-    return <ArrowDown className="h-4 w-4" />;
-  };
-
   const areFiltersActive = searchTerm !== '' || activeFilter !== 'all';
 
   const handleClearFilters = () => {
@@ -369,13 +335,6 @@ export default function FournisseursPage() {
       }
     });
   };
-
-  const isAllOnPageSelected =
-    paginatedSuppliers.length > 0 &&
-    paginatedSuppliers.every((p) => selectedSupplierIds.includes(p.id));
-  const isSomeOnPageSelected =
-    paginatedSuppliers.some((p) => selectedSupplierIds.includes(p.id)) &&
-    !isAllOnPageSelected;
 
   if (loading) {
     return <FournisseursLoading />;
@@ -456,10 +415,9 @@ export default function FournisseursPage() {
                   <div className="ml-4 flex-grow">
                     <p className="font-semibold text-sm">{supplier.name}</p>
                     <p
-                      className={cn(
-                        'text-xs font-mono',
-                        getBalanceColorClassName(supplier.balance)
-                      )}
+                      className={`text-xs font-mono ${getBalanceColorClassName(
+                        supplier.balance
+                      )}`}
                     >
                       {formatCurrency(supplier.balance)}
                     </p>
@@ -605,174 +563,14 @@ export default function FournisseursPage() {
                 onSelectionChange={handleSelectSupplier}
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="p-2 w-10">
-                        <Checkbox
-                          checked={
-                            isAllOnPageSelected
-                              ? true
-                              : isSomeOnPageSelected
-                              ? 'indeterminate'
-                              : false
-                          }
-                          onCheckedChange={handleSelectAll}
-                        />
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          onClick={() => requestSort('name')}
-                          className="px-2 py-1 h-auto"
-                        >
-                          Nom{getSortIcon('name')}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          onClick={() => requestSort('phone')}
-                          className="px-2 py-1 h-auto"
-                        >
-                          Téléphone{getSortIcon('phone')}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          onClick={() => requestSort('category')}
-                          className="px-2 py-1 h-auto"
-                        >
-                          Catégorie{getSortIcon('category')}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          onClick={() => requestSort('visitDay')}
-                          className="px-2 py-1 h-auto"
-                        >
-                          Jours de visite{getSortIcon('visitDay')}
-                        </Button>
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <Button
-                          variant="ghost"
-                          onClick={() => requestSort('balance')}
-                          className="px-2 py-1 h-auto justify-end w-full"
-                        >
-                          Solde{getSortIcon('balance')}
-                        </Button>
-                      </TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedSuppliers.map((supplier) => (
-                      <TableRow
-                        key={supplier.id}
-                        data-state={
-                          selectedSupplierIds.includes(supplier.id) &&
-                          'selected'
-                        }
-                      >
-                        <TableCell className="p-4">
-                          <Checkbox
-                            checked={selectedSupplierIds.includes(supplier.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelectSupplier(supplier.id, checked)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          <Link
-                            href={`/fournisseurs/${supplier.id}`}
-                            className="hover:underline"
-                          >
-                            {supplier.name}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {supplier.phone}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{supplier.category}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {supplier.visitDay || '-'}
-                        </TableCell>
-                        <TableCell
-                          className={cn(
-                            'text-right font-mono',
-                            getBalanceVariant(supplier.balance)
-                          )}
-                        >
-                          {formatCurrency(supplier.balance)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-0.5">
-                              <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                                  <Link href={`/fournisseurs/${supplier.id}`}>
-                                      <ArrowRight className="h-4 w-4" />
-                                      <span className="sr-only">Voir les détails</span>
-                                  </Link>
-                              </Button>
-                              <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                                  <Link href={`/fournisseurs/${supplier.id}?print=true`} target="_blank">
-                                      <Printer className="h-4 w-4" />
-                                      <span className="sr-only">Imprimer le relevé</span>
-                                  </Link>
-                              </Button>
-                              <EditSupplierDialog
-                                  supplier={supplier}
-                                  trigger={
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                          <Pencil className="h-4 w-4" />
-                                          <span className="sr-only">Modifier</span>
-                                      </Button>
-                                  }
-                              />
-                              <AddPurchaseInvoiceDialog
-                                  supplierId={supplier.id}
-                                  trigger={
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                          <PlusCircle className="h-4 w-4" />
-                                          <span className="sr-only">Enregistrer un Achat</span>
-                                      </Button>
-                                  }
-                              />
-                              {supplier.balance > 0 && (
-                                  <AddSupplierTransactionDialog
-                                      type="payment"
-                                      supplierId={supplier.id}
-                                      defaultAmount={supplier.balance}
-                                      trigger={
-                                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                                              <MinusCircle className="h-4 w-4" />
-                                              <span className="sr-only">Enregistrer un Paiement</span>
-                                          </Button>
-                                      }
-                                  />
-                              )}
-                              <DeleteSupplierDialog
-                                  supplierId={supplier.id}
-                                  supplierName={supplier.name}
-                                  trigger={
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                          <Trash2 className="h-4 w-4" />
-                                          <span className="sr-only">Supprimer</span>
-                                      </Button>
-                                  }
-                              />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <FournisseursTable
+                suppliers={paginatedSuppliers}
+                onSort={requestSort}
+                sortConfig={sortConfig}
+                selectedSupplierIds={selectedSupplierIds}
+                onSelectAll={handleSelectAll}
+                onSelectSupplier={handleSelectSupplier}
+              />
             )
           ) : (
             <div className="text-center py-16 border-2 border-dashed rounded-lg">

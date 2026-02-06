@@ -33,6 +33,7 @@ export const AddSupplierTransactionDialog = dynamic(() => import('@/components/f
 export const SupplierCsvImportDialog = dynamic(() => import('@/components/fournisseurs/csv-import-dialog').then(mod => mod.SupplierCsvImportDialog), { ssr: false });
 export const BulkDeleteSuppliersDialog = dynamic(() => import('@/components/fournisseurs/bulk-delete-supplier-dialog').then(mod => mod.BulkDeleteSuppliersDialog), { ssr: false });
 export const FournisseursGrid = dynamic(() => import('@/components/fournisseurs/fournisseurs-grid').then(mod => mod.FournisseursGrid), { ssr: false });
+export const FournisseursTable = dynamic(() => import('@/components/fournisseurs/fournisseurs-table').then(mod => mod.FournisseursTable), { ssr: false });
 export const SupplierBalanceHistoryChart = dynamic(() => import('@/components/fournisseurs/supplier-balance-history-chart').then(mod => mod.SupplierBalanceHistoryChart), { ssr: false });
 export const SupplierProducts = dynamic(() => import('@/components/fournisseurs/supplier-products').then(mod => mod.SupplierProducts), { ssr: false });
 export const SupplierTransactionsView = dynamic(() => import('@/components/fournisseurs/supplier-transactions-view').then(mod => mod.SupplierTransactionsView), { ssr: false });
