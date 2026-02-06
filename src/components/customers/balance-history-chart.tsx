@@ -154,7 +154,7 @@ export function BalanceHistoryChart({
               dataKey="balance"
               name="Solde"
               type="monotone"
-              stroke="var(--color-balance)"
+              stroke={chartConfig.balance.color}
               strokeWidth={2}
               dot={true}
             />
