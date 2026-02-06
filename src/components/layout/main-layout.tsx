@@ -17,6 +17,7 @@ import {
   FileText,
   Menu,
   ShoppingBasket,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -55,6 +56,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     { href: '/history', label: 'Historique', icon: History },
     { href: '/alerts', label: 'Alertes', icon: Bell },
     { href: '/parametres', label: 'Paramètres', icon: Settings },
+    { href: '/a-propos', label: 'À Propos', icon: Info },
   ];
 
   const NavContent = () => (
