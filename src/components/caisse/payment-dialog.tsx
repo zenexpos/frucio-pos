@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +54,7 @@ export function PaymentDialog({
   const [printReceipt, setPrintReceipt] = useState(false);
   const { toast } = useToast();
   const { customers } = useMockData();
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -148,6 +149,14 @@ export function PaymentDialog({
     }
     setOpen(isOpen);
   };
+  
+  const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmButtonRef.current?.click();
+    }
+  };
+
 
   const paymentButtonText = customerId
     ? 'Confirmer la vente'
@@ -184,6 +193,7 @@ export function PaymentDialog({
               type="number"
               value={amountPaidStr}
               onChange={(e) => setAmountPaidStr(e.target.value)}
+              onKeyDown={handleInputKeyDown}
               placeholder="0.00"
               className="text-lg h-12"
             />
@@ -243,7 +253,7 @@ export function PaymentDialog({
               Annuler
             </Button>
           </DialogClose>
-          <Button onClick={handlePayment} disabled={isPending || total <= 0}>
+          <Button ref={confirmButtonRef} onClick={handlePayment} disabled={isPending || total <= 0}>
             {isPending ? <Loader2 className="animate-spin" /> : paymentButtonText}
           </Button>
         </DialogFooter>
