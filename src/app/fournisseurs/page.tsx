@@ -380,7 +380,7 @@ export default function FournisseursPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Fournisseurs"
           value={totalSuppliers}
@@ -392,7 +392,7 @@ export default function FournisseursPage() {
         <StatCard
           title="Fournisseurs à Payer"
           value={suppliersToPayCount}
-          description="Fournisseurs avec solde > 0"
+          description={formatCurrency(totalDebtToSuppliers)}
           icon={ListChecks}
           onClick={() => setActiveFilter('toPay')}
           isActive={activeFilter === 'toPay'}
@@ -400,7 +400,7 @@ export default function FournisseursPage() {
         <StatCard
           title="Fournisseurs en Crédit"
           value={suppliersInCreditCount}
-          description="Fournisseurs avec solde < 0"
+          description={formatCurrency(totalCreditFromSuppliers)}
           icon={ListX}
           onClick={() => setActiveFilter('inCredit')}
           isActive={activeFilter === 'inCredit'}
@@ -412,18 +412,6 @@ export default function FournisseursPage() {
           icon={CalendarCheck2}
           onClick={() => setActiveFilter('visitingToday')}
           isActive={activeFilter === 'visitingToday'}
-        />
-        <StatCard
-          title="Dette Totale"
-          value={formatCurrency(totalDebtToSuppliers)}
-          description="Argent dû aux fournisseurs"
-          icon={WalletCards}
-        />
-        <StatCard
-          title="Crédit Total"
-          value={formatCurrency(totalCreditFromSuppliers)}
-          description="Argent avancé aux fournisseurs"
-          icon={HandCoins}
         />
       </div>
 
