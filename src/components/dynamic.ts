@@ -43,6 +43,7 @@ export const AddPurchaseInvoiceDialog = dynamic(() => import('@/components/fourn
 
 // Layout
 export const ShortcutsDialog = dynamic(() => import('@/components/layout/shortcuts-dialog').then(mod => mod.ShortcutsDialog), { ssr: false });
+export const WhatsNewDialog = dynamic(() => import('@/components/layout/whats-new-dialog').then(mod => mod.WhatsNewDialog), { ssr: false });
 
 // Orders
 export const AddOrderDialog = dynamic(() => import('@/components/orders/add-order-dialog').then(mod => mod.AddOrderDialog), { ssr: false });

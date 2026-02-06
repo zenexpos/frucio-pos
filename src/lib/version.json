@@ -1,0 +1,35 @@
+{
+  "version": "1.0.1",
+  "changelog": [
+    {
+      "title": "Gestion Améliorée des Versions et Nouveautés",
+      "features": [
+        "Mise en place d'un système de versioning automatique.",
+        "Affichage d'une fenêtre 'Nouveautés' lors de la mise à jour de l'application pour informer les utilisateurs des derniers changements."
+      ]
+    },
+    {
+      "title": "Améliorations de l'Interface Fournisseurs",
+      "features": [
+        "Remplacement du champ de saisie de texte pour les jours de visite par une liste de sélection multiple, plus intuitive.",
+        "Amélioration des cartes statistiques pour une vue d'ensemble plus claire."
+      ]
+    },
+    {
+      "title": "Gestion Complète des Factures d'Achat",
+      "features": [
+        "Possibilité d'enregistrer des factures d'achat complètes avec plusieurs articles.",
+        "Mise à jour automatique du stock et du prix d'achat des produits lors de l'enregistrement d'une facture.",
+        "Possibilité de spécifier le montant payé directement lors de la saisie de la facture."
+      ]
+    },
+    {
+        "title": "Support des Codes-Barres Multiples",
+        "features": [
+            "Possibilité d'assigner plusieurs codes-barres à un seul produit.",
+            "Amélioration de la recherche en caisse pour scanner n'importe quel code-barres associé.",
+            "Mise à jour des dialogues de طباعة pour gérer les codes-barres multiples."
+        ]
+    }
+  ]
+}

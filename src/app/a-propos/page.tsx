@@ -1,7 +1,16 @@
+'use client';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBasket } from 'lucide-react';
+import versionData from '@/lib/version.json';
 
 export default function AboutPage() {
+  const [version, setVersion] = useState('1.0.0');
+
+  useEffect(() => {
+    setVersion(versionData.version);
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex flex-col items-center text-center">
@@ -55,7 +64,7 @@ export default function AboutPage() {
       </Card>
       
        <div className="text-center text-xs text-muted-foreground pt-8">
-          <p>Frucio v1.0.0</p>
+          <p>Frucio v{version}</p>
           <p>Développé avec passion pour les commerçants.</p>
         </div>
     </div>
