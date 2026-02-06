@@ -748,8 +748,8 @@ export default function CaissePage() {
                                             customerBalance={selectedCustomer.balance}
                                             onSuccess={() => { /* Data refreshes automatically */ }}
                                             trigger={
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-accent">
-                                                    <HandCoins className="h-5 w-5" />
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-accent">
+                                                    <HandCoins className="h-6 w-6" />
                                                     <span className="sr-only">Régler le solde</span>
                                                 </Button>
                                             }
