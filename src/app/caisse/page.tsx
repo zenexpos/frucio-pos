@@ -410,7 +410,7 @@ export default function CaissePage() {
         const scannedBarcode = barcode.trim();
         if (!scannedBarcode) return;
 
-        const product = products.find(p => p.barcode === scannedBarcode && !p.isArchived);
+        const product = products.find(p => p.barcodes?.includes(scannedBarcode) && !p.isArchived);
         if (product) {
             addToCart(product);
             setBarcode(''); // Clear input after adding
@@ -463,7 +463,7 @@ export default function CaissePage() {
                     purchasePrice: 0, // Assume 0 cost for custom items
                     stock: Infinity,
                     minStock: 0,
-                    barcode: '',
+                    barcodes: [],
                     isArchived: false,
                     description: '',
                     supplierId: null,

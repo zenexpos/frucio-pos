@@ -29,7 +29,6 @@ export function AddProductForm({ onSuccess, defaultBarcode }: { onSuccess?: (new
       return addProduct({
         ...data,
         description: data.description || '',
-        barcode: data.barcode || '',
         supplierId: selectedSupplierId,
       });
     },
@@ -66,8 +65,10 @@ export function AddProductForm({ onSuccess, defaultBarcode }: { onSuccess?: (new
         </Select>
       </div>
        <div className="space-y-2">
-        <Label htmlFor="barcode">Code-barres</Label>
-        <Input id="barcode" name="barcode" placeholder="Ex: 1234567890123" defaultValue={defaultBarcode || ''} />
+        <Label htmlFor="barcodes">Codes-barres</Label>
+        <Textarea id="barcodes" name="barcodes" placeholder="Un code-barres par ligne..." defaultValue={defaultBarcode || ''} rows={3} />
+        <p className="text-xs text-muted-foreground">Ajoutez plusieurs codes-barres en les séparant par un retour à la ligne.</p>
+        {errors?.barcodes && <p className="text-sm font-medium text-destructive">{errors.barcodes._errors[0]}</p>}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

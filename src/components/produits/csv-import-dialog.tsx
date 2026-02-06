@@ -38,7 +38,7 @@ const PRODUCT_MODEL_FIELDS: (keyof Product)[] = [
   'name',
   'category',
   'description',
-  'barcode',
+  'barcodes',
   'purchasePrice',
   'sellingPrice',
   'stock',
@@ -131,6 +131,9 @@ export function ProductCsvImportDialog({ trigger }: { trigger?: React.ReactNode 
           if (['stock', 'minStock'].includes(productField)) {
               value = Math.round(value);
           }
+           if (productField === 'barcodes' && typeof value === 'string') {
+            value = value.split(';').map(b => b.trim()).filter(Boolean);
+          }
           if (productField === 'id') {
             value = String(value);
           }
@@ -163,7 +166,7 @@ export function ProductCsvImportDialog({ trigger }: { trigger?: React.ReactNode 
             name: product.name || 'Produit sans nom',
             category: product.category || 'Non classé',
             description: product.description || '',
-            barcode: product.barcode || '',
+            barcodes: product.barcodes || [],
             purchasePrice: product.purchasePrice ?? 0,
             sellingPrice: product.sellingPrice ?? 0,
             stock: product.stock ?? 0,
@@ -185,7 +188,9 @@ export function ProductCsvImportDialog({ trigger }: { trigger?: React.ReactNode 
     setEditedData((prev) => {
       const newData = [...prev];
       const newRow = { ...newData[rowIndex] };
-      if (['purchasePrice', 'sellingPrice', 'stock', 'minStock'].includes(fieldName)) {
+      if (fieldName === 'barcodes') {
+        (newRow as any)[fieldName] = value.split(';').map(b => b.trim()).filter(Boolean);
+      } else if (['purchasePrice', 'sellingPrice', 'stock', 'minStock'].includes(fieldName)) {
         (newRow as any)[fieldName] = parseFloat(value) || 0;
       } else {
         (newRow as any)[fieldName] = value;
@@ -377,7 +382,7 @@ export function ProductCsvImportDialog({ trigger }: { trigger?: React.ReactNode 
                       {PRODUCT_MODEL_FIELDS.map((field) => (
                         <TableCell key={field}>
                           <Input
-                            value={(product as any)[field] ?? ''}
+                             value={Array.isArray((product as any)[field]) ? ((product as any)[field] as string[]).join(';') : (product as any)[field] ?? ''}
                             onChange={(e) =>
                               handleCellChange(rowIndex, field, e.target.value)
                             }

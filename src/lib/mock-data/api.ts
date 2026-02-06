@@ -542,7 +542,7 @@ export const duplicateProduct = async (productId: string): Promise<Product> => {
         ...originalProduct,
         id: nextId(),
         name: `${originalProduct.name} (Copie)`,
-        barcode: '', // Barcodes should be unique
+        barcodes: [], // Barcodes should be unique
         isArchived: false,
     };
     mockDataStore.products.push(newProduct);
@@ -644,7 +644,7 @@ export const exportProductsToCsv = () => {
     if (mockDataStore.products.length === 0) {
         return;
     }
-    const headers = ['id', 'name', 'category', 'barcode', 'purchasePrice', 'sellingPrice', 'stock', 'minStock', 'supplierId'];
+    const headers = ['id', 'name', 'category', 'description', 'barcodes', 'purchasePrice', 'sellingPrice', 'stock', 'minStock', 'supplierId'];
     const csvRows = [
         headers.join(',')
     ];
@@ -652,6 +652,9 @@ export const exportProductsToCsv = () => {
     for (const product of mockDataStore.products) {
         const values = headers.map(header => {
             let val = (product as any)[header];
+            if (header === 'barcodes' && Array.isArray(val)) {
+                val = val.join(';');
+            }
             if (val === null || val === undefined) {
                 val = '';
             }

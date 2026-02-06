@@ -57,10 +57,10 @@ export const SEED_SUPPLIER_TRANSACTIONS: Omit<SupplierTransaction, 'id' | 'suppl
 ];
 
 export const SEED_PRODUCTS: Omit<Product, 'id'>[] = [
-    { name: 'Pain Complet', category: 'Boulangerie', barcode: '613000000001', purchasePrice: 20, sellingPrice: 30, stock: 100, minStock: 20, supplierId: '1' },
-    { name: 'Croissant', category: 'Viennoiserie', barcode: '613000000002', purchasePrice: 40, sellingPrice: 70, stock: 50, minStock: 10, supplierId: '1' },
-    { name: 'Sac en papier', category: 'Emballage', barcode: '613000000003', purchasePrice: 5, sellingPrice: 5, stock: 500, minStock: 100, supplierId: '2' },
-    { name: 'Jus d\'orange', category: 'Boissons', barcode: '613000000004', purchasePrice: 80, sellingPrice: 120, stock: 30, minStock: 10, supplierId: null },
+    { name: 'Pain Complet', category: 'Boulangerie', barcodes: ['613000000001'], purchasePrice: 20, sellingPrice: 30, stock: 100, minStock: 20, supplierId: '1' },
+    { name: 'Croissant', category: 'Viennoiserie', barcodes: ['613000000002', '613000000022'], purchasePrice: 40, sellingPrice: 70, stock: 50, minStock: 10, supplierId: '1' },
+    { name: 'Sac en papier', category: 'Emballage', barcodes: ['613000000003'], purchasePrice: 5, sellingPrice: 5, stock: 500, minStock: 100, supplierId: '2' },
+    { name: 'Jus d\'orange', category: 'Boissons', barcodes: ['613000000004'], purchasePrice: 80, sellingPrice: 120, stock: 30, minStock: 10, supplierId: null },
 ];
 
 

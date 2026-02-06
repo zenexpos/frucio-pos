@@ -53,7 +53,7 @@ export const productSchema = z.object({
   name: z.string().min(2, { message: 'Le nom doit comporter au moins 2 caractères.' }),
   category: z.string().min(2, { message: 'La catégorie doit comporter au moins 2 caractères.' }),
   description: z.string().optional(),
-  barcode: z.string().optional(),
+  barcodes: z.string().optional().transform(val => val ? val.split('\n').map(b => b.trim()).filter(Boolean) : []),
   purchasePrice: z.coerce.number().min(0, { message: 'Le prix doit être un nombre positif.' }),
   sellingPrice: z.coerce.number().positive({ message: 'Le prix doit être un nombre positif.' }),
   stock: z.coerce.number().int({ message: 'Le stock doit être un nombre entier.' }).min(0),

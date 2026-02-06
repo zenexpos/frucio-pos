@@ -42,11 +42,14 @@ export const BulkBarcodeLabels = React.forwardRef<HTMLDivElement, BulkBarcodeLab
         `}
       </style>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 label-grid-print">
-        {products.map(product => (
-          <div key={product.id} className="border border-dashed border-gray-400">
-            <BarcodeLabel product={product} />
-          </div>
-        ))}
+        {products.map(product => {
+          const barcode = product.barcodes[0];
+          return (
+            <div key={`${product.id}-${barcode}`} className="border border-dashed border-gray-400">
+              <BarcodeLabel product={product} />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

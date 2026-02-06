@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { Trash2, Plus } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Separator } from '../ui/separator';
+import { Badge } from '../ui/badge';
 
 type FormItem = Omit<SupplierPurchaseItem, 'productName'> & { productName: string };
 
@@ -125,52 +126,67 @@ export function AddPurchaseInvoiceForm({
         
         <div className="space-y-3">
             <Label>Articles</Label>
-            {items.map((item, index) => (
-                <div key={index} className="flex items-end gap-2 p-2 border rounded-md">
-                    <div className="grid gap-2 flex-grow grid-cols-3">
-                         <div className="space-y-1">
-                            <Label htmlFor={`item-name-${index}`} className="text-xs">Produit</Label>
-                             <Input
-                                id={`item-name-${index}`}
-                                placeholder="Nom du produit"
-                                value={item.productName}
-                                onChange={(e) => handleItemChange(index, 'productName', e.target.value)}
-                                list="product-list"
-                                onBlur={(e) => {
-                                    const matchingProduct = products.find(p => p.name === e.target.value);
-                                    if(matchingProduct) {
-                                        handleItemChange(index, 'productId', matchingProduct.id);
-                                    }
-                                }}
-                            />
+            {items.map((item, index) => {
+                const product = item.productId ? productMap.get(item.productId) : null;
+                return (
+                    <div key={index} className="flex items-start gap-2 p-2 border rounded-md">
+                        <div className="grid gap-2 flex-grow">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div className="space-y-1 col-span-3 sm:col-span-1">
+                                    <Label htmlFor={`item-name-${index}`} className="text-xs">Produit</Label>
+                                    <Input
+                                        id={`item-name-${index}`}
+                                        placeholder="Nom du produit"
+                                        value={item.productName}
+                                        onChange={(e) => handleItemChange(index, 'productName', e.target.value)}
+                                        list="product-list"
+                                        onBlur={(e) => {
+                                            const matchingProduct = products.find(p => p.name === e.target.value);
+                                            if(matchingProduct) {
+                                                handleItemChange(index, 'productId', matchingProduct.id);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor={`item-quantity-${index}`} className="text-xs">Qté</Label>
+                                    <Input
+                                        id={`item-quantity-${index}`}
+                                        type="number"
+                                        value={item.quantity}
+                                        onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 0)}
+                                        className="text-center"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor={`item-price-${index}`} className="text-xs">P.U.</Label>
+                                    <Input
+                                        id={`item-price-${index}`}
+                                        type="number"
+                                        step="0.01"
+                                        value={item.unitPrice}
+                                        onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                        className="text-right"
+                                    />
+                                </div>
+                            </div>
+                            {product && product.barcodes?.length > 0 && (
+                                <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Codes-barres</Label>
+                                    <div className="flex flex-wrap gap-1">
+                                        {product.barcodes.map(b => (
+                                            <Badge key={b} variant="secondary" className="font-mono">{b}</Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div className="space-y-1">
-                            <Label htmlFor={`item-quantity-${index}`} className="text-xs">Qté</Label>
-                            <Input
-                                id={`item-quantity-${index}`}
-                                type="number"
-                                value={item.quantity}
-                                onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 0)}
-                                className="text-center"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor={`item-price-${index}`} className="text-xs">P.U.</Label>
-                            <Input
-                                id={`item-price-${index}`}
-                                type="number"
-                                step="0.01"
-                                value={item.unitPrice}
-                                onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                className="text-right"
-                            />
-                        </div>
+                        <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-destructive shrink-0" onClick={() => handleRemoveItem(index)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
                     </div>
-                     <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => handleRemoveItem(index)}>
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
-                </div>
-            ))}
+                )
+            })}
             <datalist id="product-list">
                 {products.filter(p => !p.isArchived).map(p => <option key={p.id} value={p.name} />)}
             </datalist>

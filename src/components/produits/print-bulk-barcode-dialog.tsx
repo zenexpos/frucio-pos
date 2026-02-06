@@ -25,16 +25,24 @@ export function PrintBulkBarcodeDialog({ productIds }: PrintBulkBarcodeDialogPro
   const labelRef = useRef<HTMLDivElement>(null);
   const { products: allProducts } = useMockData();
 
-  const selectedProducts = useMemo(() => {
+  const productsWithBarcodesToPrint = useMemo(() => {
+    const products: Product[] = [];
     const productMap = new Map(allProducts.map(p => [p.id, p]));
-    return productIds.map(id => productMap.get(id)).filter((p): p is Product => !!p);
+    productIds.forEach(id => {
+      const product = productMap.get(id);
+      if (product && product.barcodes) {
+        product.barcodes.forEach(barcode => {
+          // Create a new product object for each barcode to be printed
+          products.push({ ...product, barcodes: [barcode] });
+        });
+      }
+    });
+    return products;
   }, [productIds, allProducts]);
 
   const handlePrint = useReactToPrint({
     content: () => labelRef.current,
   });
-
-  const productsWithBarcode = selectedProducts.filter(p => p.barcode);
 
   return (
     <Dialog>
@@ -48,17 +56,16 @@ export function PrintBulkBarcodeDialog({ productIds }: PrintBulkBarcodeDialogPro
         <DialogHeader>
           <DialogTitle>Imprimer les codes-barres en masse</DialogTitle>
           <DialogDescription>
-            Aperçu des étiquettes pour les {productsWithBarcode.length} produit(s) sélectionné(s) avec un code-barres.
-            Les produits sans code-barres ne seront pas imprimés.
+            Aperçu des étiquettes pour les {productsWithBarcodesToPrint.length} code(s)-barres du ou des produit(s) sélectionné(s).
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 my-4 max-h-[60vh] overflow-y-auto bg-muted rounded-md p-4">
-          <BulkBarcodeLabels ref={labelRef} products={productsWithBarcode} />
+          <BulkBarcodeLabels ref={labelRef} products={productsWithBarcodesToPrint} />
         </div>
         <DialogFooter>
-          <Button onClick={handlePrint} disabled={productsWithBarcode.length === 0}>
+          <Button onClick={handlePrint} disabled={productsWithBarcodesToPrint.length === 0}>
             <Printer />
-            Imprimer ({productsWithBarcode.length} étiquettes)
+            Imprimer ({productsWithBarcodesToPrint.length} étiquettes)
           </Button>
         </DialogFooter>
       </DialogContent>

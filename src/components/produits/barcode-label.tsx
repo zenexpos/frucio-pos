@@ -11,12 +11,14 @@ interface BarcodeLabelProps {
 export const BarcodeLabel = React.forwardRef<HTMLDivElement, BarcodeLabelProps>(({ product }, ref) => {
   if (!product) return null;
 
+  const barcodeToPrint = product.barcodes && product.barcodes[0];
+
   return (
     <div ref={ref} className="p-2 bg-white text-black flex flex-col items-center justify-center break-inside-avoid h-full w-full">
       <h3 className="font-bold text-sm text-center truncate w-full">{product.name}</h3>
       <div className="my-2">
-        {product.barcode ? (
-          <Barcode value={product.barcode} height={30} width={1.2} fontSize={10} margin={2} />
+        {barcodeToPrint ? (
+          <Barcode value={barcodeToPrint} height={30} width={1.2} fontSize={10} margin={2} />
         ) : (
           <div className="h-[44px] flex items-center">
              <p className="text-xs text-red-600">Aucun code-barres</p>

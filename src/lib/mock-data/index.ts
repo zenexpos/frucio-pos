@@ -109,6 +109,12 @@ export function loadData() {
       if (!parsedData.products) {
           parsedData.products = [];
       }
+      if (parsedData.products && parsedData.products.length > 0 && ('barcode' in parsedData.products[0])) {
+        parsedData.products = parsedData.products.map((p: any) => {
+          const { barcode, ...rest } = p;
+          return { ...rest, barcodes: barcode ? [barcode] : [] };
+        });
+      }
        if (parsedData.products && parsedData.products.length > 0 && !('description' in parsedData.products[0])) {
         parsedData.products = parsedData.products.map((p: any) => ({...p, description: ''}));
       }
@@ -170,6 +176,7 @@ export function resetToSeedData() {
       ...p,
       id: (i + 1).toString(),
       description: p.description || '',
+      barcodes: p.barcodes || [],
       isArchived: false,
   }));
 
