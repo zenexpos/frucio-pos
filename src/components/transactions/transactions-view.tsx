@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Search, PlusCircle, MinusCircle, FileText } from 'lucide-react';
 import { formatCurrency, getBalanceColorClassName } from '@/lib/utils';
 import { AddTransactionDialog, EditTransactionDialog, DeleteTransactionDialog, TransactionsTable } from '@/components/dynamic';
+import { useMockData } from '@/hooks/use-mock-data';
 
 export function TransactionsView({
   transactions,
@@ -19,6 +20,7 @@ export function TransactionsView({
   customerBalance: number;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { products } = useMockData();
 
   const filteredTransactions = useMemo(() => {
     if (!searchTerm) {
@@ -80,14 +82,15 @@ export function TransactionsView({
         {hasResults ? (
           <TransactionsTable
             transactions={filteredTransactions}
+            products={products}
             actions={(transaction) => (
-              <div className="flex items-center justify-end gap-0.5">
-                <EditTransactionDialog transaction={transaction as Transaction} />
-                <DeleteTransactionDialog
-                  transactionId={transaction.id}
-                  transactionDescription={transaction.description}
-                />
-              </div>
+                <div className="flex items-center justify-end gap-0.5">
+                  <EditTransactionDialog transaction={transaction as Transaction} />
+                  <DeleteTransactionDialog
+                    transactionId={transaction.id}
+                    transactionDescription={transaction.description}
+                  />
+                </div>
             )}
           />
         ) : (
