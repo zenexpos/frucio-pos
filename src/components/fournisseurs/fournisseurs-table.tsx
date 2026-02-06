@@ -37,7 +37,7 @@ export function FournisseursTable({
   onSelectAll,
   onSelectSupplier,
 }: {
-  suppliers: Supplier[];
+  suppliers: (Supplier & { totalPurchases?: number | undefined; totalPayments?: number | undefined; })[];
   onSort: (key: SortKey) => void;
   sortConfig: {
     key: SortKey;
@@ -112,6 +112,11 @@ export function FournisseursTable({
                     Jours de visite{getSortIcon('visitDay')}
                 </Button>
             </TableHead>
+             <TableHead className="hidden lg:table-cell">
+                <Button variant="ghost" onClick={() => onSort('totalPurchases')} className="px-2 py-1 h-auto">
+                    Total Achats {getSortIcon('totalPurchases')}
+                </Button>
+            </TableHead>
             <TableHead className="text-right">
               <div className="flex justify-end w-full">
                 <Button
@@ -155,6 +160,9 @@ export function FournisseursTable({
               <TableCell className="text-muted-foreground">{supplier.phone}</TableCell>
               <TableCell><Badge variant="outline">{supplier.category}</Badge></TableCell>
               <TableCell className="text-muted-foreground">{supplier.visitDay || '-'}</TableCell>
+              <TableCell className="hidden lg:table-cell text-muted-foreground font-mono">
+                  {formatCurrency(supplier.totalPurchases || 0)}
+              </TableCell>
               <TableCell
                 className={cn(
                   'text-right font-mono',
