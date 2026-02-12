@@ -134,6 +134,18 @@ export default function CaissePage() {
         setIsStateLoaded(true);
     }
   }, []);
+  
+  // This effect ensures that if the active tab is closed, we switch to a valid one.
+  useEffect(() => {
+    if (!isStateLoaded) return;
+    
+    if (carts && !carts[activeTab]) {
+      const firstTabKey = Object.keys(carts)[0];
+      if (firstTabKey) {
+        setActiveTab(firstTabKey);
+      }
+    }
+  }, [carts, activeTab, isStateLoaded]);
 
   const hasCartIssues = useMemo(() => {
     if (!products) return false;
@@ -175,6 +187,23 @@ export default function CaissePage() {
         totalFilteredCount: filtered.length
     };
   }, [products, searchTerm, selectedCategory]);
+
+  const closeTab = (tabIdToClose: string) => {
+    if (Object.keys(carts).length <= 1) {
+        toast({
+            title: 'Action non autorisée',
+            description: 'Vous ne pouvez pas fermer le dernier onglet de vente.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    setCarts(prevCarts => {
+        const newCarts = {...prevCarts};
+        delete newCarts[tabIdToClose];
+        return newCarts;
+    });
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -381,28 +410,6 @@ export default function CaissePage() {
     setCarts(prev => ({...prev, [newTabId]: { items: [], discount: 0, customerId: null }}));
     setActiveTab(newTabId);
   }
-
-  const closeTab = (tabIdToClose: string) => {
-    if (Object.keys(carts).length <= 1) {
-        toast({
-            title: 'Action non autorisée',
-            description: 'Vous ne pouvez pas fermer le dernier onglet de vente.',
-            variant: 'destructive',
-        });
-        return;
-    }
-
-    setCarts(prevCarts => {
-        const newCarts = {...prevCarts};
-        delete newCarts[tabIdToClose];
-        
-        if (activeTab === tabIdToClose) {
-            setActiveTab(Object.keys(newCarts)[0]);
-        }
-        
-        return newCarts;
-    });
-  };
   
   const handlePaymentSuccess = (data: ReceiptData | null) => {
       if (Object.keys(carts).length > 1) {
