@@ -147,6 +147,17 @@ export const addBreadOrder = async (data: AddBreadOrderData) => {
 export const updateBreadOrder = async (orderId: string, data: Partial<Omit<BreadOrder, 'id'>>) => {
   const order = mockDataStore.breadOrders.find(o => o.id === orderId);
   if (order) {
+    // If the 'isPinned' status is changing, this action affects the entire series of recurring orders.
+    // We apply the same pin status to all orders sharing the same name.
+    if (data.isPinned !== undefined && data.isPinned !== order.isPinned) {
+        const newPinStatus = data.isPinned;
+        mockDataStore.breadOrders.forEach(o => {
+            if (o.name === order.name) {
+                o.isPinned = newPinStatus;
+            }
+        });
+    }
+
     Object.assign(order, data);
     saveData();
   }
@@ -156,6 +167,21 @@ export const updateBreadOrder = async (orderId: string, data: Partial<Omit<Bread
 export const deleteBreadOrder = async (orderId: string) => {
     const orderIndex = mockDataStore.breadOrders.findIndex(o => o.id === orderId);
     if (orderIndex > -1) {
+        const orderToDelete = mockDataStore.breadOrders[orderIndex];
+
+        // If the order being deleted is a recurring one (pinned),
+        // we interpret this as stopping the recurrence.
+        if (orderToDelete.isPinned) {
+            const orderName = orderToDelete.name;
+            // Un-pin all orders with the same name to stop recurrence
+            mockDataStore.breadOrders.forEach(order => {
+                if (order.name === orderName) {
+                    order.isPinned = false;
+                }
+            });
+        }
+
+        // Remove the specific order instance
         mockDataStore.breadOrders.splice(orderIndex, 1);
         saveData();
     }
